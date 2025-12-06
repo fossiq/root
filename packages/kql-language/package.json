@@ -1,0 +1,15 @@
+{
+    "name": "@expedition/kql-language",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "src/index.ts",
+    "dependencies": {
+        "@codemirror/language": "^6.0.0"
+    },
+    "peerDependencies": {
+        "codemirror": "^6.0.0"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
+    }
+}

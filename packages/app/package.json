@@ -1,0 +1,30 @@
+{
+    "name": "@expedition/app",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@expedition/kql-executor": "workspace:*",
+        "@expedition/kql-language": "workspace:*",
+        "@picocss/pico": "^2.0.6",
+        "@tanstack/solid-table": "^8.20.5",
+        "codemirror": "^6.0.1",
+        "@codemirror/view": "^6.26.3",
+        "@codemirror/state": "^6.4.1",
+        "@codemirror/commands": "^6.5.0",
+        "@codemirror/language": "^6.10.1",
+        "@codemirror/autocomplete": "^6.15.0",
+        "papaparse": "^5.4.1",
+        "solid-js": "^1.8.15"
+    },
+    "devDependencies": {
+        "@types/papaparse": "^5.3.14",
+        "typescript": "^5.4.3",
+        "vite": "^5.2.8",
+        "vite-plugin-solid": "^2.10.2"
+    }
+}

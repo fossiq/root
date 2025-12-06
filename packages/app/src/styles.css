@@ -1,0 +1,278 @@
+/* DocuSign Themed Styling */
+
+:root {
+  /* DocuSign Colors */
+  --ds-cobalt: #4C00FF;
+  --ds-inkwell: #130032;
+  --ds-deep-violet: #26065D;
+  --ds-mist: #CBC2FF;
+  --ds-poppy: #FF5252;
+  --ds-ecru: #F8F3F0;
+  --ds-white: #FFFFFF;
+  --ds-black: #000000;
+  --ds-silver: #E9E9E9;
+
+  /* Light Mode Defaults */
+  --app-bg: var(--ds-ecru);
+  --sidebar-bg: var(--ds-white);
+  --header-bg: var(--ds-white);
+  --border-color: #d9d9d9;
+  --text-primary: var(--ds-inkwell);
+  --text-secondary: #555555;
+  --accent-color: var(--ds-cobalt);
+  --accent-hover: #3a00c2;
+  --editor-bg: var(--ds-white);
+  --row-hover: rgba(76, 0, 255, 0.05);
+  --row-alt: rgba(0, 0, 0, 0.02);
+
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-code: "Cascadia Code", "Fira Code", Consolas, "Courier New", monospace;
+
+  --sidebar-width: 250px;
+  --header-height: 48px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark Mode Defaults - DocuSign Dark Theme */
+    --app-bg: var(--ds-deep-violet);
+    --sidebar-bg: var(--ds-inkwell);
+    --header-bg: var(--ds-inkwell);
+    --border-color: #3e2b6b;
+    /* Lighter violet */
+    --text-primary: var(--ds-white);
+    --text-secondary: var(--ds-mist);
+    --accent-color: var(--ds-mist);
+    /* Lighter for contrast on dark */
+    --accent-hover: var(--ds-white);
+    --editor-bg: var(--ds-inkwell);
+    --row-hover: rgba(203, 194, 255, 0.1);
+    --row-alt: rgba(255, 255, 255, 0.03);
+  }
+}
+
+/* Base Reset & Typography */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  background-color: var(--app-bg);
+  font-size: 14px;
+  /* Decent base size */
+}
+
+/* Layout Grid */
+.adx-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Sidebar */
+.adx-sidebar {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+/* Main Content */
+.adx-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+
+/* Toolbar */
+.adx-toolbar {
+  height: var(--header-height);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background-color: var(--header-bg);
+  gap: 12px;
+}
+
+/* Split Panes */
+.adx-content-split {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.adx-query-panel {
+  flex: 1;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--editor-bg);
+}
+
+.adx-results-panel {
+  flex: 1;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--app-bg);
+  overflow: hidden;
+}
+
+/* Editor Specifics */
+.cm-editor {
+  flex: 1;
+  font-size: 14px;
+}
+
+.cm-editor .cm-scroller {
+  font-family: var(--font-code) !important;
+  line-height: 1.6;
+}
+
+.cm-editor .cm-gutters {
+  background-color: var(--editor-bg) !important;
+  border-right: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+/* Buttons */
+.adx-btn {
+  background-color: var(--accent-color);
+  color: var(--ds-white);
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  font-family: var(--font-family);
+}
+
+/* Adjust text color for light accent in dark mode if needed, but white on cobalt/mist usually ok */
+@media (prefers-color-scheme: dark) {
+  .adx-btn {
+    color: var(--ds-inkwell);
+    /* Dark text on light Mist button */
+  }
+}
+
+.adx-btn:hover {
+  background-color: var(--accent-hover);
+}
+
+.adx-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* Sidebar Items */
+.data-tree-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+  font-size: 13px;
+  transition: background-color 0.1s;
+}
+
+.data-tree-item:hover {
+  background-color: var(--row-hover);
+}
+
+.data-tree-item svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  opacity: 0.7;
+}
+
+/* Results Table */
+table[role="grid"] {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  /* Slightly smaller for density */
+}
+
+table[role="grid"] th {
+  background-color: var(--sidebar-bg);
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: left;
+  border-bottom: 2px solid var(--border-color);
+  padding: 8px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+table[role="grid"] td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+}
+
+/* Alternating Row Styling */
+table[role="grid"] tbody tr:nth-child(even) {
+  background-color: var(--row-alt);
+}
+
+table[role="grid"] tbody tr:hover {
+  background-color: var(--row-hover);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-secondary);
+}

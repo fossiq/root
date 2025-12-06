@@ -1,0 +1,10 @@
+{
+  "name": "expedition-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun --filter ./packages/app dev"
+  }
+}

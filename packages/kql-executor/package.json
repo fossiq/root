@@ -1,0 +1,14 @@
+{
+    "name": "@expedition/kql-executor",
+    "version": "1.0.0",
+    "type": "module",
+    "main": "src/index.ts",
+    "dependencies": {
+        "dexie": "^4.2.1",
+        "papaparse": "^5.4.1"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0",
+        "@types/papaparse": "^5.3.14"
+    }
+}
