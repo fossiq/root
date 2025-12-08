@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 0.1.9
+
+### Patch Changes
+
+- ea8976b: chore: debugging CI/CD
+
 ## 0.1.8
 
 ### Patch Changes
