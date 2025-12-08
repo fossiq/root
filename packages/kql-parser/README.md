@@ -46,6 +46,8 @@ console.log(ast);
 
 **Advanced:** Let statements, qualified identifiers (`Table.Column`), named arguments
 
+**Not yet supported:** Subqueries
+
 ## Examples
 
 ### Basic Filtering and Projection
@@ -200,7 +202,7 @@ Tests are organized by feature (operators, expressions, etc.) and validate that 
 
 **98% feature complete** - The parser handles the vast majority of real-world KQL queries.
 
-See `.copilot/kql-parser/status.md` for detailed feature checklist.
+See [status.md](../../.copilot/kql-parser/status.md) for detailed feature checklist.
 
 ## License
 
