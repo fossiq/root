@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 0.1.4
+
+### Patch Changes
+
+- aac7899: Fix npm authentication in CI/CD workflow
+
 ## 0.1.3
 
 ### Patch Changes
