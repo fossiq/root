@@ -8,6 +8,10 @@ import type {
   InExpression,
   BetweenExpression,
   ParenthesizedExpression,
+  ConditionalExpression,
+  FunctionCall,
+  NamedArgument,
+  TypeCastExpression,
   Literal,
   StringLiteral,
 } from '../types.js';
@@ -67,13 +71,120 @@ export function buildArithmeticExpression(node: SyntaxNode, buildAST: (node: Syn
 export function buildParenthesizedExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ParenthesizedExpression {
   const expr = node.children.find(c => c.type !== '(' && c.type !== ')');
   if (!expr) {
-    throw new Error('Parenthesized expression missing inner expression');
+    throw new Error('Parenthesized expression missing expression');
   }
-
   return {
     type: 'parenthesized_expression',
     expression: buildAST(expr) as Expression,
   };
+}
+
+export function buildConditionalExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ConditionalExpression {
+  // Determine function type (iff or case)
+  const functionName = node.child(0)?.text;
+  if (functionName !== 'iff' && functionName !== 'case') {
+    throw new Error('Conditional expression must be iff or case');
+  }
+
+  // Collect all expression arguments
+  const args: Expression[] = [];
+  for (let i = 0; i < node.childCount; i++) {
+    const child = node.child(i);
+    if (child && (child.type === 'expression' || child.type.includes('_expression') || child.type === 'identifier' || child.type === 'literal')) {
+      args.push(buildAST(child) as Expression);
+    }
+  }
+
+  return {
+    type: 'conditional_expression',
+    function: functionName as 'iff' | 'case',
+    arguments: args,
+  };
+}
+
+export function buildFunctionCall(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): FunctionCall {
+  const nameNode = node.child(0);
+  if (!nameNode || nameNode.type !== 'identifier') {
+    throw new Error('Function call missing name');
+  }
+
+  const argList = node.children.find(c => c.type === 'argument_list');
+  const args: (Expression | NamedArgument)[] = [];
+
+  if (argList) {
+    for (let i = 0; i < argList.childCount; i++) {
+      const child = argList.child(i);
+      if (child && child.type === 'argument') {
+        const argChild = child.child(0);
+        if (argChild) {
+          if (argChild.type === 'named_argument') {
+            args.push(buildNamedArgument(argChild, buildAST));
+          } else {
+            args.push(buildAST(argChild) as Expression);
+          }
+        }
+      } else if (child && child.type !== ',') {
+        // Handle expressions directly
+        args.push(buildAST(child) as Expression);
+      }
+    }
+  }
+
+  return {
+    type: 'function_call',
+    name: buildIdentifier(nameNode),
+    arguments: args,
+  };
+}
+
+export function buildNamedArgument(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): NamedArgument {
+  const nameNode = node.child(0);
+  const valueNode = node.child(2); // Skip '='
+
+  if (!nameNode || !valueNode) {
+    throw new Error('Named argument missing name or value');
+  }
+
+  return {
+    type: 'named_argument',
+    name: buildIdentifier(nameNode),
+    value: buildAST(valueNode) as Expression,
+  };
+}
+
+export function buildTypeCastExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): TypeCastExpression {
+  // Check if it's :: syntax (expr :: type) or to syntax (to type(expr))
+  const hasDoubleColon = node.children.some(c => c.text === '::');
+
+  if (hasDoubleColon) {
+    // expr :: type
+    const expr = node.child(0);
+    const typeNode = node.child(2); // Skip '::'
+
+    if (!expr || !typeNode) {
+      throw new Error('Type cast expression missing expression or type');
+    }
+
+    return {
+      type: 'type_cast_expression',
+      expression: buildAST(expr) as Expression,
+      targetType: typeNode.text,
+    };
+  } else {
+    // to type(expr)
+    const typeNode = node.child(1); // After 'to'
+    const expr = node.children.find(c => c.type === 'expression' || c.type.includes('_expression') || c.type === 'identifier');
+
+    if (!typeNode || !expr) {
+      throw new Error('Type cast expression missing type or expression');
+    }
+
+    return {
+      type: 'type_cast_expression',
+      expression: buildAST(expr) as Expression,
+      targetType: typeNode.text,
+    };
+  }
 }
 
 export function buildStringExpression(node: SyntaxNode): StringExpression {

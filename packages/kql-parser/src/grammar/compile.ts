@@ -33,7 +33,9 @@ function serializeRule(rule: Rule, indent: string = '  '): string {
       return JSON.stringify(rule.value);
 
     case 'PATTERN':
-      return `/${rule.value}/`;
+      // Escape forward slashes in regex patterns
+      const escapedPattern = rule.value.replace(/\//g, '\\/');
+      return `/${escapedPattern}/`;
 
     case 'SYMBOL':
       return `$.${rule.name}`;
@@ -105,6 +107,19 @@ function generateGrammarJS(config: GrammarConfig): string {
     }
   }
 
+  let extrasSection = '';
+  if (config.extras && config.extras.length > 0) {
+    const extrasArray = config.extras.map(extra => {
+      const serialized = serializeRule(extra, '    ');
+      // Wrap pattern-based extras in token() for proper lexing
+      if (extra.type === 'PATTERN') {
+        return `token(${serialized})`;
+      }
+      return serialized;
+    }).join(',\n    ');
+    extrasSection = `\n\n  extras: $ => [\n    ${extrasArray}\n  ],`;
+  }
+
   let conflictsSection = '';
   if (config.conflicts && config.conflicts.length > 0) {
     const conflictArrays = config.conflicts.map(conflict =>
@@ -114,7 +129,7 @@ function generateGrammarJS(config: GrammarConfig): string {
   }
 
   return `module.exports = grammar({
-  name: '${config.name}',${conflictsSection}
+  name: '${config.name}',${extrasSection}${conflictsSection}
 
   rules: {
 ${rules.join(',\n')},

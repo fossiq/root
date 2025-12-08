@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Tree-sitter
+build/
+*.node
+*.o
+*.so
+*.dylib
+.test-query.kql
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

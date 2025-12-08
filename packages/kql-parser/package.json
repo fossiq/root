@@ -1,12 +1,48 @@
 {
   "name": "@expedition/kql-parser",
   "version": "0.1.0",
-  "main": "src/index.ts",
+  "description": "A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "grammar.js",
+    "binding.gyp",
+    "README.md"
+  ],
+  "keywords": [
+    "kql",
+    "kusto",
+    "parser",
+    "tree-sitter",
+    "azure",
+    "data-explorer",
+    "query-language",
+    "ast"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sushruth/expedition.git",
+    "directory": "packages/kql-parser"
+  },
+  "bugs": {
+    "url": "https://github.com/sushruth/expedition/issues"
+  },
+  "homepage": "https://github.com/sushruth/expedition/tree/main/packages/kql-parser#readme",
+  "author": "Sushruth Sastry",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "compile-grammar": "bun src/grammar/compile.ts",
-    "prebuild": "bun run compile-grammar",
-    "build": "tsc",
-    "test": "bun test"
+    "generate": "bun run compile-grammar && tree-sitter generate",
+    "build": "bun run generate && tsc",
+    "prebuild": "bun run generate",
+    "prepublishOnly": "bun run build && bun run test-grammar",
+    "test": "bun test",
+    "test-grammar": "bun scripts/test-grammar.ts"
   },
   "dependencies": {
     "tree-sitter": "^0.21.0",

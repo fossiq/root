@@ -1,16 +1,33 @@
 import type { SyntaxNode } from 'tree-sitter';
 import type {
   Identifier,
+  QualifiedIdentifier,
   StringLiteral,
   NumberLiteral,
   BooleanLiteral,
   NullLiteral,
+  DynamicLiteral,
 } from '../types.js';
 
 export function buildIdentifier(node: SyntaxNode): Identifier {
   return {
     type: 'identifier',
     name: node.text,
+  };
+}
+
+export function buildQualifiedIdentifier(node: SyntaxNode): QualifiedIdentifier {
+  const table = node.child(0);
+  const column = node.child(2); // Skip '.'
+
+  if (!table || !column) {
+    throw new Error('Qualified identifier missing table or column');
+  }
+
+  return {
+    type: 'qualified_identifier',
+    table: buildIdentifier(table),
+    column: buildIdentifier(column),
   };
 }
 
@@ -41,5 +58,23 @@ export function buildNullLiteral(node: SyntaxNode): NullLiteral {
   return {
     type: 'null_literal',
     value: null,
+  };
+}
+
+export function buildDynamicLiteral(node: SyntaxNode): DynamicLiteral {
+  // Extract the content inside dynamic(...)
+  // Skip 'dynamic', '(', and ')'
+  let content = '';
+  for (let i = 0; i < node.childCount; i++) {
+    const child = node.child(i);
+    if (child && child.type !== 'dynamic' && child.text !== '(' && child.text !== ')') {
+      content = child.text;
+      break;
+    }
+  }
+
+  return {
+    type: 'dynamic_literal',
+    value: content,
   };
 }

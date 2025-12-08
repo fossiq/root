@@ -4,11 +4,14 @@
  */
 
 import type { RuleFunction, RuleBuilder } from './types.js';
-import { seq, choice, repeat, optional, prec } from './helpers.js';
+import { seq, choice, repeat, optional, prec, token } from './helpers.js';
 
 export const sourceFile: RuleFunction = ($) => repeat($._statement);
 
-export const _statement: RuleFunction = ($) => choice($.query_statement);
+export const _statement: RuleFunction = ($) => choice($.let_statement, $.query_statement);
+
+export const letStatement: RuleFunction = ($) =>
+  seq('let', $.identifier, '=', $.expression, ';');
 
 export const queryStatement: RuleFunction = ($) =>
   seq($.table_name, repeat($.pipe_expression));
@@ -21,6 +24,11 @@ export const operator: RuleFunction = ($) =>
     $.where_clause,
     $.project_clause,
     $.extend_clause,
+    $.summarize_clause,
+    $.join_clause,
+    $.union_clause,
+    $.parse_clause,
+    $.mv_expand_clause,
     $.take_clause,
     $.limit_clause,
     $.sort_clause,
@@ -41,6 +49,92 @@ export const projectClause: RuleFunction = ($) =>
 
 export const extendClause: RuleFunction = ($) =>
   seq('extend', $.column_list);
+
+export const summarizeClause: RuleFunction = ($) =>
+  seq(
+    'summarize',
+    $.aggregation_list,
+    optional(seq('by', $.expression_list))
+  );
+
+export const aggregationList: RuleFunction = ($) =>
+  seq($.aggregation_expression, repeat(seq(',', $.aggregation_expression)));
+
+export const aggregationExpression: RuleFunction = ($) =>
+  choice(
+    seq($.identifier, '=', $.expression),
+    $.expression
+  );
+
+export const expressionList: RuleFunction = ($) =>
+  seq($.expression, repeat(seq(',', $.expression)));
+
+export const joinClause: RuleFunction = ($) =>
+  seq(
+    'join',
+    optional(seq('kind', '=', $.join_kind)),
+    choice(
+      seq('(', $.table_name, ')'),
+      $.table_name
+    ),
+    'on',
+    $.join_conditions
+  );
+
+export const joinKind: RuleFunction = ($) =>
+  choice(
+    'inner',
+    'leftouter',
+    'rightouter',
+    'leftanti',
+    'rightanti',
+    'leftsemi',
+    'rightsemi',
+    'fullouter'
+  );
+
+export const joinConditions: RuleFunction = ($) =>
+  seq($.join_condition, repeat(seq(',', $.join_condition)));
+
+export const joinCondition: RuleFunction = ($) =>
+  choice(
+    seq(optional('$left.'), $.identifier, '==', optional('$right.'), $.identifier),
+    $.identifier
+  );
+
+export const unionClause: RuleFunction = ($) =>
+  seq(
+    'union',
+    optional(seq('kind', '=', $.union_kind)),
+    optional(seq('isfuzzy', '=', choice('true', 'false'))),
+    $.table_list
+  );
+
+export const unionKind: RuleFunction = ($) =>
+  choice('inner', 'outer');
+
+export const tableList: RuleFunction = ($) =>
+  seq($.table_name, repeat(seq(',', $.table_name)));
+
+export const parseClause: RuleFunction = ($) =>
+  seq(
+    'parse',
+    optional(seq('kind', '=', $.parse_kind)),
+    $.expression,
+    'with',
+    $.string_literal
+  );
+
+export const parseKind: RuleFunction = ($) =>
+  choice('simple', 'regex', 'relaxed');
+
+export const mvExpandClause: RuleFunction = ($) =>
+  seq(
+    choice('mv-expand', 'mvexpand'),
+    $.expression,
+    optional(seq('to', 'typeof', '(', $.identifier, ')')),
+    optional(seq('limit', $.number_literal))
+  );
 
 export const takeClause: RuleFunction = ($) =>
   seq('take', $.number_literal);
@@ -89,7 +183,7 @@ export const columnList: RuleFunction = ($) =>
   seq($.column_expression, repeat(seq(',', $.column_expression)));
 
 export const columnExpression: RuleFunction = ($) =>
-  choice($.identifier, $.column_assignment);
+  choice($.column_assignment, $.expression);
 
 export const columnAssignment: RuleFunction = ($) =>
   seq($.identifier, '=', $.expression);
@@ -103,8 +197,18 @@ export const expression: RuleFunction = ($) =>
     $.in_expression,
     $.between_expression,
     $.parenthesized_expression,
+    $.conditional_expression,
+    $.type_cast_expression,
+    $.function_call,
     $.literal,
+    $.qualified_identifier,
     $.identifier
+  );
+
+export const conditionalExpression: RuleFunction = ($) =>
+  choice(
+    seq('iff', '(', $.expression, ',', $.expression, ',', $.expression, ')'),
+    seq('case', '(', $.expression, repeat(seq(',', $.expression)), ')')
   );
 
 export const binaryExpression: RuleFunction = ($) =>
@@ -113,7 +217,7 @@ export const binaryExpression: RuleFunction = ($) =>
 export const comparisonExpression: RuleFunction = ($) =>
   prec.left(
     2,
-    seq($.identifier, choice('==', '!=', '>', '<', '>=', '<='), $.literal)
+    seq($.expression, choice('==', '!=', '>', '<', '>=', '<='), $.expression)
   );
 
 export const arithmeticExpression: RuleFunction = ($) =>
@@ -145,7 +249,18 @@ export const literalList: RuleFunction = ($) =>
   seq($.literal, repeat(seq(',', $.literal)));
 
 export const literal: RuleFunction = ($) =>
-  choice($.string_literal, $.number_literal, $.boolean_literal, $.null_literal);
+  choice(
+    $.string_literal,
+    $.number_literal,
+    $.boolean_literal,
+    $.null_literal,
+    $.timespan_literal,
+    $.array_literal,
+    $.dynamic_literal
+  );
+
+export const dynamicLiteral: RuleFunction = ($) =>
+  seq('dynamic', '(', choice($.string_literal, $.array_literal, $.number_literal), ')');
 
 export const stringLiteral: RuleFunction = ($) =>
   choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'"));
@@ -166,3 +281,41 @@ export const identifier: RuleFunction = ($) => ({
   type: 'PATTERN',
   value: '[a-zA-Z_][a-zA-Z0-9_]*',
 });
+
+export const qualifiedIdentifier: RuleFunction = ($) =>
+  seq($.identifier, '.', $.identifier);
+
+export const typeCastExpression: RuleFunction = ($) =>
+  choice(
+    seq($.expression, '::', $.identifier),
+    seq('to', $.identifier, '(', $.expression, ')')
+  );
+
+export const timespanLiteral: RuleFunction = ($) => ({
+  type: 'PATTERN',
+  value: '\\d+(\\.\\d+)?(d|h|m|s|ms|microsecond|tick)',
+});
+
+export const functionCall: RuleFunction = ($) =>
+  seq($.identifier, '(', optional($.argument_list), ')');
+
+export const argumentList: RuleFunction = ($) =>
+  seq($.argument, repeat(seq(',', $.argument)));
+
+export const argument: RuleFunction = ($) =>
+  choice($.named_argument, $.expression);
+
+export const namedArgument: RuleFunction = ($) =>
+  seq($.identifier, '=', $.expression);
+
+export const arrayLiteral: RuleFunction = ($) =>
+  seq('[', optional($.array_elements), ']');
+
+export const arrayElements: RuleFunction = ($) =>
+  seq($.expression, repeat(seq(',', $.expression)));
+
+export const lineComment: RuleFunction = ($) =>
+  token(seq('//', /[^\r\n]*/));
+
+export const blockComment: RuleFunction = ($) =>
+  token(seq('/*', /[^*]*\*+(?:[^/*][^*]*\*+)*/, '/'));

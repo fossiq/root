@@ -3,6 +3,16 @@ import type {
   WhereClause,
   ProjectClause,
   ExtendClause,
+  SummarizeClause,
+  AggregationExpression,
+  JoinClause,
+  JoinCondition,
+  JoinKind,
+  UnionClause,
+  UnionKind,
+  ParseClause,
+  ParseKind,
+  MvExpandClause,
   TakeClause,
   LimitClause,
   SortClause,
@@ -14,6 +24,7 @@ import type {
   ColumnExpression,
   ColumnAssignment,
   Expression,
+  Identifier,
 } from '../types.js';
 import { buildIdentifier, buildNumberLiteral, buildStringLiteral } from './literals.js';
 
@@ -82,6 +93,149 @@ export function buildExtendClause(node: SyntaxNode, buildAST: (node: SyntaxNode)
   };
 }
 
+export function buildSummarizeClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): SummarizeClause {
+  const aggregationList = node.children.find(c => c.type === 'aggregation_list');
+  if (!aggregationList) {
+    throw new Error('Summarize clause missing aggregation list');
+  }
+
+  const aggregations: AggregationExpression[] = [];
+  for (let i = 0; i < aggregationList.childCount; i++) {
+    const child = aggregationList.child(i);
+    if (child && child.type === 'aggregation_expression') {
+      aggregations.push(buildAggregationExpression(child, buildAST));
+    }
+  }
+
+  const byIndex = node.children.findIndex(c => c.text === 'by');
+  let byExpressions: Expression[] | undefined;
+
+  if (byIndex !== -1) {
+    const expressionList = node.children[byIndex + 1];
+    if (expressionList && expressionList.type === 'expression_list') {
+      byExpressions = [];
+      for (let i = 0; i < expressionList.childCount; i++) {
+        const child = expressionList.child(i);
+        if (child && child.type !== ',') {
+          byExpressions.push(buildAST(child) as Expression);
+        }
+      }
+    }
+  }
+
+  return {
+    type: 'summarize_clause',
+    aggregations,
+    by: byExpressions,
+  };
+}
+
+export function buildAggregationExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): AggregationExpression {
+  // Check if it's a named aggregation (identifier = expression)
+  const hasAssignment = node.children.some(c => c.text === '=');
+
+  if (hasAssignment) {
+    const name = node.child(0);
+    const value = node.child(2);
+
+    if (!name || !value) {
+      throw new Error('Aggregation expression missing name or value');
+    }
+
+    return {
+      type: 'aggregation_expression',
+      name: buildIdentifier(name),
+      aggregation: buildAST(value) as Expression,
+    };
+  }
+
+  // Unnamed aggregation - just an expression
+  const expr = node.child(0);
+  if (!expr) {
+    throw new Error('Aggregation expression missing expression');
+  }
+
+  return {
+    type: 'aggregation_expression',
+    aggregation: buildAST(expr) as Expression,
+  };
+}
+
+export function buildJoinClause(node: SyntaxNode): JoinClause {
+  // Find join kind (optional)
+  let kind: JoinKind | undefined;
+  const kindNode = node.children.find(c => c.type === 'join_kind');
+  if (kindNode) {
+    kind = kindNode.text as JoinKind;
+  }
+
+  // Find right table
+  const tableNode = node.children.find(c => c.type === 'table_name');
+  if (!tableNode) {
+    throw new Error('Join clause missing right table');
+  }
+
+  // Find join conditions
+  const conditionsNode = node.children.find(c => c.type === 'join_conditions');
+  if (!conditionsNode) {
+    throw new Error('Join clause missing conditions');
+  }
+
+  const conditions: JoinCondition[] = [];
+  for (let i = 0; i < conditionsNode.childCount; i++) {
+    const child = conditionsNode.child(i);
+    if (child && child.type === 'join_condition') {
+      conditions.push(buildJoinCondition(child));
+    }
+  }
+
+  return {
+    type: 'join_clause',
+    kind,
+    rightTable: buildIdentifier(tableNode),
+    conditions,
+  };
+}
+
+export function buildJoinCondition(node: SyntaxNode): JoinCondition {
+  // Handle simple column name case (just identifier)
+  if (node.childCount === 1 && node.child(0)?.type === 'identifier') {
+    const id = buildIdentifier(node.child(0)!);
+    return {
+      type: 'join_condition',
+      left: id,
+      right: id,
+    };
+  }
+
+  // Handle $left.col == $right.col or col1 == col2 case
+  let leftId: SyntaxNode | null = null;
+  let rightId: SyntaxNode | null = null;
+
+  // Find identifiers around the == operator
+  for (let i = 0; i < node.childCount; i++) {
+    const child = node.child(i);
+    if (child && child.type === 'identifier') {
+      if (!leftId) {
+        leftId = child;
+      } else if (!rightId) {
+        rightId = child;
+        break;
+      }
+    }
+  }
+
+  if (!leftId || !rightId) {
+    throw new Error('Join condition missing identifiers');
+  }
+
+  return {
+    type: 'join_condition',
+    left: buildIdentifier(leftId),
+    right: buildIdentifier(rightId),
+  };
+}
+
 export function buildColumnAssignment(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ColumnAssignment {
   const name = node.child(0);
   const value = node.child(2);
@@ -94,6 +248,113 @@ export function buildColumnAssignment(node: SyntaxNode, buildAST: (node: SyntaxN
     type: 'column_assignment',
     name: buildIdentifier(name),
     value: buildAST(value) as Expression,
+  };
+}
+
+export function buildUnionClause(node: SyntaxNode): UnionClause {
+  // Find union kind (optional)
+  let kind: UnionKind | undefined;
+  const kindNode = node.children.find(c => c.type === 'union_kind');
+  if (kindNode) {
+    kind = kindNode.text as UnionKind;
+  }
+
+  // Find isfuzzy (optional)
+  let isfuzzy: boolean | undefined;
+  const isfuzzyIndex = node.children.findIndex(c => c.text === 'isfuzzy');
+  if (isfuzzyIndex !== -1) {
+    const boolValue = node.children[isfuzzyIndex + 2]; // skip '='
+    if (boolValue && (boolValue.text === 'true' || boolValue.text === 'false')) {
+      isfuzzy = boolValue.text === 'true';
+    }
+  }
+
+  // Find table list
+  const tableListNode = node.children.find(c => c.type === 'table_list');
+  if (!tableListNode) {
+    throw new Error('Union clause missing table list');
+  }
+
+  const tables: any[] = [];
+  for (let i = 0; i < tableListNode.childCount; i++) {
+    const child = tableListNode.child(i);
+    if (child && child.type === 'table_name') {
+      tables.push(buildIdentifier(child));
+    }
+  }
+
+  return {
+    type: 'union_clause',
+    kind,
+    isfuzzy,
+    tables,
+  };
+}
+
+export function buildParseClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ParseClause {
+  // Find parse kind (optional)
+  let kind: ParseKind | undefined;
+  const kindNode = node.children.find(c => c.type === 'parse_kind');
+  if (kindNode) {
+    kind = kindNode.text as ParseKind;
+  }
+
+  // Find source expression
+  const sourceNode = node.children.find(c => c.type === 'expression' || c.type === 'identifier');
+  if (!sourceNode) {
+    throw new Error('Parse clause missing source expression');
+  }
+
+  // Find pattern string
+  const patternNode = node.children.find(c => c.type === 'string_literal');
+  if (!patternNode) {
+    throw new Error('Parse clause missing pattern');
+  }
+
+  return {
+    type: 'parse_clause',
+    kind,
+    source: buildAST(sourceNode) as Expression,
+    pattern: buildStringLiteral(patternNode),
+  };
+}
+
+export function buildMvExpandClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): MvExpandClause {
+  // Find column expression to expand
+  const columnNode = node.children.find(c => c.type === 'expression' || c.type === 'identifier');
+  if (!columnNode) {
+    throw new Error('MV-expand clause missing column expression');
+  }
+
+  // Find 'to typeof' clause (optional)
+  let toIdentifier: Identifier | undefined;
+  const toIndex = node.children.findIndex(c => c.text === 'to');
+  if (toIndex !== -1) {
+    // Look for identifier after 'typeof' and '('
+    for (let i = toIndex + 1; i < node.children.length; i++) {
+      const child = node.children[i];
+      if (child && child.type === 'identifier') {
+        toIdentifier = buildIdentifier(child);
+        break;
+      }
+    }
+  }
+
+  // Find limit (optional)
+  let limit: any | undefined;
+  const limitIndex = node.children.findIndex(c => c.text === 'limit');
+  if (limitIndex !== -1) {
+    const limitNode = node.children[limitIndex + 1];
+    if (limitNode && limitNode.type === 'number_literal') {
+      limit = buildNumberLiteral(limitNode);
+    }
+  }
+
+  return {
+    type: 'mv_expand_clause',
+    column: buildAST(columnNode) as Expression,
+    to: toIdentifier,
+    limit,
   };
 }
 

@@ -2,10 +2,12 @@ import type { SyntaxNode } from 'tree-sitter';
 import type { ASTNode } from '../types.js';
 import {
   buildIdentifier,
+  buildQualifiedIdentifier,
   buildStringLiteral,
   buildNumberLiteral,
   buildBooleanLiteral,
   buildNullLiteral,
+  buildDynamicLiteral,
 } from './literals.js';
 import {
   buildBinaryExpression,
@@ -15,11 +17,21 @@ import {
   buildInExpression,
   buildBetweenExpression,
   buildParenthesizedExpression,
+  buildConditionalExpression,
+  buildFunctionCall,
+  buildNamedArgument,
+  buildTypeCastExpression,
 } from './expressions.js';
 import {
   buildWhereClause,
   buildProjectClause,
   buildExtendClause,
+  buildSummarizeClause,
+  buildAggregationExpression,
+  buildJoinClause,
+  buildUnionClause,
+  buildParseClause,
+  buildMvExpandClause,
   buildTakeClause,
   buildLimitClause,
   buildSortClause,
@@ -31,6 +43,7 @@ import {
 } from './operators.js';
 import {
   buildSourceFile,
+  buildLetStatement,
   buildQueryStatement,
   buildPipeExpression,
 } from './statements.js';
@@ -44,6 +57,8 @@ export function buildAST(node: SyntaxNode): ASTNode {
   switch (node.type) {
     case 'source_file':
       return buildSourceFile(node, buildAST);
+    case 'let_statement':
+      return buildLetStatement(node, buildAST);
     case 'query_statement':
       return buildQueryStatement(node, buildAST);
     case 'pipe_expression':
@@ -54,6 +69,18 @@ export function buildAST(node: SyntaxNode): ASTNode {
       return buildProjectClause(node, buildAST);
     case 'extend_clause':
       return buildExtendClause(node, buildAST);
+    case 'summarize_clause':
+      return buildSummarizeClause(node, buildAST);
+    case 'aggregation_expression':
+      return buildAggregationExpression(node, buildAST);
+    case 'join_clause':
+      return buildJoinClause(node);
+    case 'union_clause':
+      return buildUnionClause(node);
+    case 'parse_clause':
+      return buildParseClause(node, buildAST);
+    case 'mv_expand_clause':
+      return buildMvExpandClause(node, buildAST);
     case 'take_clause':
       return buildTakeClause(node);
     case 'limit_clause':
@@ -70,6 +97,14 @@ export function buildAST(node: SyntaxNode): ASTNode {
       return buildSearchClause(node, buildAST);
     case 'column_assignment':
       return buildColumnAssignment(node, buildAST);
+    case 'conditional_expression':
+      return buildConditionalExpression(node, buildAST);
+    case 'function_call':
+      return buildFunctionCall(node, buildAST);
+    case 'named_argument':
+      return buildNamedArgument(node, buildAST);
+    case 'type_cast_expression':
+      return buildTypeCastExpression(node, buildAST);
     case 'binary_expression':
       return buildBinaryExpression(node, buildAST);
     case 'comparison_expression':
@@ -86,6 +121,8 @@ export function buildAST(node: SyntaxNode): ASTNode {
       return buildParenthesizedExpression(node, buildAST);
     case 'identifier':
       return buildIdentifier(node);
+    case 'qualified_identifier':
+      return buildQualifiedIdentifier(node);
     case 'string_literal':
       return buildStringLiteral(node);
     case 'number_literal':
@@ -94,6 +131,8 @@ export function buildAST(node: SyntaxNode): ASTNode {
       return buildBooleanLiteral(node);
     case 'null_literal':
       return buildNullLiteral(node);
+    case 'dynamic_literal':
+      return buildDynamicLiteral(node);
     default:
       throw new Error(`Unknown node type: ${node.type}`);
   }

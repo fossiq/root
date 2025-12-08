@@ -1,11 +1,19 @@
+
 export type ASTNode =
   | SourceFile
   | QueryStatement
+  | LetStatement
   | PipeExpression
   | Operator
   | WhereClause
   | ProjectClause
   | ExtendClause
+  | SummarizeClause
+  | AggregationExpression
+  | JoinClause
+  | UnionClause
+  | ParseClause
+  | MvExpandClause
   | TakeClause
   | LimitClause
   | SortClause
@@ -16,12 +24,22 @@ export type ASTNode =
   | SearchClause
   | ColumnExpression
   | Expression
+  | NamedArgument
   | Identifier
+  | QualifiedIdentifier
   | Literal;
 
 export interface SourceFile {
   type: 'source_file';
-  statements: QueryStatement[];
+  statements: Statement[];
+}
+
+export type Statement = LetStatement | QueryStatement;
+
+export interface LetStatement {
+  type: 'let_statement';
+  name: Identifier;
+  value: Expression;
 }
 
 export interface QueryStatement {
@@ -35,7 +53,7 @@ export interface PipeExpression {
   operator: Operator;
 }
 
-export type Operator = WhereClause | ProjectClause | ExtendClause | TakeClause | LimitClause | SortClause | DistinctClause | CountClause | TopClause | SearchClause;
+export type Operator = WhereClause | ProjectClause | ExtendClause | SummarizeClause | JoinClause | UnionClause | ParseClause | MvExpandClause | TakeClause | LimitClause | SortClause | DistinctClause | CountClause | TopClause | SearchClause;
 
 export interface WhereClause {
   type: 'where_clause';
@@ -50,6 +68,78 @@ export interface ProjectClause {
 export interface ExtendClause {
   type: 'extend_clause';
   columns: ColumnExpression[];
+}
+
+export interface SummarizeClause {
+  type: 'summarize_clause';
+  aggregations: AggregationExpression[];
+  by?: Expression[];
+}
+
+export interface AggregationExpression {
+  type: 'aggregation_expression';
+  name?: Identifier;
+  aggregation: Expression;
+}
+
+export type JoinKind =
+  | 'inner'
+  | 'leftouter'
+  | 'rightouter'
+  | 'leftanti'
+  | 'rightanti'
+  | 'leftsemi'
+  | 'rightsemi'
+  | 'fullouter';
+
+export interface JoinClause {
+  type: 'join_clause';
+  kind?: JoinKind;
+  rightTable: Identifier;
+  conditions: JoinCondition[];
+}
+
+export interface JoinCondition {
+  type: 'join_condition';
+  left: Identifier;
+  right: Identifier;
+}
+
+export type UnionKind = 'inner' | 'outer';
+
+export interface UnionClause {
+  type: 'union_clause';
+  kind?: UnionKind;
+  isfuzzy?: boolean;
+  tables: Identifier[];
+}
+
+export type ParseKind = 'simple' | 'regex' | 'relaxed';
+
+export interface ParseClause {
+  type: 'parse_clause';
+  kind?: ParseKind;
+  source: Expression;
+  pattern: StringLiteral;
+}
+
+export interface MvExpandClause {
+  type: 'mv_expand_clause';
+  column: Expression;
+  to?: Identifier;
+  limit?: NumberLiteral;
+}
+
+export interface ConditionalExpression {
+  type: 'conditional_expression';
+  function: 'iff' | 'case';
+  arguments: Expression[];
+}
+
+export interface NamedArgument {
+  type: 'named_argument';
+  name: Identifier;
+  value: Expression;
 }
 
 export interface TakeClause {
@@ -113,7 +203,11 @@ export type Expression =
   | InExpression
   | BetweenExpression
   | ParenthesizedExpression
+  | ConditionalExpression
+  | TypeCastExpression
+  | FunctionCall
   | Identifier
+  | QualifiedIdentifier
   | Literal;
 
 export interface BinaryExpression {
@@ -162,12 +256,35 @@ export interface BetweenExpression {
   max: Literal;
 }
 
+export interface FunctionCall {
+  type: 'function_call';
+  name: Identifier;
+  arguments: (Expression | NamedArgument)[];
+}
+
+export interface TypeCastExpression {
+  type: 'type_cast_expression';
+  expression: Expression;
+  targetType: string;
+}
+
 export interface Identifier {
   type: 'identifier';
   name: string;
 }
 
-export type Literal = StringLiteral | NumberLiteral | BooleanLiteral | NullLiteral;
+export interface QualifiedIdentifier {
+  type: 'qualified_identifier';
+  table: Identifier;
+  column: Identifier;
+}
+
+export type Literal = StringLiteral | NumberLiteral | BooleanLiteral | NullLiteral | DynamicLiteral;
+
+export interface DynamicLiteral {
+  type: 'dynamic_literal';
+  value: string;
+}
 
 export interface StringLiteral {
   type: 'string_literal';
