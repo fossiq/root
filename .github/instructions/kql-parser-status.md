@@ -21,7 +21,7 @@
 
 ## Recent Completions
 
-**Parse operator pattern improvements** ✅
+**Parse operator pattern improvements**
 
 - Grammar: Enhanced `parse_pattern` to support embedded column names
 - Added support for column type annotations (`:string`, `:int`, etc.)
@@ -31,7 +31,7 @@
 - Added 4 new tests for column extraction, multiple columns, wildcards, and flags
 - Total tests: 83
 
-**Comments** ✅
+**Comments**
 
 - Grammar: `line_comment`, `block_comment` added to extras
 - Supports `//` line comments (single line)
@@ -39,7 +39,7 @@
 - Comments can appear anywhere in the query (inline, between operators, at start/end)
 - Added 8 tests covering all comment scenarios
 
-**Edge cases: Column prefixes + Type casting + Dynamic literals** ✅
+**Edge cases: Column prefixes + Type casting + Dynamic literals**
 
 - Types: `QualifiedIdentifier`, `TypeCastExpression`, `DynamicLiteral`
 - Grammar: `qualified_identifier`, `type_cast_expression`, `dynamic_literal`
@@ -49,7 +49,7 @@
 - Dynamic: `dynamic()` wrapper for JSON-like values
 - Added 7 tests
 
-**Let statements + Conditional expressions + Named arguments** ✅
+**Let statements + Conditional expressions + Named arguments**
 
 - Types: `LetStatement`, `ConditionalExpression`, `NamedArgument`, `FunctionCall`
 - Grammar: `let_statement`, `conditional_expression`, `argument`, `named_argument`
@@ -59,7 +59,7 @@
 - Named args: Functions support mixed positional and named arguments
 - Added 10 tests
 
-**MV-expand operator** ✅
+**MV-expand operator**
 
 - Types: `MvExpandClause`
 - Grammar: `mv_expand_clause`
@@ -67,7 +67,7 @@
 - Supports both `mv-expand` and `mvexpand` syntax, optional `to typeof()`, optional limit
 - Added 4 tests
 
-**Parse operator** ✅
+**Parse operator**
 
 - Types: `ParseClause`, `ParseKind`
 - Grammar: `parse_clause`, `parse_kind`
@@ -76,7 +76,7 @@
 - Added 3 tests (simplified - full pattern parsing deferred)
 - Note: Complex patterns with embedded column names require additional grammar work
 
-**Union operator** ✅
+**Union operator**
 
 - Types: `UnionClause`, `UnionKind`
 - Grammar: `union_clause`, `union_kind`, `table_list`
@@ -84,7 +84,7 @@
 - Supports union kinds (inner, outer), isfuzzy parameter, multiple tables
 - Added 6 tests
 
-**Join operator** ✅
+**Join operator**
 
 - Types: `JoinClause`, `JoinCondition`, `JoinKind`
 - Grammar: `join_clause`, `join_kind`, `join_conditions`, `join_condition`
@@ -151,18 +151,18 @@
 
 ## Summary
 
-**Core functionality: ~98% complete!** 🎉
+**Core functionality: ~98% complete!**
 
 All major KQL features are fully implemented:
 
-- ✅ All 14 query operators (where, project, extend, summarize, join, union, parse, mv-expand, sort, take, limit, distinct, count, top, search)
-- ✅ All expression types (binary, comparison, arithmetic, string, in, between, conditional)
-- ✅ Let statements and function named arguments
-- ✅ All literal types including arrays, timespans, and dynamic
-- ✅ Column prefixes and type casting
-- ✅ Comments (line and block)
-- ✅ Parse patterns with column extraction and wildcards
-- ✅ 83 comprehensive tests covering real-world KQL queries
+- All 14 query operators (where, project, extend, summarize, join, union, parse, mv-expand, sort, take, limit, distinct, count, top, search)
+- All expression types (binary, comparison, arithmetic, string, in, between, conditional)
+- Let statements and function named arguments
+- All literal types including arrays, timespans, and dynamic
+- Column prefixes and type casting
+- Comments (line and block)
+- Parse patterns with column extraction and wildcards
+- 83 comprehensive tests covering real-world KQL queries
 
 **Optional remaining items:**
 
@@ -172,20 +172,20 @@ All major KQL features are fully implemented:
 
 ## Publishing Readiness
 
-**Status: Ready for npm publish** ✅
+**Status: Ready for npm publish**
 
-- ✅ All TypeScript errors fixed
-- ✅ Build script: `npm run build`
-- ✅ Prepublish script: Runs build + tests
-- ✅ Package metadata complete
-- ✅ Proper exports configured
-- ✅ E2E test coverage for all grammar features
-- ✅ Package scope changed to `@fossiq/kql-parser`
-- ✅ Repository updated to `git@github.com:fossiq/root.git`
+- All TypeScript errors fixed
+- Build script: `npm run build`
+- Prepublish script: Runs build + tests
+- Package metadata complete
+- Proper exports configured
+- E2E test coverage for all grammar features
+- Package scope changed to `@fossiq/kql-parser`
+- Repository updated to `git@github.com:fossiq/root.git`
 
 ### Package Scripts
 
-- `compile-grammar` - Compile TS grammar → JS
+- `compile-grammar` - Compile TS grammar -> JS
 - `generate` - Compile grammar + tree-sitter generate
 - `build` - Full build (generate + tsc)
 - `prebuild` - Runs generate before build

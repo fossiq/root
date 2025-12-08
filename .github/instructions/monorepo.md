@@ -1,4 +1,4 @@
-# Monorepo Management Instructions
+# Monorepo Management
 
 ## Package Structure
 
@@ -49,9 +49,7 @@
 - Each package can be tested independently
 - Avoid test infrastructure complexity
 
-## Code Quality
-
-### ESLint Setup
+## ESLint Setup
 
 - **Root configuration:** `.eslintrc.json` at monorepo root defines shared rules
 - **Package overrides:** Packages can extend root config with `.eslintrc.json`
@@ -94,9 +92,9 @@ The monorepo uses [@changesets/cli](https://github.com/changesets/changesets) fo
 
 2. Select the packages that changed and the version bump type:
 
-   - `patch` - Bug fixes (0.1.0 → 0.1.1)
-   - `minor` - New features (0.1.0 → 0.2.0)
-   - `major` - Breaking changes (0.1.0 → 1.0.0)
+   - `patch` - Bug fixes (0.1.0 -> 0.1.1)
+   - `minor` - New features (0.1.0 -> 0.2.0)
+   - `major` - Breaking changes (0.1.0 -> 1.0.0)
 
 3. Write a brief description of the change (appears in CHANGELOG)
 
