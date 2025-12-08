@@ -54,4 +54,4 @@ jobs:
           verbose: true
 
       - name: Publish kql-parser package
-        run: bunx npm publish ./packages/kql-parser --ignore-scripts --provenance
+        run: bunx npm@latest publish ./packages/kql-parser --ignore-scripts --provenance
