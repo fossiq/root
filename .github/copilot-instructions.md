@@ -14,7 +14,7 @@
 
 ## Project Overview
 
-Expedition monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun.
+Fossiq monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun.
 
 ## Documentation Index
 

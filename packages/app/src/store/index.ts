@@ -1,5 +1,5 @@
-import { createStore } from 'solid-js/store';
-import type { DataRow } from '@fossiq/kql-executor';
+import { createStore } from "solid-js/store";
+import type { DataRow } from "@fossiq/kql-executor";
 
 export type { DataRow }; // Re-export for components
 
@@ -17,7 +17,7 @@ const initialState: AppState = {
   csvData: [],
   columns: [],
   fileName: null,
-  query: '',
+  query: "",
   queryResults: null,
   error: null,
   isLoading: false,
@@ -26,7 +26,7 @@ const initialState: AppState = {
 // Load state from session storage if available
 const loadStateFromSession = (): Partial<AppState> => {
   try {
-    const stored = sessionStorage.getItem('expeditionState');
+    const stored = sessionStorage.getItem("fossiqState");
     if (stored) {
       const parsed = JSON.parse(stored);
       // Note: In real IDB world, we should probably not store massive csvData in session storage.
@@ -38,7 +38,7 @@ const loadStateFromSession = (): Partial<AppState> => {
       };
     }
   } catch (e) {
-    console.error('Failed to load state from session storage:', e);
+    console.error("Failed to load state from session storage:", e);
   }
   return {};
 };
@@ -60,13 +60,17 @@ export const saveStateToSession = () => {
       columns: appState.columns,
       fileName: appState.fileName,
     };
-    sessionStorage.setItem('expeditionState', JSON.stringify(stateToSave));
+    sessionStorage.setItem("fossiqState", JSON.stringify(stateToSave));
   } catch (e) {
-    console.error('Failed to save state to session storage:', e);
+    console.error("Failed to save state to session storage:", e);
   }
 };
 
-export const setCSVData = (data: DataRow[], columns: string[], fileName: string) => {
+export const setCSVData = (
+  data: DataRow[],
+  columns: string[],
+  fileName: string
+) => {
   setAppState({
     csvData: data,
     columns,
@@ -77,19 +81,19 @@ export const setCSVData = (data: DataRow[], columns: string[], fileName: string)
 };
 
 export const setQuery = (query: string) => {
-  setAppState('query', query);
+  setAppState("query", query);
 };
 
 export const setQueryResults = (results: DataRow[] | null) => {
-  setAppState('queryResults', results);
+  setAppState("queryResults", results);
 };
 
 export const setError = (error: string | null) => {
-  setAppState('error', error);
+  setAppState("error", error);
 };
 
 export const setLoading = (isLoading: boolean) => {
-  setAppState('isLoading', isLoading);
+  setAppState("isLoading", isLoading);
 };
 
 export const clearData = () => {
@@ -101,8 +105,8 @@ export const clearData = () => {
     error: null,
   });
   try {
-    sessionStorage.removeItem('expeditionState');
+    sessionStorage.removeItem("fossiqState");
   } catch (e) {
-    console.error('Failed to clear session storage:', e);
+    console.error("Failed to clear session storage:", e);
   }
 };

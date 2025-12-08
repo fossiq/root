@@ -1,5 +1,5 @@
 {
-  "name": "expedition-monorepo",
+  "name": "fossiq-monorepo",
   "private": true,
   "workspaces": [
     "packages/*"

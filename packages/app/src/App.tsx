@@ -21,7 +21,7 @@ function App() {
 
       const results = await executeKQLQuery(
         appState.query,
-        appState.fileName || "table",
+        appState.fileName || "table"
       );
       setQueryResults(results);
     } catch (err) {
@@ -45,7 +45,7 @@ function App() {
             color: "var(--ade-text-active)",
           }}
         >
-          Expedition
+          Fossiq
         </div>
         <FileUploader />
       </aside>
@@ -92,13 +92,37 @@ function App() {
 
           {/* Bottom: Results */}
           <section class="adx-results-panel">
-            <Show when={appState.queryResults !== null} fallback={
-              <div style={{ padding: "2rem", color: "var(--ade-text)", opacity: 0.5, "text-align": "center" }}>
-                Execute a query to see results
-              </div>
-            }>
-              <div style={{ flex: "1", overflow: "hidden", display: "flex", "flex-direction": "column" }}>
-                <div style={{ padding: "8px 16px", "border-bottom": "1px solid var(--ade-border)", "font-size": "12px", "font-weight": "600" }}>
+            <Show
+              when={appState.queryResults !== null}
+              fallback={
+                <div
+                  style={{
+                    padding: "2rem",
+                    color: "var(--ade-text)",
+                    opacity: 0.5,
+                    "text-align": "center",
+                  }}
+                >
+                  Execute a query to see results
+                </div>
+              }
+            >
+              <div
+                style={{
+                  flex: "1",
+                  overflow: "hidden",
+                  display: "flex",
+                  "flex-direction": "column",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "8px 16px",
+                    "border-bottom": "1px solid var(--ade-border)",
+                    "font-size": "12px",
+                    "font-weight": "600",
+                  }}
+                >
                   Query Results
                 </div>
                 <div style={{ flex: "1", overflow: "auto" }}>
