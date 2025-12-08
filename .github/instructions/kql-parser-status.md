@@ -21,6 +21,14 @@
 
 ## Recent Completions
 
+**Bun Compatibility & Upgrade**
+
+- Upgraded `tree-sitter` to `^0.25.0` to match CLI version
+- Implemented native binding build script (`scripts/build-binding.ts`) for Bun support
+- Configured `build` script to auto-generate prebuilds in `prebuilds/<platform>-<arch>/`
+- Updated `src/builders/index.ts` to handle wrapper nodes (`operator`, `expression`, `literal`) introduced by newer tree-sitter
+- Verified integration with `kql-to-duckdb` package
+
 **Parse operator pattern improvements**
 
 - Grammar: Enhanced `parse_pattern` to support embedded column names

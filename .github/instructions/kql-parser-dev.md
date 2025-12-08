@@ -97,12 +97,45 @@ bun run compile-grammar -> grammar.js
   |
 bun x tree-sitter-cli generate -> parser (C code)
   |
+bun run build:binding -> prebuilds/<platform>-<arch>/tree-sitter-kql.node (Native Binding)
+  |
 bun run build -> TypeScript compilation
   |
 bun run test-grammar -> validate
 ```
 
+## Cross-Platform Prebuilds
+
+The `kql-parser` relies on native C++ bindings (`tree-sitter-kql.node`). For distribution, we prebuild these bindings for common platforms.
+
+**Supported Targets:**
+- `linux-x64`
+- `linux-arm64`
+- `win32-x64`
+- `darwin-arm64`
+
+**Note:** `darwin-x64` (Intel Mac) is explicitly excluded from the default support list to encourage ARM64 usage, though it can be built locally.
+
+**Generating Prebuilds:**
+We use GitHub Actions to generate these artifacts:
+1. Push changes to `main`.
+2. The `.github/workflows/build-bindings.yml` workflow runs.
+3. Download artifacts from the workflow run and commit them to `packages/kql-parser/prebuilds/` if manual distribution is required (usually automated via release process).
+
+**Local Build:**
+Running `bun run build` will always build the binding for your *current* platform and place it in the correct `prebuilds/` subdirectory.
+
 ## Key Patterns
+
+**Wrapper Nodes (Tree-sitter 0.25+):**
+Newer versions of tree-sitter may introduce wrapper nodes like `operator`, `expression`, or `literal` around the actual content.
+```typescript
+// src/builders/index.ts
+case 'operator':
+case 'expression':
+case 'literal':
+  return buildAST(node.firstNamedChild!);
+```
 
 **Lists with separators:**
 ```typescript
@@ -307,7 +340,7 @@ for (let i = 0; i < list.childCount; i++) {
 
 ## Dependencies
 
-- **tree-sitter** - Parser generator & runtime
+- **tree-sitter** - Parser generator & runtime (^0.25.0)
 - **tree-sitter-cli** - Dev tool (testing)
 - **TypeScript** - Type safety
 - **Bun** - Runtime & package manager
