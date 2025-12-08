@@ -17,6 +17,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,11 +41,6 @@ jobs:
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
 
-      - name: Configure npm authentication
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
-          cat .npmrc
-
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
 
@@ -61,7 +57,6 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Releases
         if: steps.changesets.outputs.published == 'true'
