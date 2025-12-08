@@ -54,3 +54,5 @@ jobs:
 
       - run: npm publish --provenance --ignore-scripts
         working-directory: ./packages/kql-parser
+        env:
+          NPM_CONFIG_PROVENANCE: true
