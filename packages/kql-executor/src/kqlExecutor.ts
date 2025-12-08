@@ -76,7 +76,7 @@ export const executeKQLQuery = async (
 
   // --- Normalized Execution Strategy ---
   // 1. Parse simple operators list
-  const operators = parseQueryToOperators(lines, tableName);
+  const operators = parseQueryToOperators(lines);
 
   // 2. Apply pushdown to Collection
   let opIdx = 0;
@@ -123,7 +123,7 @@ type Operator =
   | { type: 'distinct', arg: string }
   | { type: 'count', arg: string };
 
-const parseQueryToOperators = (lines: string[], defaultTable?: string): Operator[] => {
+const parseQueryToOperators = (lines: string[]): Operator[] => {
   const ops: Operator[] = [];
 
   for (const line of lines) {
@@ -313,8 +313,8 @@ const executeSort = (data: DataRow[], sortExpr: string): DataRow[] => {
 };
 
 const executeSummarize = (data: DataRow[], expr: string): DataRow[] => {
-  if (expr.includes(" by ")) {
-    const [aggExpr, byExpr] = expr.split(" by ").map((s) => s.trim());
+  if (/ by /i.test(expr)) {
+    const [aggExpr, byExpr] = expr.split(/ by /i).map((s) => s.trim());
     const groupFields = byExpr.split(",").map((s) => s.trim());
     const groups = new Map<string, DataRow[]>();
     for (const row of data) {
@@ -327,28 +327,49 @@ const executeSummarize = (data: DataRow[], expr: string): DataRow[] => {
       const result: DataRow = {};
       groupFields.forEach((field) => result[field] = rows[0][field]);
 
+      // Parse aggregation with optional alias: "alias=count(...)" or just "count(...)"
+      let columnName = "count_";
+      let aggregationExpr = aggExpr;
+
+      // Check for alias syntax: alias=aggregation
+      if (aggExpr.includes("=")) {
+        const [alias, agg] = aggExpr.split("=").map((s) => s.trim());
+        columnName = alias;
+        aggregationExpr = agg;
+      }
+
       // Basic support for count() and count(field) with regex
-      if (/count\(.*?\)/i.test(aggExpr)) {
-        const countMatch = aggExpr.match(/count\((.*?)\)/i);
+      if (/count\(.*?\)/i.test(aggregationExpr)) {
+        const countMatch = aggregationExpr.match(/count\((.*?)\)/i);
         const fieldToCheck = countMatch ? countMatch[1].trim() : "";
 
         let countVal = rows.length;
         if (fieldToCheck && fieldToCheck !== "") {
           countVal = rows.filter(r => r[fieldToCheck] !== null && r[fieldToCheck] !== undefined && r[fieldToCheck] !== "").length;
         }
-        result['count_'] = countVal;
+        result[columnName] = countVal;
       }
       results.push(result);
     }
     return results;
   } else if (/count\(.*?\)/i.test(expr)) {
-    const countMatch = expr.match(/count\((.*?)\)/i);
+    // Handle non-grouped aggregation with optional alias
+    let columnName = "Count";
+    let aggregationExpr = expr;
+
+    if (expr.includes("=")) {
+      const [alias, agg] = expr.split("=").map((s) => s.trim());
+      columnName = alias;
+      aggregationExpr = agg;
+    }
+
+    const countMatch = aggregationExpr.match(/count\((.*?)\)/i);
     const fieldToCheck = countMatch ? countMatch[1].trim() : "";
     let countVal = data.length;
     if (fieldToCheck && fieldToCheck !== "") {
       countVal = data.filter(r => r[fieldToCheck] !== null && r[fieldToCheck] !== undefined && r[fieldToCheck] !== "").length;
     }
-    return [{ Count: countVal }];
+    return [{ [columnName]: countVal }];
   }
   return data;
 };

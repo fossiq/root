@@ -34,19 +34,17 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark Mode Defaults - DocuSign Dark Theme */
-    --app-bg: var(--ds-deep-violet);
-    --sidebar-bg: var(--ds-inkwell);
-    --header-bg: var(--ds-inkwell);
-    --border-color: #3e2b6b;
-    /* Lighter violet */
-    --text-primary: var(--ds-white);
-    --text-secondary: var(--ds-mist);
-    --accent-color: var(--ds-mist);
-    /* Lighter for contrast on dark */
-    --accent-hover: var(--ds-white);
-    --editor-bg: var(--ds-inkwell);
-    --row-hover: rgba(203, 194, 255, 0.1);
+    /* Dark Mode Defaults - Gray Theme */
+    --app-bg: #1e1e1e;
+    --sidebar-bg: #252526;
+    --header-bg: #2d2d30;
+    --border-color: #2d2d30;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --accent-color: #0e639c;
+    --accent-hover: #1177bb;
+    --editor-bg: #1e1e1e;
+    --row-hover: rgba(255, 255, 255, 0.05);
     --row-alt: rgba(255, 255, 255, 0.03);
   }
 }
@@ -89,12 +87,12 @@ body,
 }
 
 .sidebar-header {
-  padding: 16px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  letter-spacing: 1px;
+  padding: 20px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: none;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
 }
 
 /* Main Content */
@@ -103,6 +101,7 @@ body,
   flex-direction: column;
   height: 100%;
   min-width: 0;
+  max-height: 100vh;
 }
 
 /* Toolbar */
@@ -111,9 +110,9 @@ body,
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 20px;
   background-color: var(--header-bg);
-  gap: 12px;
+  gap: 16px;
 }
 
 /* Split Panes */
@@ -125,38 +124,112 @@ body,
 }
 
 .adx-query-panel {
-  flex: 1;
-  min-height: 150px;
+  flex: 3;
+  min-height: 0;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--editor-bg);
+  overflow: auto;
 }
 
 .adx-results-panel {
-  flex: 1;
-  min-height: 100px;
+  flex: 7;
+  min-height: 0;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   background-color: var(--app-bg);
-  overflow: hidden;
+  overflow: auto;
 }
 
 /* Editor Specifics */
 .cm-editor {
   flex: 1;
   font-size: 14px;
+  background-color: var(--editor-bg);
 }
 
 .cm-editor .cm-scroller {
   font-family: var(--font-code) !important;
-  line-height: 1.6;
+  line-height: 1.8;
+  padding: 8px 0;
+}
+
+.cm-editor .cm-content {
+  padding: 4px 0;
+}
+
+.cm-editor .cm-line {
+  padding: 0 8px;
 }
 
 .cm-editor .cm-gutters {
-  background-color: var(--editor-bg) !important;
-  border-right: 1px solid var(--border-color);
+  background-color: transparent !important;
+  border-right: none;
   color: var(--text-secondary);
+  padding-right: 8px;
+}
+
+.cm-editor .cm-activeLineGutter {
+  background-color: transparent;
+}
+
+.cm-editor .cm-activeLine {
+  background-color: transparent !important;
+}
+
+.cm-editor .cm-selectionBackground,
+.cm-editor .cm-selectionMatch {
+  background-color: rgba(14, 99, 156, 0.3) !important;
+}
+
+.cm-editor .cm-cursor {
+  border-left-color: var(--text-primary) !important;
+}
+
+.cm-editor.cm-focused {
+  outline: none;
+}
+
+.cm-editor .cm-placeholder {
+  color: var(--text-secondary);
+  opacity: 0.5;
+  white-space: pre-wrap;
+}
+
+/* Autocomplete Styling */
+.cm-tooltip-autocomplete {
+  background-color: var(--editor-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.cm-tooltip-autocomplete>ul {
+  font-family: var(--font-family);
+  max-height: 300px;
+}
+
+.cm-tooltip-autocomplete>ul>li {
+  padding: 6px 12px;
+  color: var(--text-primary);
+}
+
+.cm-tooltip-autocomplete>ul>li[aria-selected] {
+  background-color: var(--row-hover) !important;
+  color: var(--text-primary);
+}
+
+.cm-completionLabel {
+  color: var(--text-primary);
+}
+
+.cm-completionDetail {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-left: 8px;
 }
 
 /* Buttons */
@@ -196,11 +269,11 @@ body,
 
 /* Sidebar Items */
 .data-tree-item {
-  padding: 8px 16px;
+  padding: 10px 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   color: var(--text-primary);
   font-size: 13px;
   transition: background-color 0.1s;
@@ -226,24 +299,21 @@ table[role="grid"] {
 }
 
 table[role="grid"] th {
-  background-color: var(--sidebar-bg);
+  background-color: #2d2d30;
   color: var(--text-secondary);
   font-weight: 600;
   text-align: left;
-  border-bottom: 2px solid var(--border-color);
-  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 16px;
   position: sticky;
   top: 0;
   z-index: 10;
 }
 
 table[role="grid"] td {
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-primary);
 }
 
