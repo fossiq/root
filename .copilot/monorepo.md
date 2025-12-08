@@ -126,3 +126,9 @@ bun run release  # Publish to npm
 - `.changeset/config.json` - Changesets configuration
 - `access: "public"` - All packages are public on npm
 - `baseBranch: "main"` - Base branch for version PRs
+
+## GitHub Workflows
+
+- **Prefer existing GitHub Actions** (e.g., `JS-DevTools/npm-publish`, `actions/cache`)
+- **Write scripts in `.github/scripts/`** - never use inline shell code in workflow files
+- Scripts should follow patterns in `build-packages.sh` and `test-packages.sh`

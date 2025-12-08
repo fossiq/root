@@ -6,9 +6,7 @@ on:
       - main
     paths:
       - "packages/**"
-      - ".changeset/**"
       - "!packages/**/*.md"
-      - "!.changeset/README.md"
   workflow_dispatch:
 
 jobs:
@@ -16,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -35,19 +32,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-bun-
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Update npm
-        run: npm install -g npm@latest
-
       - name: Install dependencies
         run: bun install --ignore-scripts
 
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
+
+      - name: Verify OIDC token is available
+        run: |
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL is set: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL != '' }}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN is set: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN != '' }}"
 
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
@@ -55,20 +49,10 @@ jobs:
       - name: Run tests
         run: ./.github/scripts/test-packages.sh
 
-      - name: Create Release Pull Request or Publish
-        id: changesets
-        uses: changesets/action@v1
+      - name: Publish kql-parser
+        uses: JS-DevTools/npm-publish@v3
         with:
-          version: bun run version
-          publish: bun run release
-          title: "Release: Version Packages"
-          commit: "chore: version packages"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Releases
-        if: steps.changesets.outputs.published == 'true'
-        run: ./.github/scripts/create-releases.sh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+          package: packages/kql-parser
+          provenance: true
+          access: public
+          ignore-scripts: false
