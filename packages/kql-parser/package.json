@@ -1,5 +1,5 @@
 {
-  "name": "@expedition/kql-parser",
+  "name": "@fossiq/kql-parser",
   "version": "0.1.0",
   "description": "A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter",
   "main": "dist/index.js",
@@ -23,17 +23,20 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sushruth/expedition.git",
+    "url": "git@github.com:fossiq/root.git",
     "directory": "packages/kql-parser"
   },
   "bugs": {
-    "url": "https://github.com/sushruth/expedition/issues"
+    "url": "https://github.com/fossiq/root/issues"
   },
-  "homepage": "https://github.com/sushruth/expedition/tree/main/packages/kql-parser#readme",
+  "homepage": "https://github.com/fossiq/root/tree/main/packages/kql-parser#readme",
   "author": "Sushruth Sastry",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "compile-grammar": "bun src/grammar/compile.ts",
@@ -50,6 +53,7 @@
     "web-tree-sitter": "^0.22.0"
   },
   "devDependencies": {
+    "@types/bun": "^1.3.4",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
   }

@@ -1,5 +1,5 @@
 import { createStore } from 'solid-js/store';
-import type { DataRow } from '@expedition/kql-executor';
+import type { DataRow } from '@fossiq/kql-executor';
 
 export type { DataRow }; // Re-export for components
 
@@ -54,7 +54,7 @@ export const [appState, setAppState] = createStore<AppState>({
 export const saveStateToSession = () => {
   try {
     const stateToSave = {
-      // Limiting saved data to save session storage space? 
+      // Limiting saved data to save session storage space?
       // For now, save what we have.
       csvData: appState.csvData,
       columns: appState.columns,

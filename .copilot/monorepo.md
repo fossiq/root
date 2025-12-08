@@ -9,7 +9,7 @@
 
 ## Package Naming
 
-- Use `@expedition/` prefix for all packages
+- Use `@fossiq/` prefix for all packages
 - Use kebab-case for package names
 - Names should reflect the package's purpose clearly
 

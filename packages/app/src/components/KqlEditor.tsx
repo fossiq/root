@@ -4,7 +4,7 @@ import { EditorState } from "@codemirror/state";
 import { autocompletion, CompletionContext, CompletionResult } from "@codemirror/autocomplete";
 import { setQuery, appState } from "../store";
 import { placeholder } from "@codemirror/view";
-import { kqlLanguage, kqlOperators, kqlFunctions, kqlKeywords } from "@expedition/kql-language";
+import { kqlLanguage, kqlOperators, kqlFunctions, kqlKeywords } from "@fossiq/kql-language";
 
 // Autocomplete function
 const kqlCompletion = (context: CompletionContext): CompletionResult | null => {

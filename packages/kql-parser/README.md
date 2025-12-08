@@ -1,4 +1,4 @@
-# @expedition/kql-parser
+# @fossiq/kql-parser
 
 A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 
@@ -13,16 +13,16 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 ## Installation
 
 ```bash
-npm install @expedition/kql-parser
+npm install @fossiq/kql-parser
 # or
-bun add @expedition/kql-parser
+bun add @fossiq/kql-parser
 ```
 
 ## Usage
 
 ```typescript
-import { parse, createParser } from '@expedition/kql-parser';
-import KQL from '@expedition/kql-parser/grammar';
+import { parse, createParser } from '@fossiq/kql-parser';
+import KQL from '@fossiq/kql-parser/grammar';
 
 // Parse a KQL query
 const ast = parse(KQL, 'Users | where age > 18 | project name, email');
@@ -172,7 +172,7 @@ import type {
   ProjectClause,
   Expression,
   // ... etc
-} from '@expedition/kql-parser';
+} from '@fossiq/kql-parser';
 ```
 
 ## Development

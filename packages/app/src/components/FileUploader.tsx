@@ -6,7 +6,7 @@ import {
   setLoading,
   clearData,
 } from "../store";
-import { saveTable } from "@expedition/kql-executor";
+import { saveTable } from "@fossiq/kql-executor";
 import { parseCSVFile } from "../utils/csvParser";
 
 export const FileUploader = () => {

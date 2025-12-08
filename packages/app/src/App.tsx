@@ -3,7 +3,7 @@ import { appState, setQueryResults, setError } from "./store";
 import { FileUploader } from "./components/FileUploader";
 import { KqlEditor } from "./components/KqlEditor";
 import { ResultsTable } from "./components/ResultsTable";
-import { executeKQLQuery } from "@expedition/kql-executor";
+import { executeKQLQuery } from "@fossiq/kql-executor";
 
 function App() {
   const handleExecuteQuery = async () => {

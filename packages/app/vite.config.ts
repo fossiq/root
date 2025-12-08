@@ -4,7 +4,7 @@ import solid from 'vite-plugin-solid';
 export default defineConfig({
   plugins: [solid()],
   optimizeDeps: {
-    exclude: ["@expedition/kql-executor", "@expedition/kql-language"],
+    exclude: ["@fossiq/kql-executor", "@fossiq/kql-language"],
   },
   server: {
     port: 5173,
