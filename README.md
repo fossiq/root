@@ -1,8 +1,5 @@
 # Fossiq
 
-[![CI](https://github.com/sushruth/fossiq/actions/workflows/ci.yml/badge.svg)](https://github.com/sushruth/fossiq/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/sushruth/fossiq/branch/main/graph/badge.svg)](https://codecov.io/gh/sushruth/fossiq)
-
 A monorepo containing KQL (Kusto Query Language) tooling and applications.
 
 ## Packages

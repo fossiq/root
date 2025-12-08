@@ -60,6 +60,8 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-      - run: npm publish ./packages/kql-parser --provenance --ignore-scripts
+      - name: Publish kql-parser package
+        run: npm publish ./packages/kql-parser --provenance --ignore-scripts
         env:
           NPM_CONFIG_PROVENANCE: true
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
