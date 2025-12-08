@@ -40,6 +40,11 @@ jobs:
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
 
+      - name: Configure npm authentication
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
 
