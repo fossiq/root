@@ -129,6 +129,6 @@ bun run release  # Publish to npm
 
 ## GitHub Workflows
 
-- **Prefer existing GitHub Actions** (e.g., `JS-DevTools/npm-publish`, `actions/cache`)
+- **Prefer existing GitHub Actions** (e.g., `actions/cache`)
 - **Write scripts in `.github/scripts/`** - never use inline shell code in workflow files
 - Scripts should follow patterns in `build-packages.sh` and `test-packages.sh`

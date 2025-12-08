@@ -23,66 +23,33 @@ bun add @fossiq/kql-parser
 ## Usage
 
 ```typescript
-import { parse, createParser } from '@fossiq/kql-parser';
-import KQL from '@fossiq/kql-parser/grammar';
+import { parse, createParser } from "@fossiq/kql-parser";
+import KQL from "@fossiq/kql-parser/grammar";
 
 // Parse a KQL query
-const ast = parse(KQL, 'Users | where age > 18 | project name, email');
+const ast = parse(KQL, "Users | where age > 18 | project name, email");
 
 // Or create a reusable parser instance
 const parser = createParser(KQL);
-const ast = parser.parse('Users | summarize count() by country');
+const ast = parser.parse("Users | summarize count() by country");
 
 console.log(ast);
 ```
 
 ## Supported Features
 
-### Query Operators (14)
-- ✅ `where` - Filter rows
-- ✅ `project` - Select columns
-- ✅ `extend` - Add computed columns
-- ✅ `summarize` - Aggregate with grouping
-- ✅ `join` - Table joins (all join kinds)
-- ✅ `union` - Combine tables
-- ✅ `parse` - Extract from strings
-- ✅ `mv-expand` - Expand multi-value fields
-- ✅ `sort` / `order by` - Sort results
-- ✅ `take` / `limit` - Limit rows
-- ✅ `top` - Top N rows
-- ✅ `distinct` - Unique values
-- ✅ `count` - Count rows
-- ✅ `search` - Full-text search
+**Query Operators:** `where`, `project`, `extend`, `summarize`, `join` (all kinds), `union`, `parse`, `mv-expand`, `sort`/`order by`, `take`/`limit`, `top`, `distinct`, `count`, `search`
 
-### Expressions
-- ✅ Binary operators (`and`, `or`)
-- ✅ Comparison operators (`==`, `!=`, `>`, `<`, `>=`, `<=`)
-- ✅ Arithmetic operators (`+`, `-`, `*`, `/`, `%`)
-- ✅ String operators (`contains`, `startswith`, `endswith`, `matches`, `has`)
-- ✅ `in` operator
-- ✅ `between` operator
-- ✅ Conditional expressions (`iff`, `case`)
-- ✅ Type casting (`::` and `to type()`)
-- ✅ Function calls with positional and named arguments
-- ✅ Parenthesized expressions
+**Expressions:** Binary (`and`, `or`), comparison (`==`, `!=`, `>`, `<`, `>=`, `<=`), arithmetic (`+`, `-`, `*`, `/`, `%`), string (`contains`, `startswith`, `endswith`, `matches`, `has`), `in`, `between`, conditionals (`iff`, `case`), type casting, function calls, parenthesized expressions
 
-### Literals
-- ✅ Strings (`"..."`, `'...'`)
-- ✅ Numbers (int, float)
-- ✅ Booleans (`true`, `false`)
-- ✅ Null (`null`)
-- ✅ TimeSpans (`1d`, `2h`, `30m`, `500ms`)
-- ✅ Arrays (`[1, 2, 3]`, nested, empty)
-- ✅ Dynamic/JSON objects (`dynamic()`)
+**Literals:** Strings, numbers, booleans, null, timespans (`1d`, `2h`, `30m`), arrays, dynamic/JSON objects
 
-### Advanced Features
-- ✅ Let statements - Variable declarations
-- ✅ Column prefixes - Qualified identifiers (`Table.Column`)
-- ✅ Function named arguments
+**Advanced:** Let statements, qualified identifiers (`Table.Column`), named arguments
 
 ## Examples
 
 ### Basic Filtering and Projection
+
 ```typescript
 const query = `
   Users
@@ -94,6 +61,7 @@ const ast = parse(KQL, query);
 ```
 
 ### Aggregation with Grouping
+
 ```typescript
 const query = `
   Users
@@ -104,6 +72,7 @@ const ast = parse(KQL, query);
 ```
 
 ### Joins
+
 ```typescript
 const query = `
   Users
@@ -114,6 +83,7 @@ const ast = parse(KQL, query);
 ```
 
 ### Let Statements
+
 ```typescript
 const query = `
   let threshold = 100;
@@ -126,6 +96,7 @@ const ast = parse(KQL, query);
 ```
 
 ### Conditional Expressions
+
 ```typescript
 const query = `
   Users
@@ -146,18 +117,18 @@ The parser produces a fully-typed AST with discriminated unions:
 
 ```typescript
 interface SourceFile {
-  type: 'source_file';
+  type: "source_file";
   statements: Statement[];
 }
 
 interface QueryStatement {
-  type: 'query_statement';
+  type: "query_statement";
   table: Identifier;
   pipes: PipeExpression[];
 }
 
 interface WhereClause {
-  type: 'where_clause';
+  type: "where_clause";
   expression: Expression;
 }
 
@@ -174,7 +145,7 @@ import type {
   ProjectClause,
   Expression,
   // ... etc
-} from '@fossiq/kql-parser';
+} from "@fossiq/kql-parser";
 ```
 
 ## Development
