@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 0.1.7
+
+### Patch Changes
+
+- 70e53b8: Test trusted publishing with npm v11+
+
 ## 0.1.6
 
 ### Patch Changes
