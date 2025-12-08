@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 0.1.5
+
+### Patch Changes
+
+- fc0f59b: Fix .npmrc location for proper npm authentication during publish
+
 ## 0.1.4
 
 ### Patch Changes
