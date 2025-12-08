@@ -54,7 +54,7 @@ export function buildBooleanLiteral(node: SyntaxNode): BooleanLiteral {
   };
 }
 
-export function buildNullLiteral(node: SyntaxNode): NullLiteral {
+export function buildNullLiteral(_node: SyntaxNode): NullLiteral {
   return {
     type: 'null_literal',
     value: null,

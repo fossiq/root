@@ -32,10 +32,11 @@ function serializeRule(rule: Rule, indent: string = '  '): string {
     case 'STRING':
       return JSON.stringify(rule.value);
 
-    case 'PATTERN':
+    case 'PATTERN': {
       // Escape forward slashes in regex patterns
       const escapedPattern = rule.value.replace(/\//g, '\\/');
       return `/${escapedPattern}/`;
+    }
 
     case 'SYMBOL':
       return `$.${rule.name}`;
@@ -87,7 +88,7 @@ function serializeRule(rule: Rule, indent: string = '  '): string {
       return 'blank()';
 
     default:
-      throw new Error(`Unknown rule type: ${(rule as any).type}`);
+      throw new Error(`Unknown rule type: ${(rule as { type: string }).type}`);
   }
 }
 

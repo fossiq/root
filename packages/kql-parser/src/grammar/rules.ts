@@ -3,7 +3,7 @@
  * Type-safe tree-sitter grammar rules for Kusto Query Language
  */
 
-import type { RuleFunction, RuleBuilder } from './types.js';
+import type { RuleFunction } from './types.js';
 import { seq, choice, repeat, optional, prec, token } from './helpers.js';
 
 export const sourceFile: RuleFunction = ($) => repeat($._statement);
@@ -81,7 +81,7 @@ export const joinClause: RuleFunction = ($) =>
     $.join_conditions
   );
 
-export const joinKind: RuleFunction = ($) =>
+export const joinKind: RuleFunction = (_$) =>
   choice(
     'inner',
     'leftouter',
@@ -110,7 +110,7 @@ export const unionClause: RuleFunction = ($) =>
     $.table_list
   );
 
-export const unionKind: RuleFunction = ($) =>
+export const unionKind: RuleFunction = (_$) =>
   choice('inner', 'outer');
 
 export const tableList: RuleFunction = ($) =>
@@ -125,7 +125,7 @@ export const parseClause: RuleFunction = ($) =>
     $.string_literal
   );
 
-export const parseKind: RuleFunction = ($) =>
+export const parseKind: RuleFunction = (_$) =>
   choice('simple', 'regex', 'relaxed');
 
 export const mvExpandClause: RuleFunction = ($) =>
@@ -174,7 +174,7 @@ export const distinctClause: RuleFunction = ($) =>
     prec.dynamic(0, 'distinct')
   );
 
-export const countClause: RuleFunction = ($) => ({
+export const countClause: RuleFunction = (_$) => ({
   type: 'STRING',
   value: 'count',
 });
@@ -262,22 +262,22 @@ export const literal: RuleFunction = ($) =>
 export const dynamicLiteral: RuleFunction = ($) =>
   seq('dynamic', '(', choice($.string_literal, $.array_literal, $.number_literal), ')');
 
-export const stringLiteral: RuleFunction = ($) =>
+export const stringLiteral: RuleFunction = (_$) =>
   choice(seq('"', /[^"]*/, '"'), seq("'", /[^']*/, "'"));
 
-export const numberLiteral: RuleFunction = ($) => ({
+export const numberLiteral: RuleFunction = (_$) => ({
   type: 'PATTERN',
   value: '\\d+(\\.\\d+)?',
 });
 
-export const booleanLiteral: RuleFunction = ($) => choice('true', 'false');
+export const booleanLiteral: RuleFunction = (_$) => choice('true', 'false');
 
-export const nullLiteral: RuleFunction = ($) => ({
+export const nullLiteral: RuleFunction = (_$) => ({
   type: 'STRING',
   value: 'null',
 });
 
-export const identifier: RuleFunction = ($) => ({
+export const identifier: RuleFunction = (_$) => ({
   type: 'PATTERN',
   value: '[a-zA-Z_][a-zA-Z0-9_]*',
 });
@@ -291,7 +291,7 @@ export const typeCastExpression: RuleFunction = ($) =>
     seq('to', $.identifier, '(', $.expression, ')')
   );
 
-export const timespanLiteral: RuleFunction = ($) => ({
+export const timespanLiteral: RuleFunction = (_$) => ({
   type: 'PATTERN',
   value: '\\d+(\\.\\d+)?(d|h|m|s|ms|microsecond|tick)',
 });
@@ -314,8 +314,8 @@ export const arrayLiteral: RuleFunction = ($) =>
 export const arrayElements: RuleFunction = ($) =>
   seq($.expression, repeat(seq(',', $.expression)));
 
-export const lineComment: RuleFunction = ($) =>
+export const lineComment: RuleFunction = (_$) =>
   token(seq('//', /[^\r\n]*/));
 
-export const blockComment: RuleFunction = ($) =>
+export const blockComment: RuleFunction = (_$) =>
   token(seq('/*', /[^*]*\*+(?:[^/*][^*]*\*+)*/, '/'));

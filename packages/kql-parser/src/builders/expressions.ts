@@ -13,11 +13,11 @@ import type {
   NamedArgument,
   TypeCastExpression,
   Literal,
-  StringLiteral,
+  ASTNode,
 } from '../types.js';
 import { buildIdentifier, buildStringLiteral } from './literals.js';
 
-export function buildBinaryExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): BinaryExpression {
+export function buildBinaryExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): BinaryExpression {
   const left = node.child(0);
   const operator = node.child(1);
   const right = node.child(2);
@@ -34,7 +34,7 @@ export function buildBinaryExpression(node: SyntaxNode, buildAST: (node: SyntaxN
   };
 }
 
-export function buildComparisonExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ComparisonExpression {
+export function buildComparisonExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ComparisonExpression {
   const left = node.child(0);
   const operator = node.child(1);
   const right = node.child(2);
@@ -51,7 +51,7 @@ export function buildComparisonExpression(node: SyntaxNode, buildAST: (node: Syn
   };
 }
 
-export function buildArithmeticExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ArithmeticExpression {
+export function buildArithmeticExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ArithmeticExpression {
   const left = node.child(0);
   const operator = node.child(1);
   const right = node.child(2);
@@ -68,7 +68,7 @@ export function buildArithmeticExpression(node: SyntaxNode, buildAST: (node: Syn
   };
 }
 
-export function buildParenthesizedExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ParenthesizedExpression {
+export function buildParenthesizedExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ParenthesizedExpression {
   const expr = node.children.find(c => c.type !== '(' && c.type !== ')');
   if (!expr) {
     throw new Error('Parenthesized expression missing expression');
@@ -79,7 +79,7 @@ export function buildParenthesizedExpression(node: SyntaxNode, buildAST: (node: 
   };
 }
 
-export function buildConditionalExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): ConditionalExpression {
+export function buildConditionalExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ConditionalExpression {
   // Determine function type (iff or case)
   const functionName = node.child(0)?.text;
   if (functionName !== 'iff' && functionName !== 'case') {
@@ -102,7 +102,7 @@ export function buildConditionalExpression(node: SyntaxNode, buildAST: (node: Sy
   };
 }
 
-export function buildFunctionCall(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): FunctionCall {
+export function buildFunctionCall(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): FunctionCall {
   const nameNode = node.child(0);
   if (!nameNode || nameNode.type !== 'identifier') {
     throw new Error('Function call missing name');
@@ -137,7 +137,7 @@ export function buildFunctionCall(node: SyntaxNode, buildAST: (node: SyntaxNode)
   };
 }
 
-export function buildNamedArgument(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): NamedArgument {
+export function buildNamedArgument(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): NamedArgument {
   const nameNode = node.child(0);
   const valueNode = node.child(2); // Skip '='
 
@@ -152,7 +152,7 @@ export function buildNamedArgument(node: SyntaxNode, buildAST: (node: SyntaxNode
   };
 }
 
-export function buildTypeCastExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): TypeCastExpression {
+export function buildTypeCastExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): TypeCastExpression {
   // Check if it's :: syntax (expr :: type) or to syntax (to type(expr))
   const hasDoubleColon = node.children.some(c => c.text === '::');
 
@@ -204,7 +204,7 @@ export function buildStringExpression(node: SyntaxNode): StringExpression {
   };
 }
 
-export function buildInExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): InExpression {
+export function buildInExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): InExpression {
   const left = node.child(0);
   const literalList = node.children.find(c => c.type === 'literal_list');
 
@@ -231,7 +231,7 @@ export function buildInExpression(node: SyntaxNode, buildAST: (node: SyntaxNode)
   };
 }
 
-export function buildBetweenExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): BetweenExpression {
+export function buildBetweenExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): BetweenExpression {
   const left = node.child(0);
   const literals = node.children.filter(c =>
     c.type === 'string_literal' ||

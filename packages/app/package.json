@@ -13,8 +13,6 @@
         "@codemirror/language": "^6.10.1",
         "@codemirror/state": "^6.4.1",
         "@codemirror/view": "^6.26.3",
-        "@fossiq/kql-executor": "workspace:*",
-        "@fossiq/kql-language": "workspace:*",
         "@picocss/pico": "^2.0.6",
         "@tanstack/solid-table": "^8.20.5",
         "@tanstack/solid-virtual": "^3.13.12",

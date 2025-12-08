@@ -7,10 +7,11 @@ import type {
   PipeExpression,
   Operator,
   Expression,
+  ASTNode,
 } from '../types.js';
 import { buildIdentifier } from './literals.js';
 
-export function buildSourceFile(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): SourceFile {
+export function buildSourceFile(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): SourceFile {
   const statements: Statement[] = [];
   for (let i = 0; i < node.childCount; i++) {
     const child = node.child(i);
@@ -23,7 +24,7 @@ export function buildSourceFile(node: SyntaxNode, buildAST: (node: SyntaxNode) =
   return { type: 'source_file', statements };
 }
 
-export function buildLetStatement(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): LetStatement {
+export function buildLetStatement(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): LetStatement {
   const nameNode = node.children.find(c => c.type === 'identifier');
   if (!nameNode) {
     throw new Error('Let statement missing variable name');
@@ -41,7 +42,7 @@ export function buildLetStatement(node: SyntaxNode, buildAST: (node: SyntaxNode)
   };
 }
 
-export function buildQueryStatement(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): QueryStatement {
+export function buildQueryStatement(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): QueryStatement {
   const table = node.child(0);
   const pipes: PipeExpression[] = [];
 
@@ -63,7 +64,7 @@ export function buildQueryStatement(node: SyntaxNode, buildAST: (node: SyntaxNod
   };
 }
 
-export function buildPipeExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => any): PipeExpression {
+export function buildPipeExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): PipeExpression {
   const operator = node.children.find(c => c.type !== '|');
   if (!operator) {
     throw new Error('Pipe expression missing operator');
