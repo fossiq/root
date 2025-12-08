@@ -38,7 +38,8 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": true,
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "compile-grammar": "bun src/grammar/compile.ts",

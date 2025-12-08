@@ -12,6 +12,7 @@ on:
 permissions:
   id-token: write # Required for OIDC
   contents: write
+  packages: write # Required for GitHub Packages
 
 jobs:
   build-test-publish:
@@ -53,5 +54,12 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+      - name: Setup .npmrc for GitHub Packages
+        run: |
+          echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
       - name: Publish kql-parser package
         run: bunx npm@latest publish ./packages/kql-parser --ignore-scripts --provenance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
