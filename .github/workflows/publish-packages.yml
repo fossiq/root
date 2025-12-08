@@ -51,8 +51,5 @@ jobs:
       - name: Run tests
         run: ./.github/scripts/test-packages.sh
 
-      - name: Publish kql-parser
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          package: packages/kql-parser
-          provenance: true
+      - run: npm publish --provenance --ignore-scripts
+        working-directory: ./packages/kql-parser
