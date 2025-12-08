@@ -10,7 +10,7 @@
     "lint:fix": "eslint packages --ext .ts,.tsx --fix",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "bunx npm publish --provenance --access public"
+    "release": "changeset publish --provenance --access public"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.8",
