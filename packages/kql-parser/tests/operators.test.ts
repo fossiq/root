@@ -142,6 +142,26 @@ describe('Operators', () => {
     expect(result.success).toBe(true);
   });
 
+  test('parse with column extraction', async () => {
+    const result = await parseWithTreeSitter('Users | parse message with "error=" errorCode:int');
+    expect(result.success).toBe(true);
+  });
+
+  test('parse with multiple columns', async () => {
+    const result = await parseWithTreeSitter('Users | parse message with "user=" username:string " id=" userId:int');
+    expect(result.success).toBe(true);
+  });
+
+  test('parse with wildcards', async () => {
+    const result = await parseWithTreeSitter('Users | parse message with * "error=" code:string *');
+    expect(result.success).toBe(true);
+  });
+
+  test('parse with flags', async () => {
+    const result = await parseWithTreeSitter('Users | parse kind=regex flags="U" message with "pattern"');
+    expect(result.success).toBe(true);
+  });
+
   test('mv-expand simple', async () => {
     const result = await parseWithTreeSitter('Users | mv-expand tags');
     expect(result.success).toBe(true);

@@ -1,5 +1,7 @@
 # @fossiq/kql-parser
 
+[![npm version](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser) [![npm downloads](https://img.shields.io/npm/dm/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser) [![license](https://img.shields.io/npm/l/@fossiq/kql-parser.svg)](https://github.com/fossiq/root/blob/main/packages/kql-parser/LICENSE) [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/) [![Runtime](https://img.shields.io/badge/runtime-Bun%20%7C%20Node.js%2022%2B-orange.svg)](https://bun.sh/)
+
 A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 
 ## Features
@@ -232,6 +234,10 @@ See `.copilot/kql-parser/status.md` for detailed feature checklist.
 ## License
 
 MIT
+
+## Development
+
+This package was developed with the assistance of AI models including Claude (Anthropic), Gemini (Google), and Zed AI to accelerate implementation and ensure comprehensive grammar coverage.
 
 ## Contributing
 

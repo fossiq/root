@@ -713,6 +713,10 @@
           "named": true
         },
         {
+          "type": "parse_pattern",
+          "named": true
+        },
+        {
           "type": "string_literal",
           "named": true
         }
@@ -723,6 +727,25 @@
     "type": "parse_kind",
     "named": true,
     "fields": {}
+  },
+  {
+    "type": "parse_pattern",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "string_literal",
+          "named": true
+        }
+      ]
+    }
   },
   {
     "type": "pipe_expression",
@@ -1098,6 +1121,10 @@
     "named": false
   },
   {
+    "type": ":",
+    "named": false
+  },
+  {
     "type": "::",
     "named": false
   },
@@ -1150,6 +1177,11 @@
     "named": false
   },
   {
+    "type": "block_comment",
+    "named": true,
+    "extra": true
+  },
+  {
     "type": "by",
     "named": false
   },
@@ -1187,6 +1219,10 @@
   },
   {
     "type": "false",
+    "named": false
+  },
+  {
+    "type": "flags",
     "named": false
   },
   {
@@ -1244,6 +1280,11 @@
   {
     "type": "limit",
     "named": false
+  },
+  {
+    "type": "line_comment",
+    "named": true,
+    "extra": true
   },
   {
     "type": "matches",

@@ -3,12 +3,13 @@ module.exports = grammar({
 
   extras: $ => [
     token(/\s/),
-    token(/\/\/.*/),
-    token(/\/\*[\s\S]*?\*\//)
+    $.line_comment,
+    $.block_comment
   ],
 
   conflicts: $ => [
-    [$.distinct_clause]
+    [$.distinct_clause],
+    [$.parse_pattern]
   ],
 
   rules: {
@@ -33,8 +34,9 @@ module.exports = grammar({
     union_clause: ($) => seq("union", optional(seq("kind", "=", $.union_kind)), optional(seq("isfuzzy", "=", choice("true", "false"))), $.table_list),
     union_kind: ($) => choice("inner", "outer"),
     table_list: ($) => seq($.table_name, repeat(seq(",", $.table_name))),
-    parse_clause: ($) => seq("parse", optional(seq("kind", "=", $.parse_kind)), $.expression, "with", $.string_literal),
+    parse_clause: ($) => seq("parse", optional(seq("kind", "=", $.parse_kind)), optional(seq("flags", "=", $.string_literal)), $.expression, "with", $.parse_pattern),
     parse_kind: ($) => choice("simple", "regex", "relaxed"),
+    parse_pattern: ($) => seq(optional("*"), $.string_literal, repeat(seq($.identifier, optional(seq(":", $.identifier)), optional($.string_literal))), optional("*")),
     mv_expand_clause: ($) => seq(choice("mv-expand", "mvexpand"), $.expression, optional(seq("to", "typeof", "(", $.identifier, ")")), optional(seq("limit", $.number_literal))),
     take_clause: ($) => seq("take", $.number_literal),
     limit_clause: ($) => seq("limit", $.number_literal),
@@ -75,5 +77,7 @@ module.exports = grammar({
     argument_list: ($) => seq($.argument, repeat(seq(",", $.argument))),
     argument: ($) => choice($.named_argument, $.expression),
     named_argument: ($) => seq($.identifier, "=", $.expression),
+    line_comment: ($) => token(seq("//", /[^\r\n]*/)),
+    block_comment: ($) => token(seq("/*", /[^*]*\*+(?:[^\/*][^*]*\*+)*/, "/")),
   }
 });

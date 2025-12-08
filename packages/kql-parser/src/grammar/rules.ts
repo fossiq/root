@@ -120,13 +120,28 @@ export const parseClause: RuleFunction = ($) =>
   seq(
     'parse',
     optional(seq('kind', '=', $.parse_kind)),
+    optional(seq('flags', '=', $.string_literal)), // regex flags
     $.expression,
     'with',
-    $.string_literal
+    $.parse_pattern
   );
 
 export const parseKind: RuleFunction = (_$) =>
   choice('simple', 'regex', 'relaxed');
+
+export const parsePattern: RuleFunction = ($) =>
+  seq(
+    optional('*'), // leading wildcard
+    $.string_literal, // pattern string
+    repeat(
+      seq(
+        $.identifier, // column name
+        optional(seq(':', $.identifier)), // optional type (:string, :int, etc)
+        optional($.string_literal) // optional separator/pattern after column
+      )
+    ),
+    optional('*') // trailing wildcard
+  );
 
 export const mvExpandClause: RuleFunction = ($) =>
   seq(

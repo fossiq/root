@@ -13,12 +13,31 @@
   - `grammar.test.ts` - Basic smoke tests
   - `operators.test.ts` - All KQL operators
   - `expressions.test.ts` - Expressions, functions, literals, let statements
+  - `comments.test.ts` - Line and block comments
   - `_helpers.ts` - Shared parseWithTreeSitter helper
   - `tsconfig.json` - Test-specific TypeScript configuration
 - Scripts: `test`, `test:watch`, `lint`, `lint:fix`
 - Linting: ESLint configured to prevent `bun:test` imports in `src/` folder
 
 ## Recent Completions
+
+**Parse operator pattern improvements** ✅
+
+- Grammar: Enhanced `parse_pattern` to support embedded column names
+- Added support for column type annotations (`:string`, `:int`, etc.)
+- Added support for wildcards (`*`) in patterns for skipping content
+- Added support for regex flags parameter
+- Pattern syntax: `"literal" columnName:type "separator" anotherColumn:type`
+- Added 4 new tests for column extraction, multiple columns, wildcards, and flags
+- Total tests: 83
+
+**Comments** ✅
+
+- Grammar: `line_comment`, `block_comment` added to extras
+- Supports `//` line comments (single line)
+- Supports `/* */` block comments (multi-line)
+- Comments can appear anywhere in the query (inline, between operators, at start/end)
+- Added 8 tests covering all comment scenarios
 
 **Edge cases: Column prefixes + Type casting + Dynamic literals** ✅
 
@@ -96,7 +115,7 @@
 - [x] `search` - Full-text search
 - [x] `join` - Table joins
 - [x] `union` - Combine tables
-- [x] `parse` - Extract from strings (basic)
+- [x] `parse` - Extract from strings with column names
 - [x] `mv-expand` - Expand multi-value
 - [x] `let` - Variable declarations
 
@@ -126,10 +145,9 @@
 ### Advanced
 
 - [x] Column prefix (`Table.Column`)
-- [~] Comments (grammar ready, needs debugging)
+- [x] Comments (`//` line, `/* */` block)
+- [x] Parse patterns (embedded column names, type annotations, wildcards)
 - [ ] Subqueries (complex, optional)
-- [ ] String interpolation (optional)
-- [ ] Parse improvements (embedded column names)
 
 ## Summary
 
@@ -142,14 +160,13 @@ All major KQL features are fully implemented:
 - ✅ Let statements and function named arguments
 - ✅ All literal types including arrays, timespans, and dynamic
 - ✅ Column prefixes and type casting
-- ✅ 89 comprehensive tests covering real-world KQL queries
+- ✅ Comments (line and block)
+- ✅ Parse patterns with column extraction and wildcards
+- ✅ 83 comprehensive tests covering real-world KQL queries
 
 **Optional remaining items:**
 
 - Subqueries (complex, rarely used)
-- String interpolation (advanced feature)
-- Parse pattern improvements (embedded columns)
-- Comment debugging (grammar exists)
 
 **The parser is production-ready!** It can handle the vast majority of real-world KQL queries.
 

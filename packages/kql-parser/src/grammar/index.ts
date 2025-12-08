@@ -3,7 +3,7 @@
  * Main entry point for the tree-sitter grammar configuration
  */
 
-import type { GrammarConfig, RuleBuilder } from './types.js';
+import type { GrammarConfig, RuleBuilder, Rule } from './types.js';
 import * as rules from './rules.js';
 
 /**
@@ -15,12 +15,13 @@ export function createGrammar(): GrammarConfig {
   return {
     name: 'kql',
     extras: [
-      { type: 'PATTERN', value: '\\s' }, // whitespace
-      { type: 'PATTERN', value: '//.*' }, // line comments
-      { type: 'PATTERN', value: '/\\*[\\s\\S]*?\\*/' }, // block comments
+      { type: 'PATTERN', value: '\\s' } as Rule,
+      { type: 'SYMBOL', name: 'line_comment' } as Rule,
+      { type: 'SYMBOL', name: 'block_comment' } as Rule,
     ],
     conflicts: [
-      ['distinct_clause']
+      ['distinct_clause'],
+      ['parse_pattern']
     ],
     rules: {
       source_file: rules.sourceFile($),
@@ -46,6 +47,7 @@ export function createGrammar(): GrammarConfig {
       table_list: rules.tableList($),
       parse_clause: rules.parseClause($),
       parse_kind: rules.parseKind($),
+      parse_pattern: rules.parsePattern($),
       mv_expand_clause: rules.mvExpandClause($),
       take_clause: rules.takeClause($),
       limit_clause: rules.limitClause($),
@@ -86,6 +88,8 @@ export function createGrammar(): GrammarConfig {
       argument_list: rules.argumentList($),
       argument: rules.argument($),
       named_argument: rules.namedArgument($),
+      line_comment: rules.lineComment($),
+      block_comment: rules.blockComment($),
     },
   };
 }
