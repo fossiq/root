@@ -63,7 +63,7 @@ export const searchClause: RuleFunction = ($) =>
   );
 
 export const sortClause: RuleFunction = ($) =>
-  seq(choice('sort', 'order'), optional('by'), $.sort_expression_list);
+  seq('sort', optional('by'), $.sort_expression_list);
 
 export const orderClause: RuleFunction = ($) =>
   seq('order', 'by', $.sort_expression_list);
@@ -75,7 +75,10 @@ export const sortExpression: RuleFunction = ($) =>
   seq($.identifier, optional(choice('asc', 'desc')));
 
 export const distinctClause: RuleFunction = ($) =>
-  seq('distinct', optional($.column_list));
+  choice(
+    prec.dynamic(1, seq('distinct', $.column_list)),
+    prec.dynamic(0, 'distinct')
+  );
 
 export const countClause: RuleFunction = ($) => ({
   type: 'STRING',

@@ -11,7 +11,7 @@ This is the Expedition monorepo - a KQL (Kusto Query Language) tooling project.
 - Prefer functional programming patterns
 - Keep functions small and focused
 - Use descriptive variable and function names
-- VERY IMPORTANT: DO NOT generate example files, boilerplate, or excessive documentation
+- VERY IMPORTANT: DO NOT generate example files, boilerplate, or excessive documentation unless asked for explicitly.
 
 ## Architecture
 

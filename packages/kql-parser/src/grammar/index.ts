@@ -14,6 +14,9 @@ export function createGrammar(): GrammarConfig {
 
   return {
     name: 'kql',
+    conflicts: [
+      ['distinct_clause']
+    ],
     rules: {
       source_file: rules.sourceFile($),
       _statement: rules._statement($),

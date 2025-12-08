@@ -303,6 +303,10 @@
           "named": true
         },
         {
+          "type": "order_clause",
+          "named": true
+        },
+        {
           "type": "project_clause",
           "named": true
         },
@@ -324,6 +328,21 @@
         },
         {
           "type": "where_clause",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "order_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "sort_expression_list",
           "named": true
         }
       ]

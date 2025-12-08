@@ -1,6 +1,10 @@
 module.exports = grammar({
   name: 'kql',
 
+  conflicts: $ => [
+    [$.distinct_clause]
+  ],
+
   rules: {
     source_file: ($) => repeat($._statement),
     _statement: ($) => choice($.query_statement),
@@ -15,11 +19,11 @@ module.exports = grammar({
     limit_clause: ($) => seq("limit", $.number_literal),
     top_clause: ($) => seq("top", $.number_literal, optional(seq("by", $.identifier, optional(choice("asc", "desc"))))),
     search_clause: ($) => seq("search", optional(seq("in", "(", $.column_list, ")")), $.string_literal),
-    sort_clause: ($) => seq(choice("sort", "order"), optional("by"), $.sort_expression_list),
+    sort_clause: ($) => seq("sort", optional("by"), $.sort_expression_list),
     order_clause: ($) => seq("order", "by", $.sort_expression_list),
     sort_expression_list: ($) => seq($.sort_expression, repeat(seq(",", $.sort_expression))),
     sort_expression: ($) => seq($.identifier, optional(choice("asc", "desc"))),
-    distinct_clause: ($) => seq("distinct", optional($.column_list)),
+    distinct_clause: ($) => choice(prec.dynamic(1, seq("distinct", $.column_list)), prec.dynamic(0, "distinct")),
     count_clause: ($) => "count",
     column_list: ($) => seq($.column_expression, repeat(seq(",", $.column_expression))),
     column_expression: ($) => choice($.identifier, $.column_assignment),

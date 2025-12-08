@@ -18,38 +18,6 @@ This parser implementation uses tree-sitter for KQL grammar parsing and TypeScri
 - Literals: string, number, boolean, null
 - Grammar successfully compiles with tree-sitter CLI
 
-**Known Issues:**
-
-- `grammar.js` file conflicts with package.json `"type": "module"` setting
-- Tree-sitter CLI requires `grammar.js` but Node treats it as ESM due to package config
-- Need to resolve module system conflict for tree-sitter generation
-
-## Next Steps
-
-1. **Fix Module System Conflict**
-   - Either: Create separate `grammar/` subdirectory without package.json to isolate CJS context
-   - Or: Add `.cjs` extension support to tree-sitter CLI workflow
-   - Or: Temporarily change package.json type during grammar generation
-
-2. **Complete Remaining Operators**
-   - Implement `summarize` with aggregation functions
-   - Add `join` operator with join types
-   - Add `union` operator
-
-3. **Add Function Support**
-   - Define function call expression type
-   - Implement scalar functions (strlen, toupper, etc.)
-   - Add aggregation functions (sum, avg, min, max)
-
-4. **Testing**
-   - Write test cases for implemented operators
-   - Test grammar with tree-sitter test framework
-   - Validate AST generation for complex queries
-
-5. **Documentation**
-   - Add usage examples once grammar is working
-   - Document build process and tooling
-
 # KQL Parser Instructions
 
 ## Grammar Development
@@ -58,6 +26,7 @@ This parser implementation uses tree-sitter for KQL grammar parsing and TypeScri
 - Use tree-sitter conventions for rule naming
 - Prefer explicit rules over implicit ones
 - Test grammar changes incrementally
+- Always edit the source TS files at `src/grammar/` and then compile using `bun run compile-grammar`. Do not edit any `js` or `cjs` files directly.
 
 ## AST Design
 
@@ -74,7 +43,6 @@ This parser implementation uses tree-sitter for KQL grammar parsing and TypeScri
 - Handle errors gracefully with descriptive messages
 - Don't add features until explicitly requested
 - Export both individual functions and composed utilities
-- Do not edit `grammar.js` or `grammar.cjs` files directly; always edit the source TS files at `src/grammar/` and then compile using `bun run compile-grammar`.
 
 ## Grammar Development with TypeScript
 

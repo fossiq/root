@@ -1,16 +1,16 @@
 {
   "name": "@expedition/kql-parser",
   "version": "0.1.0",
-  "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "compile-grammar": "bun run src/grammar/compile.ts",
+    "compile-grammar": "bun src/grammar/compile.ts",
     "prebuild": "bun run compile-grammar",
     "build": "tsc",
     "test": "bun test"
   },
   "dependencies": {
     "tree-sitter": "^0.21.0",
+    "tree-sitter-cli": "^0.25.10",
     "web-tree-sitter": "^0.22.0"
   },
   "devDependencies": {

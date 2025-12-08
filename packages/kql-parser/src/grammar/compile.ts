@@ -105,8 +105,16 @@ function generateGrammarJS(config: GrammarConfig): string {
     }
   }
 
+  let conflictsSection = '';
+  if (config.conflicts && config.conflicts.length > 0) {
+    const conflictArrays = config.conflicts.map(conflict =>
+      `[${conflict.map(c => `$.${c}`).join(', ')}]`
+    ).join(',\n    ');
+    conflictsSection = `\n\n  conflicts: $ => [\n    ${conflictArrays}\n  ],`;
+  }
+
   return `module.exports = grammar({
-  name: '${config.name}',
+  name: '${config.name}',${conflictsSection}
 
   rules: {
 ${rules.join(',\n')},
@@ -128,8 +136,8 @@ function compile() {
     // Generate JavaScript source
     const jsSource = generateGrammarJS(grammar);
 
-    // Write to grammar/grammar.cjs
-    const outputPath = resolve(__dirname, '../../grammar.cjs');
+    // Write to grammar.js
+    const outputPath = resolve(__dirname, '../../grammar.js');
     writeFileSync(outputPath, jsSource, 'utf-8');
 
     console.log(`✓ Grammar compiled successfully to ${outputPath}`);

@@ -76,6 +76,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "order_clause"
+        },
+        {
+          "type": "SYMBOL",
           "name": "distinct_clause"
         },
         {
@@ -266,17 +270,8 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "STRING",
-              "value": "sort"
-            },
-            {
-              "type": "STRING",
-              "value": "order"
-            }
-          ]
+          "type": "STRING",
+          "value": "sort"
         },
         {
           "type": "CHOICE",
@@ -289,6 +284,23 @@
               "type": "BLANK"
             }
           ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "sort_expression_list"
+        }
+      ]
+    },
+    "order_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "order"
+        },
+        {
+          "type": "STRING",
+          "value": "by"
         },
         {
           "type": "SYMBOL",
@@ -352,29 +364,34 @@
       ]
     },
     "distinct_clause": {
-      "type": "PREC_LEFT",
-      "value": 0,
-      "content": {
-        "type": "SEQ",
-        "members": [
-          {
-            "type": "STRING",
-            "value": "distinct"
-          },
-          {
-            "type": "CHOICE",
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PREC_DYNAMIC",
+          "value": 1,
+          "content": {
+            "type": "SEQ",
             "members": [
+              {
+                "type": "STRING",
+                "value": "distinct"
+              },
               {
                 "type": "SYMBOL",
                 "name": "column_list"
-              },
-              {
-                "type": "BLANK"
               }
             ]
           }
-        ]
-      }
+        },
+        {
+          "type": "PREC_DYNAMIC",
+          "value": 0,
+          "content": {
+            "type": "STRING",
+            "value": "distinct"
+          }
+        }
+      ]
     },
     "count_clause": {
       "type": "STRING",
@@ -863,7 +880,11 @@
       "value": "\\s"
     }
   ],
-  "conflicts": [],
+  "conflicts": [
+    [
+      "distinct_clause"
+    ]
+  ],
   "precedences": [],
   "externals": [],
   "inline": [],
