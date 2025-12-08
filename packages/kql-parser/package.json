@@ -40,7 +40,7 @@
   },
   "scripts": {
     "compile-grammar": "bun src/grammar/compile.ts",
-    "generate": "bun run compile-grammar && tree-sitter generate",
+    "generate": "bun run compile-grammar && bunx tree-sitter-cli generate",
     "build": "bun run generate && tsc",
     "prebuild": "bun run generate",
     "prepublishOnly": "bun run build && bun run test",
