@@ -24,6 +24,13 @@ jobs:
         with:
           bun-version: latest
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Update npm to latest
+        run: npm install -g npm@latest
+
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -38,11 +45,6 @@ jobs:
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
 
-      - name: Verify OIDC token is available
-        run: |
-          echo "ACTIONS_ID_TOKEN_REQUEST_URL is set: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL != '' }}"
-          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN is set: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN != '' }}"
-
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
 
@@ -54,5 +56,3 @@ jobs:
         with:
           package: packages/kql-parser
           provenance: true
-          access: public
-          ignore-scripts: false
