@@ -11,6 +11,8 @@
 
 **Why:** AI agents have no memory between sessions. Without updates, knowledge is lost.
 
+**NEVER auto-commit** - always prompt user before committing changes.
+
 ## Project Overview
 
 Expedition monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun.

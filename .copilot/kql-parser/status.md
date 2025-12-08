@@ -167,11 +167,12 @@ All major KQL features are fully implemented:
 ### Package Scripts
 
 - `compile-grammar` - Compile TS grammar → JS
-- `generate` - compile-grammar + tree-sitter generate
+- `generate` - Compile grammar + tree-sitter generate
 - `build` - Full build (generate + tsc)
+- `prebuild` - Runs generate before build
+- `prepublishOnly` - Full build + tests before publish
 - `test` - Run E2E tests
-- `test:watch` - Watch mode
-- `prepublishOnly` - Pre-publish validation
+- `test:watch` - Run tests in watch mode
 
 ### Publishing
 

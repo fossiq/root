@@ -188,7 +188,7 @@ bun run compile-grammar
 bun run generate
 
 # Run tests
-bun run test-grammar
+bun run test
 
 # Build for distribution
 bun run build
@@ -199,7 +199,8 @@ bun run build
 - `compile-grammar` - Compile TypeScript grammar to JavaScript
 - `generate` - Run compile-grammar + tree-sitter generate
 - `build` - Full build (generate + TypeScript compilation)
-- `test-grammar` - Run grammar tests
+- `test` - Run E2E grammar tests
+- `test:watch` - Run tests in watch mode
 - `prepublishOnly` - Pre-publish checks (build + tests)
 
 ## Architecture
@@ -214,13 +215,13 @@ See `.copilot/kql-parser/architecture.md` for detailed documentation.
 
 ## Testing
 
-The parser includes 89 comprehensive tests covering real-world KQL queries:
+The parser includes 71 E2E tests covering all KQL features:
 
 ```bash
-bun run test-grammar
+bun run test
 ```
 
-All tests validate that queries parse without errors using the tree-sitter CLI.
+Tests are organized by feature (operators, expressions, etc.) and validate that queries parse without errors using the tree-sitter CLI.
 
 ## Status
 
