@@ -1,4 +1,4 @@
-name: Publish
+name: CI
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build-test-publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,8 +49,16 @@ jobs:
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: ./.github/scripts/test-packages.sh
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/*/coverage/lcov.info
+          fail_ci_if_error: false
+          verbose: true
 
       - run: npm publish ./packages/kql-parser --provenance --ignore-scripts
         env:

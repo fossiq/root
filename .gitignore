@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Coverage
+coverage/
+*.lcov
+
 # Tree-sitter
 build/
 *.node

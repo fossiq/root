@@ -127,6 +127,23 @@ bun run release  # Publish to npm
 
 ## GitHub Workflows
 
-- **Prefer existing GitHub Actions** (e.g., `actions/cache`)
+### CI Workflow (`ci.yml`)
+
+The main CI workflow runs on every push to `main` that affects package code:
+
+- **Build:** Compiles all packages using `build-packages.sh`
+- **Test:** Runs tests with coverage using `test-packages.sh`
+  - Uses `bun test --coverage` to generate coverage reports
+  - Coverage reports are saved to `packages/*/coverage/`
+- **Coverage:** Uploads coverage to Codecov
+  - Requires `CODECOV_TOKEN` secret to be configured
+  - Aggregates coverage from all packages
+  - Non-blocking (won't fail CI if upload fails)
+- **Publish:** Publishes packages to npm with provenance
+
+### Best Practices
+
+- **Prefer existing GitHub Actions** (e.g., `actions/cache`, `codecov/codecov-action`)
 - **Write scripts in `.github/scripts/`** - never use inline shell code in workflow files
 - Scripts should follow patterns in `build-packages.sh` and `test-packages.sh`
+- Keep workflows simple and maintainable

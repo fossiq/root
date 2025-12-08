@@ -1,4 +1,7 @@
-# Fossiq Root
+# Fossiq
+
+[![CI](https://github.com/sushruth/fossiq/actions/workflows/ci.yml/badge.svg)](https://github.com/sushruth/fossiq/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/sushruth/fossiq/branch/main/graph/badge.svg)](https://codecov.io/gh/sushruth/fossiq)
 
 A monorepo containing KQL (Kusto Query Language) tooling and applications.
 
@@ -69,8 +72,9 @@ See [`.copilot/monorepo.md`](./.copilot/monorepo.md) for detailed versioning doc
 - **Language**: TypeScript
 - **Parser**: tree-sitter
 - **Frontend** (app): SolidJS, Vite, PicoCSS
-- **CI/CD**: GitHub Actions
+- **CI/CD**: GitHub Actions (build, test, coverage, publish)
 - **Package Manager**: Changesets
+- **Code Coverage**: Codecov
 
 ## Repository Structure
 
@@ -84,6 +88,17 @@ See [`.copilot/monorepo.md`](./.copilot/monorepo.md) for detailed versioning doc
 ├── .changeset/              # Changesets configuration
 └── .copilot/                # Development documentation
 ```
+
+## CI/CD
+
+The repository uses GitHub Actions for continuous integration:
+
+- **Build**: All packages are compiled on every push to `main`
+- **Test**: Tests run with coverage using `bun test --coverage`
+- **Coverage**: Coverage reports are uploaded to Codecov
+- **Publish**: Packages are automatically published to npm with provenance
+
+To set up Codecov integration, add the `CODECOV_TOKEN` secret to your repository settings.
 
 ## License
 
