@@ -23,7 +23,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/fossiq/root.git",
+    "url": "https://github.com/fossiq/root.git",
     "directory": "packages/kql-parser"
   },
   "bugs": {
