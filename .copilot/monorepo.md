@@ -78,8 +78,51 @@
 2. No need to add ESLint dependencies - they're hoisted from root
 3. Package can use root lint commands or define its own
 
-## Versioning
+## Versioning and Releases
 
-- Start new packages at version 0.1.0
-- Bump versions together when packages are interdependent
-- Use semantic versioning principles
+### Changesets
+
+The monorepo uses [@changesets/cli](https://github.com/changesets/changesets) for version management and changelog generation.
+
+**Making changes:**
+
+1. After making changes to a package, create a changeset:
+
+   ```bash
+   bun run changeset
+   ```
+
+2. Select the packages that changed and the version bump type:
+
+   - `patch` - Bug fixes (0.1.0 → 0.1.1)
+   - `minor` - New features (0.1.0 → 0.2.0)
+   - `major` - Breaking changes (0.1.0 → 1.0.0)
+
+3. Write a brief description of the change (appears in CHANGELOG)
+
+4. Commit the changeset file (`.changeset/*.md`) with your changes
+
+**Releasing:**
+
+When changesets are merged to `main`:
+
+- GitHub Actions detects changesets
+- Creates/updates a "Release: Version Packages" PR that:
+  - Bumps package versions
+  - Updates CHANGELOGs
+  - Removes consumed changesets
+- Merge the release PR to publish to npm automatically
+- GitHub release is created with changelog notes
+
+**Manual release (if needed):**
+
+```bash
+bun run version  # Bump versions and update CHANGELOGs
+bun run release  # Publish to npm
+```
+
+**Configuration:**
+
+- `.changeset/config.json` - Changesets configuration
+- `access: "public"` - All packages are public on npm
+- `baseBranch: "main"` - Base branch for version PRs
