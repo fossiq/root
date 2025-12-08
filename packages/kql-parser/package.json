@@ -43,9 +43,9 @@
     "generate": "bun run compile-grammar && tree-sitter generate",
     "build": "bun run generate && tsc",
     "prebuild": "bun run generate",
-    "prepublishOnly": "bun run build && bun run test-grammar",
-    "test": "bun test",
-    "test-grammar": "bun scripts/test-grammar.ts"
+    "prepublishOnly": "bun run build && bun run test",
+    "test": "bun test tests/e2e",
+    "test:watch": "bun test tests/e2e --watch"
   },
   "dependencies": {
     "tree-sitter": "^0.21.0",

@@ -72,6 +72,8 @@ Expedition monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun
 
 ## Documentation
 
-- JSDoc for public APIs
-- Keep READMEs minimal
-- Update `.copilot/` files as you work
+- JSDoc for public APIs only
+- Keep READMEs minimal and high-level
+- **NEVER write granular documentation** (test structure explanations, function listings, step-by-step guides)
+- Code should be self-explanatory - if it needs detailed docs, it's too complex
+- Update `.copilot/` files as you work with implementation notes only

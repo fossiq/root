@@ -2,9 +2,19 @@
 
 ## Current State
 
-- **Tests:** 89/89 passing
+- **Tests:** E2E grammar validation only
 - **Grammar:** Compiles without conflicts
 - **Runtime:** tree-sitter + TypeScript
+- **Package:** `@fossiq/kql-parser` ready for publish
+
+## Test Structure
+
+- `tests/e2e/` - Grammar validation using tree-sitter CLI
+  - `grammar.test.ts` - Basic smoke tests
+  - `operators.test.ts` - All KQL operators
+  - `expressions.test.ts` - Expressions, functions, literals, let statements
+  - `_helpers.ts` - Shared parseWithTreeSitter helper
+- Scripts: `test`, `test:watch`
 
 ## Recent Completions
 
@@ -145,27 +155,27 @@ All major KQL features are fully implemented:
 
 **Status: Ready for npm publish** ✅
 
-- ✅ All TypeScript errors fixed (`NamedArgument` added to `ASTNode` union)
-- ✅ Build script: `npm run build` - Compiles grammar, generates parser, builds TypeScript
-- ✅ Prepublish script: `npm run prepublishOnly` - Runs full build + all tests before publishing
-- ✅ Package metadata complete (description, keywords, repository, license)
-- ✅ README.md created with comprehensive documentation
-- ✅ Proper exports configured (`main`, `types`, `files`)
-- ✅ Scripts excluded from TypeScript compilation
-- ✅ 89/89 tests passing
+- ✅ All TypeScript errors fixed
+- ✅ Build script: `npm run build`
+- ✅ Prepublish script: Runs build + tests
+- ✅ Package metadata complete
+- ✅ Proper exports configured
+- ✅ E2E test coverage for all grammar features
+- ✅ Package scope changed to `@fossiq/kql-parser`
+- ✅ Repository updated to `git@github.com:fossiq/root.git`
 
 ### Package Scripts
 
 - `compile-grammar` - Compile TS grammar → JS
 - `generate` - compile-grammar + tree-sitter generate
 - `build` - Full build (generate + tsc)
-- `test-grammar` - Run all tests
-- `prepublishOnly` - Pre-publish validation (build + tests)
+- `test` - Run E2E tests
+- `test:watch` - Watch mode
+- `prepublishOnly` - Pre-publish validation
 
 ### Publishing
 
 ```bash
 cd packages/kql-parser
-npm run prepublishOnly  # Validates everything
-npm publish --access public
+npm publish
 ```
