@@ -1,5 +1,12 @@
 # General Development Guidelines
 
+## IMPORTANT: System Changes
+
+- **NEVER install global tools** (brew install, npm install -g, etc.) without explicit user approval
+- **NEVER start Docker containers** without explicit user approval
+- **NEVER modify system configuration** outside the project directory
+- Always ask first if a task requires system-level changes
+
 ## Communication
 
 - Conversational but professional

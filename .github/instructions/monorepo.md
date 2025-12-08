@@ -29,11 +29,55 @@
 
 ## Adding New Packages
 
-- Create package directory in `packages/`
-- Add `package.json` with proper name and version
-- Include `tsconfig.json` for TypeScript projects
-- Add to workspace configuration automatically via `packages/*` glob
-- Keep initial implementation minimal
+When creating a new package, follow this incremental approach:
+
+### Step 1: Planning
+
+1. Create a development guide in `.github/instructions/<package-name>-dev.md`
+2. Include: package structure, implementation phases, feature checklist
+3. Get user approval before proceeding with implementation
+
+### Step 2: Package Setup
+
+Create files one at a time, getting approval between steps:
+
+1. **Create directory:** `packages/<package-name>/`
+2. **`package.json`:**
+   ```json
+   {
+     "name": "@fossiq/<package-name>",
+     "version": "0.1.0",
+     "main": "dist/index.js",
+     "types": "dist/index.d.ts",
+     "scripts": {
+       "build": "tsc",
+       "test": "bun test tests"
+     },
+     "dependencies": {},
+     "devDependencies": {
+       "@types/bun": "^1.3.4",
+       "@types/node": "^20.0.0",
+       "typescript": "^5.0.0"
+     }
+   }
+   ```
+3. **`tsconfig.json`:** Copy from existing package (e.g., `kql-parser`)
+4. **`src/types.ts`:** Define core types
+5. **`src/index.ts`:** Public API with minimal stubs
+
+### Step 3: Incremental Implementation
+
+- Implement one feature at a time
+- Get user approval before each major code generation
+- Update the development guide checklist as features complete
+- Add tests after each feature
+
+### Key Principles
+
+- Workspace dependencies: Use `"workspace:*"` for internal packages
+- Automatic registration: `packages/*` glob auto-includes new packages
+- Keep initial implementation minimal - avoid generating boilerplate
+- Never auto-commit changes
 
 ## Package Exports
 
