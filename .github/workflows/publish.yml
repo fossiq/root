@@ -52,7 +52,6 @@ jobs:
       - name: Run tests
         run: ./.github/scripts/test-packages.sh
 
-      - run: npm publish --provenance --ignore-scripts
-        working-directory: ./packages/kql-parser
+      - run: npm publish ./packages/kql-parser --provenance --ignore-scripts
         env:
           NPM_CONFIG_PROVENANCE: true
