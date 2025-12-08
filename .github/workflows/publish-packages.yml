@@ -41,6 +41,11 @@ jobs:
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
 
+      - name: Verify OIDC token is available
+        run: |
+          echo "ACTIONS_ID_TOKEN_REQUEST_URL is set: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL != '' }}"
+          echo "ACTIONS_ID_TOKEN_REQUEST_TOKEN is set: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN != '' }}"
+
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
 
@@ -57,7 +62,6 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Releases
         if: steps.changesets.outputs.published == 'true'
