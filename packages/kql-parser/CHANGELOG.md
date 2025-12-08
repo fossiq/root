@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 0.1.8
+
+### Patch Changes
+
+- 7fae64c: Test OIDC publishing without NPM_TOKEN
+
 ## 0.1.7
 
 ### Patch Changes
