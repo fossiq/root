@@ -9,12 +9,14 @@
 
 ## Test Structure
 
-- `tests/e2e/` - Grammar validation using tree-sitter CLI
+- `tests/` - Grammar validation using tree-sitter CLI
   - `grammar.test.ts` - Basic smoke tests
   - `operators.test.ts` - All KQL operators
   - `expressions.test.ts` - Expressions, functions, literals, let statements
   - `_helpers.ts` - Shared parseWithTreeSitter helper
-- Scripts: `test`, `test:watch`
+  - `tsconfig.json` - Test-specific TypeScript configuration
+- Scripts: `test`, `test:watch`, `lint`, `lint:fix`
+- Linting: ESLint configured to prevent `bun:test` imports in `src/` folder
 
 ## Recent Completions
 

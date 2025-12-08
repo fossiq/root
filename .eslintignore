@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+**/dist/
+**/build/
+
+# Generated files
+*.js
+*.d.ts
+!vite.config.ts
+!*.config.ts
+
+# Tree-sitter generated files
+packages/kql-parser/grammar.js
+packages/kql-parser/bindings/
+packages/kql-parser/src/tree-sitter/
+packages/kql-parser/*.dylib
+packages/kql-parser/*.so
+packages/kql-parser/*.dll
+
+# Lock files
+bun.lock
+package-lock.json
+yarn.lock
+
+# Cache
+.cache/
+.vite/

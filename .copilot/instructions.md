@@ -43,6 +43,14 @@ Expedition monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun
 - Handle errors with descriptive messages
 - Don't add features until requested
 
+## Code Quality
+
+- ESLint configured at monorepo root (`.eslintrc.json`)
+- Run `bun run lint` from root to check all packages
+- Run `bun run lint:fix` to auto-fix issues
+- Packages can extend root config with their own `.eslintrc.json`
+- No need to add ESLint deps per-package (hoisted from root)
+
 ## File Organization
 
 - Files under ~100-150 lines
@@ -63,7 +71,16 @@ Expedition monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun
 - **Default: NO TESTING during development**
 - Test after feature completion
 - Use Bun test runner when needed
-- For kql-parser: `bun run test-grammar`
+- For kql-parser: `bun test tests`
+- Test files must be in `tests/` directories, never in `src/`
+
+## Documentation
+
+- **NEVER create standalone setup/explanation files** (e.g., `.eslint-setup.md`, `SETUP.md`, `HOW-TO.md`)
+- Configuration should be self-explanatory through comments
+- Document setup in `.copilot/` files only if needed for AI context
+- README files should be minimal and high-level only
+- Code and configs are the documentation
 
 ## Grammar Development (kql-parser)
 

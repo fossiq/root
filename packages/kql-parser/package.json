@@ -44,8 +44,9 @@
     "build": "bun run generate && tsc",
     "prebuild": "bun run generate",
     "prepublishOnly": "bun run build && bun run test",
-    "test": "bun test tests/e2e",
-    "test:watch": "bun test tests/e2e --watch"
+
+    "test": "bun test tests",
+    "test:watch": "bun test tests --watch"
   },
   "dependencies": {
     "tree-sitter": "^0.21.0",

@@ -1,5 +1,13 @@
 # KQL Parser: Implementation Guide
 
+## Test Organization
+
+- Tests live in `tests/` (not `tests/e2e/`)
+- Each test file uses `bun:test` imports
+- `tests/tsconfig.json` extends main config with `bun-types`
+- ESLint prevents `bun:test` imports in `src/` folder
+- Run tests: `bun test tests` or `bun run test`
+
 ## Adding a New Operator (Step-by-Step)
 
 ### 1. Define Types (`src/types.ts`)
