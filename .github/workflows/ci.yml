@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org/"
+          registry-url: "https://registry.npmjs.org"
           token: ${{ secrets.NPM_TOKEN }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -62,6 +62,7 @@ jobs:
           verbose: true
 
       - name: Publish kql-parser package
-        run: npm publish ./packages/kql-parser --provenance --ignore-scripts
+        run: npm publish ./packages/kql-parser --ignore-scripts
         env:
           NPM_CONFIG_PROVENANCE: true
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
