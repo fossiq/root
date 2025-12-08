@@ -56,8 +56,8 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          version: bunx npm version
-          publish: bunx npm publish --provenance
+          version: bun run version
+          publish: bun run release
           title: "Release: Version Packages"
           commit: "chore: version packages"
         env:
