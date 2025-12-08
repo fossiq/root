@@ -24,7 +24,7 @@ for package in $(echo "$PUBLISHED_PACKAGES" | jq -r '.[] | @base64'); do
     --title "${PACKAGE_NAME} v${PACKAGE_VERSION}" \
     --notes "Published ${PACKAGE_NAME} version ${PACKAGE_VERSION} to npm.
 
-Install: \`npm install ${PACKAGE_NAME}@${PACKAGE_VERSION}\`
+Install: \`bun add ${PACKAGE_NAME}@${PACKAGE_VERSION}\`
 
 See CHANGELOG.md for details."
 done
