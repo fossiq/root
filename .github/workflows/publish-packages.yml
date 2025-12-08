@@ -26,44 +26,22 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dependencies
-        run: bun install --verbose
+        run: bun install --ignore-scripts
 
       - name: Build all packages
-        run: |
-          for package in packages/*; do
-            if [ -f "$package/package.json" ] && [ -f "$package/tsconfig.json" ]; then
-              # Skip private packages
-              if grep -q '"private".*:.*true' "$package/package.json"; then
-                echo "Skipping private package $package"
-                continue
-              fi
-              echo "Building $package..."
-              cd "$package"
-              if grep -q '"build"' package.json; then
-                bun run build
-              fi
-              cd ../..
-            fi
-          done
+        run: ./.github/scripts/build-packages.sh
 
       - name: Run tests
-        run: |
-          for package in packages/*; do
-            if [ -f "$package/package.json" ]; then
-              # Skip private packages
-              if grep -q '"private".*:.*true' "$package/package.json"; then
-                echo "Skipping private package $package"
-                continue
-              fi
-              echo "Testing $package..."
-              cd "$package"
-              if grep -q '"test"' package.json; then
-                bun run test
-              fi
-              cd ../..
-            fi
-          done
+        run: ./.github/scripts/test-packages.sh
 
       - name: Create Release Pull Request or Publish
         id: changesets
@@ -79,23 +57,7 @@ jobs:
 
       - name: Create GitHub Releases
         if: steps.changesets.outputs.published == 'true'
-        run: |
-          for package in $(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -r '.[] | @base64'); do
-            _jq() {
-              echo ${package} | base64 --decode | jq -r ${1}
-            }
-            PACKAGE_NAME=$(_jq '.name')
-            PACKAGE_VERSION=$(_jq '.version')
-            PACKAGE_SHORT_NAME=$(echo "$PACKAGE_NAME" | sed 's/@fossiq\///')
-
-            # Create release for each published package
-            gh release create "${PACKAGE_SHORT_NAME}-v${PACKAGE_VERSION}" \
-              --title "${PACKAGE_NAME} v${PACKAGE_VERSION}" \
-              --notes "Published ${PACKAGE_NAME} version ${PACKAGE_VERSION} to npm.
-
-            Install: \`npm install ${PACKAGE_NAME}@${PACKAGE_VERSION}\`
-
-            See CHANGELOG.md for details."
-          done
+        run: ./.github/scripts/create-releases.sh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}

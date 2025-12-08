@@ -1,96 +1,88 @@
-# Expedition
+# Fossiq Root
 
-A web application for querying CSV files using KQL (Kusto Query Language) with an Azure Data Explorer-like interface.
+A monorepo containing KQL (Kusto Query Language) tooling and applications.
 
-## Features
+## Packages
 
-- Load CSV files from your local disk using the File System Access API
-- Query CSV data using KQL syntax with database name support
-- CodeMirror editor with KQL syntax highlighting and placeholder hints
-- Results-only display (no preview until query execution)
-- Session storage for persisting loaded data across page reloads
-- Azure Data Explorer-inspired UI layout
+### [@fossiq/kql-parser](./packages/kql-parser)
 
-## Tech Stack
+A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter. Provides complete KQL grammar support with type-safe AST generation.
 
-- **Frontend Framework**: SolidJS
-- **State Management**: solid-js/store
-- **Styling**: PicoCSS
-- **Editor**: CodeMirror
-- **Table Component**: @tanstack/solid-table
-- **Build Tool**: Vite
-- **Runtime**: Bun
-- **Language**: TypeScript
+[![npm version](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser)
 
-## Setup
+### [@fossiq/app](./packages/app) (Private)
 
-1. Install dependencies:
+A web application for querying CSV files using KQL with an Azure Data Explorer-like interface.
+
+## Development
+
+This is a Bun workspace monorepo. Install dependencies from the root:
 
 ```bash
 bun install
 ```
 
-2. Start the development server:
+### Working with Packages
+
+Build all packages:
+
+```bash
+# Build kql-parser (app is skipped as it's private)
+cd packages/kql-parser
+bun run build
+```
+
+Run tests:
+
+```bash
+cd packages/kql-parser
+bun run test
+```
+
+Start the app:
 
 ```bash
 bun run dev
 ```
 
-3. Build for production:
+### Versioning and Publishing
 
-```bash
-bun run build
+This monorepo uses [Changesets](https://github.com/changesets/changesets) for version management.
+
+**To release a new version:**
+
+1. Make your changes to a package
+2. Create a changeset:
+   ```bash
+   bun run changeset
+   ```
+3. Select the package(s) that changed and the version bump type (patch/minor/major)
+4. Commit the changeset with your changes
+5. Push to main - GitHub Actions will create a "Release: Version Packages" PR
+6. Review and merge the PR - packages will be automatically published to npm
+
+See [`.copilot/monorepo.md`](./.copilot/monorepo.md) for detailed versioning documentation.
+
+## Tech Stack
+
+- **Runtime**: Bun
+- **Language**: TypeScript
+- **Parser**: tree-sitter
+- **Frontend** (app): SolidJS, Vite, PicoCSS
+- **CI/CD**: GitHub Actions
+- **Package Manager**: Changesets
+
+## Repository Structure
+
 ```
-
-4. Preview production build:
-
-```bash
-bun run preview
-```
-
-## Usage
-
-1. Click "Load CSV" to select and load a CSV file from your local disk
-2. The CSV filename (without extension) becomes your database/table name
-3. Write your KQL query in the editor using the database name
-4. Click "Run Query" to execute the query
-5. View the results in the results table below
-
-### Query Example
-
-If you load a file named `employees.csv`, you can query it like:
-
-```kql
-employees
-| where Age > 25
-| project Name, Age, Department
-| take 10
-```
-
-## Supported KQL Operators
-
-- `where` - Filter rows based on conditions
-- `project` - Select specific columns
-- `take` / `limit` - Limit the number of rows
-- `sort by` / `order by` - Sort results
-- `count` - Count rows
-- `summarize` - Aggregate data
-- `distinct` - Get unique values
-
-## Example Queries
-
-```kql
-tablename
-| where Age > 25
-| project Name, Age, City
-| sort by Age desc
-| take 10
-```
-
-```kql
-tablename
-| where City contains "New York"
-| summarize count() by Department
+.
+├── packages/
+│   ├── kql-parser/          # KQL parser library (published to npm)
+│   └── app/                 # CSV query web app (private)
+├── .github/
+│   └── workflows/           # GitHub Actions workflows
+├── .changeset/              # Changesets configuration
+└── .copilot/                # Development documentation
 ```
 
 ## License
