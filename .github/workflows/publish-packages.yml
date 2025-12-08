@@ -27,14 +27,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Setup Node.js and npm
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Upgrade npm to latest
-        run: npm install -g npm@latest
-
       - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
@@ -65,6 +57,7 @@ jobs:
           commit: "chore: version packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Releases
         if: steps.changesets.outputs.published == 'true'
