@@ -28,9 +28,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-
-      - name: Update npm to latest
-        run: npm install -g npm@latest
+          registry-url: "https://registry.npmjs.org/"
+          token: ${{ secrets.NPM_TOKEN }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -64,4 +65,3 @@ jobs:
         run: npm publish ./packages/kql-parser --provenance --ignore-scripts
         env:
           NPM_CONFIG_PROVENANCE: true
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
