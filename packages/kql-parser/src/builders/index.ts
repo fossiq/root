@@ -63,6 +63,12 @@ export function buildAST(node: SyntaxNode): ASTNode {
       return buildQueryStatement(node, buildAST);
     case 'pipe_expression':
       return buildPipeExpression(node, buildAST);
+    case 'operator':
+      return buildAST(node.firstNamedChild!);
+    case 'expression':
+      return buildAST(node.firstNamedChild!);
+    case 'literal':
+      return buildAST(node.firstNamedChild!);
     case 'where_clause':
       return buildWhereClause(node, buildAST);
     case 'project_clause':

@@ -50,7 +50,7 @@
     "test:watch": "bun test tests --watch"
   },
   "dependencies": {
-    "tree-sitter": "^0.21.0",
+    "tree-sitter": "^0.25.0",
     "tree-sitter-cli": "^0.25.10",
     "web-tree-sitter": "^0.22.0"
   },
