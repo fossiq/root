@@ -9,6 +9,7 @@ on:
       - ".changeset/**"
       - "!packages/**/*.md"
       - "!.changeset/README.md"
+  workflow_dispatch:
 
 jobs:
   release:
