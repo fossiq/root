@@ -92,7 +92,13 @@ const AppContent: Component = () => {
             <h2>Results {results().length > 0 && `(${results().length})`}</h2>
           </div>
           <Show when={error()}>
-            <div style={{ padding: "1rem", color: "#d32f2f", "background-color": "#ffebee" }}>
+            <div
+              style={{
+                padding: "1rem",
+                color: "#d32f2f",
+                "background-color": "#ffebee",
+              }}
+            >
               <strong>Error:</strong> {error()}
             </div>
           </Show>

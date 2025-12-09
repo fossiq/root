@@ -6,12 +6,19 @@ interface SidebarProps {
   onAddSource?: () => void;
 }
 
-const Sidebar: Component<SidebarProps> = (props) => {
-  const { tables, addTable, removeTable, loading } = useSchema();
+const Sidebar: Component<SidebarProps> = (_props) => {
+  const {
+    tables,
+    addTable,
+    removeTable,
+    loading,
+    pendingRestoreCount,
+    restorePendingFiles,
+  } = useSchema();
 
   const handleFileSelect = async () => {
     try {
-      // @ts-ignore - File System Access API types might not be fully available
+      // @ts-expect-error - File System Access API types might not be fully available
       const [fileHandle] = await window.showOpenFilePicker({
         types: [
           {
@@ -25,11 +32,13 @@ const Sidebar: Component<SidebarProps> = (props) => {
       });
 
       const file = await fileHandle.getFile();
-      await addTable(file);
-    } catch (err: any) {
+      await addTable(file, fileHandle);
+    } catch (error: unknown) {
+      const err = error as Error;
       if (err.name !== "AbortError") {
         console.error("Error selecting file:", err);
         // Fallback to standard input if showOpenFilePicker fails or isn't supported
+        // Note: Files selected via input element cannot be persisted across page reloads
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".csv";
@@ -58,6 +67,17 @@ const Sidebar: Component<SidebarProps> = (props) => {
           <span>Add Data</span>
         </Show>
       </button>
+
+      <Show when={pendingRestoreCount() > 0}>
+        <button
+          onClick={restorePendingFiles}
+          class="restore-btn"
+          disabled={loading()}
+        >
+          Restore {pendingRestoreCount()} file
+          {pendingRestoreCount() > 1 ? "s" : ""}
+        </button>
+      </Show>
 
       <div class="tables-list">
         <Show when={tables().length === 0}>
