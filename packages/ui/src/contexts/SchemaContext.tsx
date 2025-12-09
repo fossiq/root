@@ -21,6 +21,7 @@ export interface Table {
 interface SchemaContextType {
   tables: () => Table[];
   addTable: (file: File) => Promise<void>;
+  removeTable: (tableName: string) => Promise<void>;
   loading: () => boolean;
   db: () => duckdb.AsyncDuckDB | null;
   conn: () => duckdb.AsyncDuckDBConnection | null;
@@ -57,6 +58,21 @@ export function SchemaProvider(props: { children: JSX.Element }) {
     }
   });
 
+  const removeTable = async (tableName: string) => {
+    const connection = conn();
+    if (!connection) return;
+
+    setLoading(true);
+    try {
+      await connection.query(`DROP TABLE IF EXISTS ${tableName}`);
+      setTables((prev) => prev.filter((t) => t.name !== tableName));
+    } catch (error) {
+      console.error("Error removing table:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addTable = async (file: File) => {
     const database = db();
     const connection = conn();
@@ -67,7 +83,12 @@ export function SchemaProvider(props: { children: JSX.Element }) {
       const tableName = file.name.replace(/\.[^/.]+$/, "").replace(/\W/g, "_"); // Sanitize table name
 
       // Register the file
-      await database.registerFileHandle(file.name, file, duckdb.DuckDBDataProtocol.BROWSER_FILEREADER, true);
+      await database.registerFileHandle(
+        file.name,
+        file,
+        duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+        true
+      );
 
       // Create table from CSV
       // duckdb-wasm automatically detects CSV if we use insertCSVFromPath or creating a table from it
@@ -86,10 +107,13 @@ export function SchemaProvider(props: { children: JSX.Element }) {
       }));
 
       // Get row count
-      const countResult = await connection.query(`SELECT COUNT(*) as count FROM ${tableName}`);
+      const countResult = await connection.query(
+        `SELECT COUNT(*) as count FROM ${tableName}`
+      );
       // Handle BigInt result safely
       const countValue = countResult.toArray()[0].count;
-      const rowCount = typeof countValue === 'bigint' ? Number(countValue) : countValue;
+      const rowCount =
+        typeof countValue === "bigint" ? Number(countValue) : countValue;
 
       const newTable: Table = {
         name: tableName,
@@ -106,7 +130,9 @@ export function SchemaProvider(props: { children: JSX.Element }) {
   };
 
   return (
-    <SchemaContext.Provider value={{ tables, addTable, loading, db, conn }}>
+    <SchemaContext.Provider
+      value={{ tables, addTable, removeTable, loading, db, conn }}
+    >
       {props.children}
     </SchemaContext.Provider>
   );

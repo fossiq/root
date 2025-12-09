@@ -7,7 +7,7 @@ interface SidebarProps {
 }
 
 const Sidebar: Component<SidebarProps> = (props) => {
-  const { tables, addTable, loading } = useSchema();
+  const { tables, addTable, removeTable, loading } = useSchema();
 
   const handleFileSelect = async () => {
     try {
@@ -75,6 +75,14 @@ const Sidebar: Component<SidebarProps> = (props) => {
                   {table.name}
                 </span>
                 <span class="row-count">({table.rowCount})</span>
+                <button
+                  class="remove-table-btn"
+                  onClick={() => removeTable(table.name)}
+                  title={`Remove ${table.name}`}
+                  disabled={loading()}
+                >
+                  <Icon name="x-circle" size={16} />
+                </button>
               </div>
               <div class="columns-list">
                 <For each={table.columns}>
