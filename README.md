@@ -16,6 +16,20 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter. Provi
 
 [![npm version](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser)
 
+### [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb)
+
+A translator that converts KQL queries to DuckDB SQL. Supports 11 core operators and 35+ functions including joins, unions, datetime operations, and advanced string/math transformations.
+
+**Features:**
+
+- 11 core operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search)
+- 8 join types (inner, left/right outer, full outer, left/right anti, left/right semi)
+- 35+ mapped functions (string, math, type conversions, datetime)
+- Variable definitions with let statements
+- 113 passing integration tests
+
+[![npm version](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb)
+
 ### [@fossiq/app](./packages/app) (Private)
 
 A web application for querying CSV files using KQL with an Azure Data Explorer-like interface.
@@ -33,16 +47,15 @@ bun install
 Build all packages:
 
 ```bash
-# Build kql-parser (app is skipped as it's private)
-cd packages/kql-parser
-bun run build
+cd packages/kql-parser && bun run build
+cd packages/kql-to-duckdb && bun run build
 ```
 
 Run tests:
 
 ```bash
-cd packages/kql-parser
-bun run test
+cd packages/kql-parser && bun run test
+cd packages/kql-to-duckdb && bun run test
 ```
 
 Start the app:
@@ -85,11 +98,13 @@ See [`.copilot/monorepo.md`](./.copilot/monorepo.md) for detailed versioning doc
 .
 ├── packages/
 │   ├── kql-parser/          # KQL parser library (published to npm)
+│   ├── kql-to-duckdb/       # KQL to DuckDB translator (published to npm)
 │   └── app/                 # CSV query web app (private)
 ├── .github/
 │   └── workflows/           # GitHub Actions workflows
 ├── .changeset/              # Changesets configuration
-└── .copilot/                # Development documentation
+└── scripts/
+    └── publish-all.sh       # Publish script for npm packages
 ```
 
 ## CI/CD
