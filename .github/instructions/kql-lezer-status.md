@@ -16,7 +16,7 @@
 
 ## In Progress
 
-- [ ] **Step 3: project operator** - Add column selection
+- [ ] **Step 4: remaining operators** - select, filter, summarize, sort, limit, distinct, union
 
 ## Blocked
 
@@ -46,7 +46,7 @@ None currently.
 
 - [x] Pipe operator (|)
 - [x] where operator (with and/or/not, parentheses, string operators)
-- [ ] project operator
+- [x] project operator (column selection, aliases, computed expressions)
 - [ ] select operator
 - [ ] filter operator
 - [ ] summarize operator
@@ -76,8 +76,9 @@ Completed:
 
 - Pipe operator (|) support enables query chaining like "Users | Events | Logs"
 - Where operator with full expression support (and/or/not, parentheses, string operators like contains/startswith/endswith/has)
+- Project operator with column selection, aliases, and computed expressions
 
-Next: Step 3 - project operator for column selection
+Next: Step 4 - remaining operators (select, filter, summarize, sort, limit, distinct, union)
 
 ## Test Coverage
 
@@ -85,5 +86,5 @@ Next: Step 3 - project operator for column selection
 - **Highlighting**: 6 tests (token types, positions)
 - **Grammar**: 10 tests (basic parsing, error handling)
 - **Comments**: 14 tests (line comments, positions)
-- **Operators**: 24 tests (pipe, where with and/or/not/parentheses)
-- **Total**: 63 tests
+- **Operators**: 27 tests (pipe, where, project)
+- **Total**: 66 tests

@@ -8,9 +8,18 @@ tableExpression { Identifier }
 
 operator {
   whereClause |
+  projectClause |
   Identifier |
   Number |
   String
+}
+
+projectClause { kw<"project"> columnList }
+
+columnList { columnSpec ("," columnSpec)* }
+
+columnSpec {
+  Identifier ("=" expression)?
 }
 
 whereClause { kw<"where"> expression }

@@ -15,4 +15,5 @@ export const
   Number = 16,
   String = 17,
   and = 18,
-  or = 19
+  or = 19,
+  project = 20
