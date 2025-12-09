@@ -24,6 +24,7 @@ import type {
   LetStatement,
   MvExpandClause,
   SearchClause,
+  TimespanLiteral,
 } from "@fossiq/kql-parser";
 
 // Store let statement values for variable substitution
@@ -238,8 +239,8 @@ function translateUnion(operator: UnionClause, sourceTable: string): string {
   return tableQueries.join(`\nUNION${allDuplicates}\n`);
 }
 
-function translateTimespanLiteral(expr: any): string {
-  const value = expr.value as string;
+function translateTimespanLiteral(expr: TimespanLiteral): string {
+  const value = expr.value;
   // KQL timespan format: "1d", "2h", "30m", "45s"
   // Convert to DuckDB interval format
   const match = value.match(/^(\d+)([dhms])$/);
