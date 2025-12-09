@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 0.1.13
+
+### Patch Changes
+
+- Feat: including binaries for all platforms
+
 ## 0.1.9
 
 ### Patch Changes
