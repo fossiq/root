@@ -43,10 +43,26 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
       - name: Install dependencies
         run: bun install
 
+      - name: Cache tree-sitter binding
+        id: cache-binding
+        uses: actions/cache@v4
+        with:
+          path: packages/kql-parser/prebuilds/${{ matrix.platform }}-${{ matrix.arch }}/tree-sitter-kql.node
+          key: binding-${{ matrix.platform }}-${{ matrix.arch }}-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/binding.gyp') }}
+
       - name: Build Binding
+        if: steps.cache-binding.outputs.cache-hit != 'true'
         working-directory: packages/kql-parser
         run: bun scripts/build-binding.ts
 
