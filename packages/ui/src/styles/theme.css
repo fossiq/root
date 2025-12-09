@@ -393,7 +393,15 @@ p {
 }
 
 .cm-activeLineGutter {
-  background-color: rgba(59, 130, 246, 0.08);
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+.cm-activeLine {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+.cm-cursor {
+  border-left-color: var(--text-primary) !important;
 }
 
 /* Scrollbars */
