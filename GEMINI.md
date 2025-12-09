@@ -1,0 +1,8 @@
+# Gemini Agent Instructions
+
+Before assisting with any task, read:
+
+1. [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
+2. All files in [`.github/instructions/`](.github/instructions/)
+
+That's it. Everything you need is there.
