@@ -8,12 +8,6 @@ const Header: Component = () => {
         <Icon name="logo" size={24} />
         <h1>Fossiq</h1>
       </div>
-      <div class="pane-actions">
-        <button title="Run query (Ctrl+Shift+Enter)">▶ Run</button>
-        <button class="secondary" title="Clear results">
-          ✕ Clear
-        </button>
-      </div>
     </header>
   );
 };

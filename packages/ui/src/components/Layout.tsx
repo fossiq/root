@@ -19,8 +19,8 @@ const Layout: Component<LayoutProps> = (props) => {
     <div class="container" data-theme={theme()}>
       <Header onThemeToggle={toggleTheme} />
       <div class="content">
-        <Sidebar onAddSource={handleAddSource} />
         {props.children}
+        <Sidebar onAddSource={handleAddSource} />
       </div>
     </div>
   );

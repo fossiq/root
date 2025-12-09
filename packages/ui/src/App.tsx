@@ -7,6 +7,15 @@ export default function App() {
     <Layout>
       <div class="panes-container">
         <div class="editor-pane">
+          <div class="pane-header">
+            <h2>Query</h2>
+            <div class="pane-actions">
+              <button title="Run query (Ctrl+Shift+Enter)">▶ Run</button>
+              <button class="secondary" title="Clear results">
+                ✕ Clear
+              </button>
+            </div>
+          </div>
           <div class="editor-container">
             <p style={{ color: "var(--text-secondary)" }}>
               CodeMirror editor will be integrated here
