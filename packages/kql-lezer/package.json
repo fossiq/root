@@ -1,0 +1,72 @@
+{
+  "name": "@fossiq/kql-lezer",
+  "version": "0.1.0",
+  "description": "Lezer-based KQL parser for CodeMirror with syntax highlighting support",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "kql",
+    "kusto",
+    "lezer",
+    "codemirror",
+    "syntax-highlighting",
+    "parser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fossiq/root.git",
+    "directory": "packages/kql-lezer"
+  },
+  "bugs": {
+    "url": "https://github.com/fossiq/root/issues"
+  },
+  "homepage": "https://github.com/fossiq/root/tree/main/packages/kql-lezer#readme",
+  "author": "Sushruth Sastry",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": false,
+    "registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "@fossiq/kql-ast": "workspace:*",
+    "@lezer/lr": "^1.4.0",
+    "@lezer/highlight": "^1.2.0"
+  },
+  "peerDependencies": {
+    "@codemirror/language": "^6.0.0",
+    "@codemirror/state": "^6.0.0",
+    "@codemirror/view": "^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@codemirror/language": {
+      "optional": true
+    },
+    "@codemirror/state": {
+      "optional": true
+    },
+    "@codemirror/view": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@lezer/generator": "^1.5.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "scripts": {
+    "build": "tsc && npm run build:grammar",
+    "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts",
+    "test": "vitest"
+  }
+}

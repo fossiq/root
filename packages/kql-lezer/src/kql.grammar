@@ -1,0 +1,15 @@
+@top Query { statement }
+
+statement { Identifier }
+
+@tokens {
+  Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
+  Number { @digit+ }
+  String { '"' (!["\\\n] | "\\" _)* '"' }
+  LineComment { "//" ![\n]* }
+  whitespace { $[ \t\n\r]+ }
+
+  "where" "project" "select" "filter" "summarize" "sort" "limit"
+}
+
+@skip { whitespace | LineComment }
