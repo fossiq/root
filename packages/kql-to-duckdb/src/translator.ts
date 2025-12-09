@@ -21,20 +21,38 @@ import type {
   JoinClause,
   TopClause,
   UnionClause,
+  LetStatement,
+  MvExpandClause,
+  SearchClause,
 } from "@fossiq/kql-parser";
+
+// Store let statement values for variable substitution
+const variableMap = new Map<string, Expression>();
 
 export function translate(ast: SourceFile): string {
   if (ast.statements.length === 0) {
     return "";
   }
 
-  // For now, just handle the first statement
-  const statement = ast.statements[0];
-  if (statement.type !== "query_statement") {
-    throw new Error(`Unsupported statement type: ${statement.type}`);
+  // Clear variable map for fresh translation
+  variableMap.clear();
+
+  // Process all statements
+  let queryStatement: QueryStatement | null = null;
+  for (const statement of ast.statements) {
+    if (statement.type === "let_statement") {
+      const letStmt = statement as LetStatement;
+      variableMap.set(letStmt.name.name, letStmt.value);
+    } else if (statement.type === "query_statement") {
+      queryStatement = statement as QueryStatement;
+    }
   }
 
-  return translateQuery(statement);
+  if (!queryStatement) {
+    throw new Error("No query statement found");
+  }
+
+  return translateQuery(queryStatement);
 }
 
 function translateQuery(query: QueryStatement): string {
@@ -85,6 +103,10 @@ function translatePipe(operator: Operator, inputRelation: string): string {
       return translateJoin(operator, inputRelation);
     case "top_clause":
       return translateTop(operator, inputRelation);
+    case "mv_expand_clause":
+      return translateMvExpand(operator, inputRelation);
+    case "search_clause":
+      return translateSearch(operator, inputRelation);
     default:
       throw new Error(`Unsupported operator: ${operator.type}`);
   }
@@ -216,6 +238,27 @@ function translateUnion(operator: UnionClause, sourceTable: string): string {
   return tableQueries.join(`\nUNION${allDuplicates}\n`);
 }
 
+function translateTimespanLiteral(expr: any): string {
+  const value = expr.value as string;
+  // KQL timespan format: "1d", "2h", "30m", "45s"
+  // Convert to DuckDB interval format
+  const match = value.match(/^(\d+)([dhms])$/);
+  if (!match) {
+    return `INTERVAL '${value}'`;
+  }
+
+  const amount = match[1];
+  const unit = match[2];
+  const unitMap: Record<string, string> = {
+    d: "day",
+    h: "hour",
+    m: "minute",
+    s: "second",
+  };
+
+  return `INTERVAL '${amount} ${unitMap[unit]}'`;
+}
+
 function translateColumnExpression(col: ColumnExpression): string {
   if (col.type === "identifier") {
     return col.name;
@@ -238,8 +281,14 @@ function translateExpression(expr: Expression): string {
       return translateStringExpression(expr);
     case "function_call":
       return translateFunctionCall(expr);
-    case "identifier":
+    case "identifier": {
+      // Check if this is a let variable
+      if (variableMap.has(expr.name)) {
+        const varValue = variableMap.get(expr.name)!;
+        return `(${translateExpression(varValue)})`;
+      }
       return expr.name;
+    }
     case "string_literal":
       return `'${expr.value.replace(/'/g, "''")}'`;
     case "number_literal":
@@ -248,6 +297,8 @@ function translateExpression(expr: Expression): string {
       return expr.value ? "TRUE" : "FALSE";
     case "null_literal":
       return "NULL";
+    case "timespan_literal":
+      return translateTimespanLiteral(expr);
     default:
       throw new Error(`Unsupported expression type: ${expr.type}`);
   }
@@ -338,9 +389,61 @@ function translateFunctionCall(expr: FunctionCall): string {
     LTRIM: "LTRIM",
     RTRIM: "RTRIM",
     REVERSE: "REVERSE",
+    ROUND: "ROUND",
+    FLOOR: "FLOOR",
+    CEIL: "CEIL",
+    ABS: "ABS",
+    SQRT: "SQRT",
+    POW: "POW",
+    LOG: "LOG",
+    LOG10: "LOG10",
+    EXP: "EXP",
+    SIN: "SIN",
+    COS: "COS",
+    TAN: "TAN",
+    TOSTRING: "CAST",
+    TOINT: "CAST",
+    TODOUBLE: "CAST",
+    TOBOOL: "CAST",
+    TOLONG: "CAST",
+    TOFLOAT: "CAST",
+    TODATETIME: "CAST",
+    TOTIMESPAN: "CAST",
+    NOW: "NOW",
+    AGO: "AGO",
   };
 
   const sqlFunc = functionMap[name] || name;
+
+  // Handle type conversion functions specially
+  const typeMap: Record<string, string> = {
+    TOSTRING: "VARCHAR",
+    TOINT: "INTEGER",
+    TODOUBLE: "DOUBLE",
+    TOBOOL: "BOOLEAN",
+    TOLONG: "BIGINT",
+    TOFLOAT: "FLOAT",
+    TODATETIME: "TIMESTAMP",
+    TOTIMESPAN: "INTERVAL",
+  };
+
+  if (typeMap[name]) {
+    const arg = expr.arguments[0];
+    if (arg?.type === "named_argument") {
+      throw new Error("Named arguments in functions not supported yet");
+    }
+    const argExpr = arg ? translateExpression(arg) : "";
+    return `CAST(${argExpr} AS ${typeMap[name]})`;
+  }
+
+  // Handle AGO function specially
+  if (name === "AGO") {
+    const arg = expr.arguments[0];
+    if (!arg) return "NOW()";
+    const timespan = translateExpression(arg);
+    // timespan already includes INTERVAL, so just subtract it
+    return `NOW() - ${timespan}`;
+  }
 
   // Handle other functions
   const args = expr.arguments
@@ -353,4 +456,48 @@ function translateFunctionCall(expr: FunctionCall): string {
     .join(", ");
 
   return `${sqlFunc}(${args})`;
+}
+
+function translateMvExpand(
+  operator: MvExpandClause,
+  inputRelation: string
+): string {
+  // Translate the column expression to expand
+  const columnExpr = translateExpression(operator.column);
+
+  // Build the UNNEST clause
+  // DuckDB uses UNNEST() to expand arrays/multi-valued columns
+  let sql = `SELECT * FROM ${inputRelation}, UNNEST(${columnExpr}) AS expanded_value`;
+
+  // Add LIMIT clause if specified
+  if (operator.limit) {
+    sql += ` LIMIT ${operator.limit.value}`;
+  }
+
+  return sql;
+}
+
+function translateSearch(
+  operator: SearchClause,
+  inputRelation: string
+): string {
+  const searchTerm = `'%${operator.term.value}%'`;
+
+  // If specific columns are provided, search only those columns
+  if (operator.columns && operator.columns.length > 0) {
+    const columnConditions = operator.columns
+      .map((col) => {
+        const colName = col.type === "identifier" ? col.name : col.name.name;
+        return `LOWER(${colName}) LIKE LOWER(${searchTerm})`;
+      })
+      .join(" OR ");
+    return `SELECT * FROM ${inputRelation} WHERE ${columnConditions}`;
+  }
+
+  // If no columns specified, we need to search all columns
+  // For now, we'll throw an error as we don't have column metadata
+  // In practice, you might want to use a more generic approach
+  throw new Error(
+    "Search without specific columns requires schema metadata. Please specify columns: search in (col1, col2) 'term'"
+  );
 }

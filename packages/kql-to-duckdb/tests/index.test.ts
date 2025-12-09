@@ -490,5 +490,327 @@ describe("KQL Parser Integration", () => {
       expect(sql).toContain("LOWER");
       expect(sql).toContain("LENGTH");
     });
+
+    test("should translate round function", () => {
+      const kql = "Table | extend Rounded = round(Value, 2)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ROUND");
+    });
+
+    test("should translate floor function", () => {
+      const kql = "Table | extend Floored = floor(Price)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("FLOOR");
+    });
+
+    test("should translate ceil function", () => {
+      const kql = "Table | extend Ceiled = ceil(Price)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CEIL");
+    });
+
+    test("should translate abs function", () => {
+      const kql = "Table | extend Absolute = abs(Difference)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ABS");
+    });
+
+    test("should translate sqrt function", () => {
+      const kql = "Table | extend Root = sqrt(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SQRT");
+    });
+
+    test("should translate pow function", () => {
+      const kql = "Table | extend Power = pow(Base, Exponent)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("POW");
+    });
+
+    test("should translate log function", () => {
+      const kql = "Table | extend Logarithm = log(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LOG");
+    });
+
+    test("should translate log10 function", () => {
+      const kql = "Table | extend Log10Value = log10(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LOG10");
+    });
+
+    test("should translate trigonometric functions", () => {
+      const kql =
+        "Table | extend S = sin(Angle), C = cos(Angle), T = tan(Angle)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SIN");
+      expect(sql).toContain("COS");
+      expect(sql).toContain("TAN");
+    });
+
+    test("should translate math functions in extend", () => {
+      const kql =
+        "Table | extend AbsDiff = abs(Difference), Rounded = round(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ABS");
+      expect(sql).toContain("ROUND");
+    });
+
+    test("should translate tostring function", () => {
+      const kql = "Table | extend AsString = tostring(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("VARCHAR");
+    });
+
+    test("should translate toint function", () => {
+      const kql = "Table | extend AsInt = toint(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("INTEGER");
+    });
+
+    test("should translate todouble function", () => {
+      const kql = "Table | extend AsDouble = todouble(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("DOUBLE");
+    });
+
+    test("should translate tobool function", () => {
+      const kql = "Table | extend AsBool = tobool(Flag)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("BOOLEAN");
+    });
+
+    test("should translate tolong function", () => {
+      const kql = "Table | extend AsLong = tolong(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("BIGINT");
+    });
+
+    test("should translate tofloat function", () => {
+      const kql = "Table | extend AsFloat = tofloat(Value)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("FLOAT");
+    });
+
+    test("should translate todatetime function", () => {
+      const kql = "Table | extend AsDateTime = todatetime(DateString)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("TIMESTAMP");
+    });
+
+    test("should translate totimespan function", () => {
+      const kql = "Table | extend AsTimespan = totimespan(Duration)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("INTERVAL");
+    });
+
+    test("should use type conversions in expressions", () => {
+      const kql = "Table | extend Converted = toint(Price) + 10";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("CAST");
+      expect(sql).toContain("INTEGER");
+    });
+
+    test("should translate now function", () => {
+      const kql = "Table | extend Now = now()";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW()");
+    });
+
+    test("should translate ago with day unit", () => {
+      const kql = "Table | extend Yesterday = ago(1d)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW() - INTERVAL '1 day'");
+    });
+
+    test("should translate ago with hour unit", () => {
+      const kql = "Table | extend LastHour = ago(1h)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW() - INTERVAL '1 hour'");
+    });
+
+    test("should translate ago with minute unit", () => {
+      const kql = "Table | extend LastMin = ago(30m)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW() - INTERVAL '30 minute'");
+    });
+
+    test("should translate ago with second unit", () => {
+      const kql = "Table | extend LastSec = ago(45s)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW() - INTERVAL '45 second'");
+    });
+
+    test("should translate ago in where clause", () => {
+      const kql = "Table | where Timestamp > ago(7d)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("Timestamp > NOW() - INTERVAL '7 day'");
+    });
+
+    test("should translate complex datetime expressions", () => {
+      const kql = "Table | extend DaysAgo = ago(7d), CurrentTime = now()";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW() - INTERVAL '7 day'");
+      expect(sql).toContain("NOW()");
+    });
+
+    test("should use now and ago in pipeline", () => {
+      const kql =
+        "Table | where Created > ago(30d) | extend Age = now() - Created";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("NOW() - INTERVAL '30 day'");
+      expect(sql).toContain("(NOW() - Created) AS Age");
+    });
+
+    test("should translate let with number", () => {
+      const kql = "let threshold = 100; Table | where Value > threshold";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Value > (100)");
+    });
+
+    test("should translate let with string", () => {
+      const kql = "let name = 'John'; Table | where Name == name";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Name = ('John')");
+    });
+
+    test("should translate multiple let statements", () => {
+      const kql = "let a = 10; let b = 20; Table | extend Sum = a + b";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("(10)");
+      expect(sql).toContain("(20)");
+      expect(sql).toContain("AS Sum");
+    });
+
+    test("should translate let with expression", () => {
+      const kql = "let double = 2 * 5; Table | extend Result = double + 10";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("(2 * 5)");
+    });
+
+    test("should translate let in where clause", () => {
+      const kql = "let minAge = 18; Table | where Age >= minAge";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Age >= (18)");
+    });
+
+    test("should translate let with string function", () => {
+      const kql = "let prefix = 'admin'; Table | where Username == prefix";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Username = ('admin')");
+    });
+
+    test("should translate let in complex pipeline", () => {
+      const kql =
+        "let threshold = 100; Table | where Value > threshold | extend Double = Value * 2 | top 5 by Double desc";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Value > (100)");
+      expect(sql).toContain("(Value * 2)");
+      expect(sql).toContain("ORDER BY Double DESC");
+    });
+
+    test("should translate mv-expand simple", () => {
+      const kql = "Table | mv-expand Tags";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNNEST(Tags)");
+      expect(sql).toContain("expanded_value");
+    });
+
+    test("should translate mvexpand variant", () => {
+      const kql = "Table | mvexpand Items";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNNEST(Items)");
+    });
+
+    test("should translate mv-expand with limit", () => {
+      const kql = "Table | mv-expand Tags limit 10";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNNEST(Tags)");
+      expect(sql).toContain("LIMIT 10");
+    });
+
+    test("should translate mv-expand with to typeof", () => {
+      const kql = "Table | mv-expand Tags to typeof(string)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNNEST(Tags)");
+    });
+
+    test("should translate mv-expand in pipeline", () => {
+      const kql =
+        "Table | where Status == 'active' | mv-expand Tags | project Name, Tags";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Status = 'active'");
+      expect(sql).toContain("UNNEST(Tags)");
+      expect(sql).toContain("SELECT Name, Tags");
+    });
+
+    test("should translate mv-expand with function call", () => {
+      const kql = "Table | mv-expand split(Tags, ',')";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNNEST(STRING_SPLIT(Tags, ','))");
+    });
+
+    test("should translate mv-expand with limit and to typeof", () => {
+      const kql = "Table | mv-expand Items to typeof(dynamic) limit 50";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNNEST(Items)");
+      expect(sql).toContain("LIMIT 50");
+    });
+
+    test("should translate search in single column", () => {
+      const kql = "Users | search in (Name) 'john'";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE");
+      expect(sql).toContain("LIKE");
+      expect(sql).toContain("'%john%'");
+    });
+
+    test("should translate search in multiple columns", () => {
+      const kql = "Users | search in (Name, Email) 'admin'";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE");
+      expect(sql).toContain("LIKE");
+      expect(sql).toContain("OR");
+      expect(sql).toContain("'%admin%'");
+    });
+
+    test("should translate search with special characters", () => {
+      const kql = "Users | search in (Username) 'test@user'";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("'%test@user%'");
+    });
+
+    test("should use case-insensitive search", () => {
+      const kql = "Users | search in (Name) 'Admin'";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LOWER(Name) LIKE LOWER(");
+    });
+
+    test("should translate search in pipeline", () => {
+      const kql =
+        "Users | where Status == 'active' | search in (Name, Email) 'test' | project Name";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE Status = 'active'");
+      expect(sql).toContain("LIKE");
+      expect(sql).toContain("SELECT Name");
+    });
+
+    test("should translate search in three columns", () => {
+      const kql = "Logs | search in (Message, Level, Source) 'error'";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("WHERE");
+      const likeCount = (sql.match(/LIKE/g) || []).length;
+      expect(likeCount).toBeGreaterThanOrEqual(3);
+      const orCount = (sql.match(/OR/g) || []).length;
+      expect(orCount).toBeGreaterThanOrEqual(2);
+    });
   });
 });

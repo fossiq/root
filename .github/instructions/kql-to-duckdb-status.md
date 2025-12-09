@@ -4,9 +4,9 @@
 
 - **Translator:** Implemented for all core operators (Project, Where, Summarize, Take, Limit, Extend, Sort, Distinct, Join, Top, Union)
 - **Parser Integration:** Verified integration with `@fossiq/kql-parser`
-- **Tests:** 66 passing tests covering translation scenarios
-- **Package:** `@fossiq/kql-to-duckdb` functional for complex queries with multiple operators and comprehensive string function support
-- **Expression Support:** Full support for arithmetic, comparison, binary, string expressions, and complex string functions
+- **Tests:** 113 passing tests covering translation scenarios
+- **Package:** `@fossiq/kql-to-duckdb` production-ready for complex queries with comprehensive function support
+- **Expression Support:** Full support for arithmetic, comparison, binary, string, math, and type conversion functions
 
 ## Implementation Phases
 
@@ -69,7 +69,114 @@
 - [x] Support indexof for string position searches
 - [x] Integrate string functions in expressions
 
+### Phase 9: Math Functions (Completed)
+
+- [x] Map KQL math functions to DuckDB equivalents
+- [x] Support basic functions (round, floor, ceil, abs, sqrt)
+- [x] Support advanced functions (pow, log, log10, exp)
+- [x] Support trigonometric functions (sin, cos, tan)
+- [x] Integrate math functions in all expression contexts
+
+### Phase 10: Type Conversion Functions (Completed)
+
+- [x] Map KQL type conversion functions to SQL CAST
+- [x] Support tostring, toint, todouble, tobool conversions
+- [x] Support tolong, tofloat conversions
+- [x] Support todatetime, totimespan conversions
+- [x] Generate proper CAST expressions with type mapping
+
+### Phase 11: DateTime Functions (Completed)
+
+- [x] Translate `now()` function to SQL `NOW()`
+- [x] Translate `ago()` function with timespan support
+- [x] Support timespan literals in KQL format (1d, 1h, 30m, 45s)
+- [x] Convert timespan to SQL INTERVAL with proper units
+- [x] Support ago() in extend and where clauses
+- [x] Handle complex datetime expressions
+
+### Phase 12: Let Statement Support (Completed)
+
+- [x] Parse and collect let statements from source file
+- [x] Store variable values in variable map
+- [x] Replace variable references with their expressions
+- [x] Support numeric, string, and expression values in let statements
+- [x] Support multiple let statements in sequence
+- [x] Integrate let variables into all expression contexts
+- [x] Support complex expressions with let variables in pipelines
+
+### Phase 13: MV-Expand Operator (Completed)
+
+- [x] Translate `mv-expand` operator to DuckDB `UNNEST()`
+- [x] Support both `mv-expand` and `mvexpand` keyword variants
+- [x] Support optional `limit` clause
+- [x] Support optional `to typeof()` clause (type annotations)
+- [x] Expand any column expression including function calls
+- [x] Integrate into operator pipelines with CTE chaining
+
+### Phase 14: Search Operator (Completed)
+
+- [x] Translate `search` operator to SQL WHERE with LIKE conditions
+- [x] Support searching in specific columns with `in (col1, col2)` syntax
+- [x] Case-insensitive search using LOWER() functions
+- [x] Substring matching with wildcard patterns
+- [x] Support multiple columns with OR logic
+- [x] Integrate search into operator pipelines
+
 ## Recent Completions
+
+**Search Operator Implementation (Phase 14)**
+
+- [x] Translate search to WHERE with column-specific LIKE conditions
+- [x] Support case-insensitive pattern matching
+- [x] Generate OR conditions for multiple column searches
+- [x] Handle special characters in search terms
+- [x] Added 6 test cases covering search scenarios
+- [x] All 113 tests passing
+
+**MV-Expand Operator Implementation (Phase 13)**
+
+- [x] Translate multi-value expand to UNNEST cross join
+- [x] Support column expressions and function calls in expand
+- [x] Support limit parameter for result row limiting
+- [x] Support type specification with to typeof() clause
+- [x] Added 7 test cases covering all mv-expand scenarios
+- [x] All 107 tests passing
+
+**Let Statement Support Implementation (Phase 12)**
+
+- [x] Process multiple statements in source file
+- [x] Collect let statements before query execution
+- [x] Implement variable substitution in expression translation
+- [x] Replace identifier references with let variable values
+- [x] Support let in all expression contexts (where, extend, etc.)
+- [x] Added 7 test cases covering let statement scenarios
+- [x] All 100 tests passing
+
+**DateTime Functions Implementation (Phase 11)**
+
+- [x] Translate `now()` function to SQL `NOW()`
+- [x] Translate `ago()` function with timespan literals (1d, 1h, 30m, 45s)
+- [x] Support ago() in both extend and where clauses
+- [x] Proper timespan to INTERVAL conversion (day/hour/minute/second)
+- [x] Complex datetime expressions (combining now and ago)
+- [x] Added 8 test cases covering all datetime scenarios
+- [x] All 93 tests passing
+
+**Type Conversion Functions Implementation**
+
+- Added 8 type conversion functions with proper CAST syntax
+- Maps KQL types to SQL types: tostring→VARCHAR, toint→INTEGER, todouble→DOUBLE, etc.
+- Supports todatetime→TIMESTAMP and totimespan→INTERVAL
+- Added 9 test cases covering all conversion types
+- Works in all expression contexts
+
+**Math Functions Implementation**
+
+- Added 10 math functions covering basic, advanced, and trigonometric operations
+- Maps: round→ROUND, floor→FLOOR, ceil→CEIL, abs→ABS, sqrt→SQRT
+- Also maps: pow→POW, log→LOG, log10→LOG10, exp→EXP, sin→SIN, cos→COS, tan→TAN
+- Added 11 test cases with function combinations
+- Enables sophisticated numerical computations
 
 **Complex String Functions Implementation**
 
@@ -151,7 +258,7 @@
 
 ## Test Coverage
 
-**Total Tests:** 66 passing
+**Total Tests:** 113 passing
 
 **Coverage includes:**
 
@@ -210,6 +317,36 @@
 - Reverse function
 - Split function
 - Complex string function expressions
+- Round, floor, ceil functions
+- Abs, sqrt, pow functions
+- Log, log10, exp functions
+- Trigonometric functions (sin, cos, tan)
+- Tostring, toint, todouble conversions
+- Tobool, tolong, tofloat conversions
+- Todatetime, totimespan conversions
+- Now function
+- Ago with day, hour, minute, second units
+- Ago in where clause
+- Complex datetime expressions
+- Now and ago in pipelines
+- Let with number literals
+- Let with string literals
+- Multiple let statements
+- Let with expressions
+- Let in where clauses
+- Let with string comparisons
+- Let in complex pipelines
+- MV-expand simple column expansion
+- MV-expand with limit clause
+- MV-expand with type specifications
+- MV-expand in multi-operator pipelines
+- MV-expand with function calls
+- Search in single column
+- Search in multiple columns
+- Search with special characters
+- Case-insensitive search matching
+- Search in multi-operator pipelines
+- Search with multiple column conditions
 
 ## Architecture
 
@@ -245,6 +382,8 @@
 | `join`         | ✅ Complete | `Table1 \| join kind=inner Table2 on Col == Col` |
 | `top`          | ✅ Complete | `Table \| top 10 by Score desc`                  |
 | `union`        | ✅ Complete | `Table1 \| union kind=inner Table2, Table3`      |
+| `mv-expand`    | ✅ Complete | `Table \| mv-expand Tags limit 10`               |
+| `search`       | ✅ Complete | `Table \| search in (Name, Email) "admin"`       |
 
 ## Expression Support
 
@@ -259,14 +398,25 @@
 
 Potential future enhancements:
 
-- [ ] DateTime functions (`now()`, `ago()`, `todatetime()`)
-- [ ] `let` statement support
+- [x] DateTime functions (`now()`, `ago()`, `todatetime()`) - Phase 11
+- [x] `let` statement support - Phase 12
+- [x] `mv_expand` operator - Phase 13
+- [x] `search` operator - Phase 14
 - [ ] Subqueries
-- [ ] `mv_expand` operator
-- [ ] `parse` operator
-- [ ] `search` operator
-- [ ] Math functions (round, floor, ceil, etc.)
-- [ ] Type conversion functions
+- [ ] `count` operator
+
+## Known Limitations
+
+### Parse Operator
+
+The KQL `parse` operator is **not supported** due to fundamental architectural constraints:
+
+1. **Dynamic schema** - Parse creates new columns based on regex groups at runtime. SQL requires predefined schema.
+2. **Complex patterns** - Requires evaluating regex with named capture groups, not a standard SQL operation.
+3. **Column materialization** - Would need to execute regex patterns and materialize results within SQL, which most databases don't support well.
+4. **No SQL equivalent** - Standard SQL lacks native support for pattern-based column extraction.
+
+Users should pre-process data with application logic or use DuckDB's `regexp_extract()` for simpler cases.
 
 ## Production Readiness
 
@@ -281,11 +431,11 @@ The translator now supports a comprehensive set of KQL operators and is suitable
 - Multi-table operations with joins (all 8 KQL join types)
 - Multi-operator pipelines with proper CTE generation
 
-All core functionality is complete and well-tested with 66 passing integration tests covering:
+All core functionality is complete and well-tested with 113 passing integration tests covering:
 
-- 9 core operators (where, project, extend, summarize, sort, distinct, take/limit, top, union)
+- 11 core operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search)
 - 1 advanced operator (join with 8 different join kinds)
-- 7 expression types (arithmetic, comparison, binary, string, functions, complex string functions, literals)
-- 10+ mapped string functions for text processing
+- 11 expression types (arithmetic, comparison, binary, string, functions, string functions, math functions, type conversions, datetime functions, literals)
+- 35+ mapped functions: 10+ string, 10+ math, 8 type conversions, 2 datetime
 - Complex multi-operator pipelines with proper chaining
 - Set operations (union with inner/outer variants)
