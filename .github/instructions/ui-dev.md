@@ -237,6 +237,12 @@ All components must follow WAI-ARIA standards and semantic HTML best practices:
 - **CodeMirror Bundle Size:** Consider lazy loading editor if bundle becomes too large
 - **Table Virtualization:** Test with large datasets to ensure smooth scrolling
 - **Dark Mode:** Test theme switching on all components
+- **Theme Changer:** CSS media queries alone cannot respond to JavaScript state changes. Must update DOM classes (`theme-light` / `theme-dark` on `document.documentElement`) for CSS to react to manual theme toggles. Save theme preference to localStorage to persist across reloads and override system preference when user manually toggles.
+- **System Preference Listener:** Be careful when listening for system theme changes - can interfere with manual user toggles. Only listen when no saved preference exists in localStorage.
+- **Grid Text Truncation:** `text-overflow: ellipsis` doesn't work without `min-width: 0` on grid children. Grid items must have this property to allow text truncation to work properly.
+- **Flex Container Grid Overflow:** Grid containers inside flex containers need `min-width: 0` to prevent overflowing the parent flex container. Without this, grid can break layout in responsive designs.
+- **Grid Column Sizing:** Avoid `minmax(max-content, 1fr)` as it grows unbounded; use fixed minimums like `minmax(150px, 1fr)` instead to constrain columns in smaller viewports.
+- **Virtual Row Positioning:** Virtual rows using absolute positioning need both `left: 0` and `right: 0` for proper alignment and sizing in constrained containers.
 
 ## Success Criteria
 

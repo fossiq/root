@@ -20,8 +20,29 @@
   --glass-border: rgba(255, 255, 255, 0.3);
 }
 
+/* Dark theme class-based override */
+:root.theme-dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: #334155;
+  --header-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --header-text: #f1f5f9;
+  --header-border: #334155;
+  --sidebar-bg: #1e293b;
+  --sidebar-hover: #334155;
+  --button-primary: #3b82f6;
+  --button-hover: #2563eb;
+  --button-text: #ffffff;
+  --accent-blue: #60a5fa;
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(148, 163, 184, 0.1);
+}
+
+/* Fallback: media query for when no user preference is set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.theme-light):not(.theme-dark) {
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
     --text-primary: #f1f5f9;
@@ -437,6 +458,22 @@ button .icon {
 .table-container {
   border: none;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Table grid cells - ensure text truncation works with grid layout */
+.table-container [style*="grid-template-columns"] > div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.table-container [style*="grid-template-columns"] > div > div {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Toolbar */
@@ -589,8 +626,11 @@ p {
 .cm-number {
   color: #a04000; /* Dark orange for light theme */
 }
+:root.theme-dark .cm-number {
+  color: #ffd7a0; /* Light orange for dark theme */
+}
 @media (prefers-color-scheme: dark) {
-  .cm-number {
+  :root:not(.theme-light):not(.theme-dark) .cm-number {
     color: #ffd7a0; /* Light orange for dark theme */
   }
 }
@@ -598,8 +638,11 @@ p {
 .cm-string {
   color: #1a1aab; /* Dark blue for light theme */
 }
+:root.theme-dark .cm-string {
+  color: #add8e6; /* Light blue for dark theme */
+}
 @media (prefers-color-scheme: dark) {
-  .cm-string {
+  :root:not(.theme-light):not(.theme-dark) .cm-string {
     color: #add8e6; /* Light blue for dark theme */
   }
 }
@@ -616,8 +659,11 @@ p {
 .cm-function {
   color: #7c3aed; /* Violet for light theme */
 }
+:root.theme-dark .cm-function {
+  color: #c4b5fd; /* Light violet for dark theme */
+}
 @media (prefers-color-scheme: dark) {
-  .cm-function {
+  :root:not(.theme-light):not(.theme-dark) .cm-function {
     color: #c4b5fd; /* Light violet for dark theme */
   }
 }
@@ -625,8 +671,11 @@ p {
 .cm-typeName {
   color: #d97706; /* Amber for light theme */
 }
+:root.theme-dark .cm-typeName {
+  color: #fbbf24; /* Yellow-amber for dark theme */
+}
 @media (prefers-color-scheme: dark) {
-  .cm-typeName {
+  :root:not(.theme-light):not(.theme-dark) .cm-typeName {
     color: #fbbf24; /* Yellow-amber for dark theme */
   }
 }

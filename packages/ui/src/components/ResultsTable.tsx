@@ -67,6 +67,11 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
 
   const columnCount = () => headerGroups()[0]?.headers.length || 1;
 
+  // Use equal-width columns that distribute available space evenly
+  const gridTemplateColumns = createMemo(() => {
+    return `repeat(${columnCount()}, minmax(150px, 1fr))`;
+  });
+
   return (
     <div
       ref={parentRef}
@@ -74,14 +79,16 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
       style={{
         height: "100%",
         overflow: "auto",
+        display: "flex",
+        "flex-direction": "column",
       }}
     >
       <div
         style={{
           display: "grid",
-          "grid-template-columns": `repeat(${columnCount()}, minmax(max-content, 1fr))`,
-          "min-width": "100%",
-          width: "max-content",
+          "grid-template-columns": gridTemplateColumns(),
+          width: "100%",
+          "flex-shrink": 0,
         }}
       >
         {/* Header */}
@@ -94,11 +101,14 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                     padding: "0.5rem 1rem",
                     "font-weight": "bold",
                     "white-space": "nowrap",
+                    overflow: "hidden",
+                    "text-overflow": "ellipsis",
                     background: "var(--bg-secondary)",
                     position: "sticky",
                     top: 0,
                     "z-index": 1,
                     cursor: header.column.getCanSort() ? "pointer" : "default",
+                    "border-bottom": "1px solid var(--border-color)",
                   }}
                   onClick={header.column.getToggleSortingHandler()}
                 >
@@ -115,13 +125,20 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
             </For>
           )}
         </For>
+      </div>
 
-        {/* Virtual rows container */}
+      {/* Virtual rows container */}
+      <div
+        style={{
+          flex: 1,
+          overflow: "auto",
+          position: "relative",
+        }}
+      >
         <div
           style={{
-            "grid-column": "1 / -1",
-            height: `${totalSize()}px`,
             position: "relative",
+            height: `${totalSize()}px`,
           }}
         >
           <For each={virtualItems()}>
@@ -132,16 +149,17 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                 <div
                   style={{
                     display: "grid",
-                    "grid-template-columns": `repeat(${columnCount()}, minmax(max-content, 1fr))`,
+                    "grid-template-columns": gridTemplateColumns(),
                     position: "absolute",
                     top: 0,
                     left: 0,
-                    width: "100%",
+                    right: 0,
                     height: `${virtualRow.size}px`,
                     transform: `translateY(${virtualRow.start}px)`,
                     "background-color": isEven
                       ? "var(--bg-primary)"
                       : "var(--bg-secondary)",
+                    width: "100%",
                   }}
                 >
                   <For each={row.getVisibleCells()}>
@@ -152,6 +170,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                           "white-space": "nowrap",
                           overflow: "hidden",
                           "text-overflow": "ellipsis",
+                          "min-width": 0,
                         }}
                       >
                         {flexRender(

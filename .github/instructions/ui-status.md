@@ -3,7 +3,7 @@
 ## Current Status
 
 **Phase:** Phase 7: Functionality & Integration (Polishing)  
-**Last Updated:** 2025-12-09
+**Last Updated:** 2025-12-09 (Theme changer fixed)
 
 ## Completed Milestones
 
@@ -29,13 +29,88 @@
 - [x] Autocomplete (Schema-aware + Aliases)
 - [x] File persistence across page reloads (File System Access API + IndexedDB)
 - [x] GitHub Primer theme colors for syntax highlighting
+- [x] Fix: Theme changer - manual theme toggle now persists and overrides system preference
+- [x] Fix: Results table grid layout - handle text overflow and prevent column shifting in small windows
 
 ## In Progress
 
 - [ ] Improve: Syntax highlighting contrast (colors not vibrant enough)
 
+## Results Table Grid Fix
+
+### Problem
+
+Results table was failing in smaller windows or when cells contained long text. Issues:
+
+- Grid used `repeat(N, minmax(max-content, 1fr))` which caused cells to grow unbounded
+- Container width was `max-content`, forcing horizontal scrolling
+- Text overflow with `text-overflow: ellipsis` didn't work properly because cells weren't constrained
+- Virtual rows used absolute positioning that could misalign with header
+- No `min-width: 0` on grid items prevented text truncation in flex/grid contexts
+
+### Solution
+
+1. **Updated `ResultsTable.tsx` component:**
+
+   - Changed grid template to `repeat(N, minmax(150px, 1fr))` - columns have minimum 150px but share available space equally
+   - Container width changed from `max-content` to `100%` - constrains table to viewport
+   - Separated header grid from virtual rows container for better layout control
+   - Added `min-width: 0` to cell styling - critical for text truncation in grid
+   - Added `right: 0` to virtual row positioning for proper alignment
+   - Added border to header cells for visual separation
+
+2. **Updated `theme.css`:**
+   - Added `display: flex` and `flex-direction: column` to `.table-container`
+   - Added `min-width: 0` to prevent grid items from overflowing flex container
+   - CSS rule ensures all grid cells have `min-width: 0` and `overflow: hidden`
+
+### Files Modified
+
+- `src/components/ResultsTable.tsx` - Fixed grid layout, column sizing, and cell overflow
+- `src/styles/theme.css` - Added CSS constraints for grid stability
+
+### Key Gotchas
+
+- **Grid text truncation:** `text-overflow: ellipsis` doesn't work without `min-width: 0` on grid children
+- **Flex container overflow:** Grid containers inside flex need `min-width: 0` to prevent overflowing parent
+- **Column sizing:** `minmax(max-content, 1fr)` grows unbounded; use fixed minimums like `minmax(150px, 1fr)` instead
+- **Virtual row alignment:** Must use `right: 0` in addition to `left: 0` for proper absolute positioning in constrained container
+
+## Theme Changer Implementation Details
+
+### Problem
+
+The theme toggle button wasn't working. The CSS only responded to `@media (prefers-color-scheme: dark)` (system preference), ignoring manual toggles. Additionally, theme preference wasn't persisted.
+
+### Solution
+
+1. **Updated `useTheme.ts` hook:**
+
+   - Added localStorage persistence with key `fossiq-theme`
+   - On mount, checks localStorage first for saved preference, falls back to system preference
+   - When `toggleTheme()` is called, updates signal, saves to localStorage, and applies theme classes to DOM
+   - Added `applyTheme()` function that adds `theme-light` or `theme-dark` class to `document.documentElement`
+
+2. **Updated `theme.css`:**
+   - Added `:root.theme-dark` selector to override CSS variables when dark theme class is present
+   - Updated media queries to only apply to elements without explicit theme classes
+   - Ensures manual theme selection takes precedence over system preference
+
+### Files Modified
+
+- `src/hooks/useTheme.ts` - Added persistence and DOM synchronization
+- `src/styles/theme.css` - Added theme class selectors and media query refinement
+
+### Key Gotchas
+
+- CSS media queries alone cannot respond to JavaScript state changes - must update DOM classes
+- System preference listeners can interfere with manual toggles - need to distinguish between user preference and system preference
+- Theme persistence must happen in localStorage AND on the DOM (not just in signal state)
+
 ## Recently Fixed
 
+- [x] Fix: Results table grid layout - handle text overflow and prevent column shifting in small windows
+- [x] Fix: Theme changer - manual theme toggle now persists and overrides system preference
 - [x] Fix: Results rendering issue - Made table reactivity work with SolidJS (rows, headerGroups, virtualItems as reactive memos)
 - [x] Fix: Results table using CSS Grid with divs instead of table elements for proper virtualization
 
