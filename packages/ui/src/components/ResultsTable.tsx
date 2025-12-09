@@ -16,7 +16,9 @@ interface ResultsTableProps {
 
 const ResultsTable: Component<ResultsTableProps> = (props) => {
   const [sorting, setSorting] = createSignal<SortingState>([]);
-  let parentRef: HTMLDivElement | undefined;
+  const [parentRef, setParentRef] = createSignal<HTMLDivElement | undefined>(
+    undefined
+  );
 
   // Dynamically generate columns based on the first item in data
   const columns = createMemo<ColumnDef<any>[]>(() => {
@@ -50,14 +52,14 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
 
   const rowVirtualizer = createVirtualizer({
     count: rows.length,
-    getScrollElement: () => parentRef ?? null,
+    getScrollElement: () => parentRef() ?? null,
     estimateSize: () => 35, // Estimate row height
     overscan: 10,
   });
 
   return (
     <div
-      ref={parentRef}
+      ref={setParentRef}
       class="table-container"
       style={{
         height: "100%",

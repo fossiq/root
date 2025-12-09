@@ -1,4 +1,4 @@
-import { Component, For, Show, createSignal } from "solid-js";
+import { Component, For, Show } from "solid-js";
 import Icon from "./Icon";
 import { useSchema } from "../contexts/SchemaContext";
 
@@ -8,21 +8,6 @@ interface SidebarProps {
 
 const Sidebar: Component<SidebarProps> = (props) => {
   const { tables, addTable, loading } = useSchema();
-  const [expandedTables, setExpandedTables] = createSignal<Set<string>>(
-    new Set()
-  );
-
-  const toggleTable = (tableName: string) => {
-    setExpandedTables((prev) => {
-      const next = new Set(prev);
-      if (next.has(tableName)) {
-        next.delete(tableName);
-      } else {
-        next.add(tableName);
-      }
-      return next;
-    });
-  };
 
   const handleFileSelect = async () => {
     try {
@@ -84,40 +69,31 @@ const Sidebar: Component<SidebarProps> = (props) => {
         <For each={tables()}>
           {(table) => (
             <div class="table-item">
-              <div
-                class="table-header"
-                onClick={() => toggleTable(table.name)}
-                role="button"
-                tabIndex={0}
-              >
-                <Icon
-                  name={
-                    expandedTables().has(table.name)
-                      ? "chevron-down"
-                      : "chevron-right"
-                  }
-                  size={14}
-                  class="expand-icon"
-                />
+              <div class="table-header">
                 <Icon name="table" size={16} class="type-icon" />
                 <span class="table-name" title={table.name}>
                   {table.name}
                 </span>
                 <span class="row-count">({table.rowCount})</span>
               </div>
-              <Show when={expandedTables().has(table.name)}>
-                <div class="columns-list">
-                  <For each={table.columns}>
-                    {(column) => (
-                      <div class="column-item" title={`${column.name} (${column.type})`}>
+              <div class="columns-list">
+                <For each={table.columns}>
+                  {(column, index) => {
+                    const isLast = index() === table.columns.length - 1;
+                    return (
+                      <div
+                        class="column-item"
+                        title={`${column.name} (${column.type})`}
+                      >
+                        <span class="tree-glyph">{isLast ? "└─" : "├─"}</span>
                         <Icon name="column" size={12} class="column-icon" />
                         <span class="column-name">{column.name}</span>
                         <span class="column-type">{column.type}</span>
                       </div>
-                    )}
-                  </For>
-                </div>
-              </Show>
+                    );
+                  }}
+                </For>
+              </div>
             </div>
           )}
         </For>
