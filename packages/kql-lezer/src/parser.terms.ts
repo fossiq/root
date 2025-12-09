@@ -4,4 +4,5 @@ export const
   Query = 2,
   Identifier = 3,
   Number = 4,
-  String = 5
+  String = 5,
+  Pipe = 6

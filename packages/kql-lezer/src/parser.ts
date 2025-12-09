@@ -2,14 +2,14 @@
 import {LRParser} from "@lezer/lr"
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "bOYQPOOOOQO'#Ce'#CeQOQPOO",
-  stateData: "e~OWOSPOS~ORPOSPOTPO~O",
-  goto: "^YPPPPPPPPPZRQO",
-  nodeNames: "⚠ LineComment Query Identifier Number String",
-  maxTerm: 9,
+  states: "!QOYQPOOOOQO'#Ch'#ChOeQPO'#CgQOQPOOOYQPO'#CcOmQPO,59ROOQO,58},58}OOQO-E6a-E6a",
+  stateData: "u~OYOSPOS~ORPOSPOTPO~OUSOWZX~OUSOWZa~O",
+  goto: "m]PPPPPPP^PPPdgQTQRVTRROQQORUS",
+  nodeNames: "⚠ LineComment Query Identifier Number String Pipe",
+  maxTerm: 12,
   skippedNodes: [0,1],
-  repeatNodeCount: 0,
-  tokenData: "%O~RYXYqYZq]^qpqqrs!S!P!Q#v!Q![$e!c!}$m#R#S$m#T#o$m~vSW~XYqYZq]^qpqq~!VWOY!SZr!Srs!os#O!S#O#P!t#P;'S!S;'S;=`#p<%lO!S~!tOT~~!wRO;'S!S;'S;=`#Q;=`O!S~#TXOY!SZr!Srs!os#O!S#O#P!t#P;'S!S;'S;=`#p;=`<%l!S<%lO!S~#sP;=`<%l!S~#yP!P!Q#|~$RSP~OY#|Z;'S#|;'S;=`$_<%lO#|~$bP;=`<%l#|~$jPS~!Q![$e~$rSR~!Q![$m!c!}$m#R#S$m#T#o$m",
+  repeatNodeCount: 1,
+  tokenData: "%W~RZXYtYZt]^tpqtrs!V!P!Q#y!Q![$h!c!}$p#R#S$p#T#o$p#p#q%R~ySY~XYtYZt]^tpqt~!YWOY!VZr!Vrs!rs#O!V#O#P!w#P;'S!V;'S;=`#s<%lO!V~!wOT~~!zRO;'S!V;'S;=`#T;=`O!V~#WXOY!VZr!Vrs!rs#O!V#O#P!w#P;'S!V;'S;=`#s;=`<%l!V<%lO!V~#vP;=`<%l!V~#|P!P!Q$P~$USP~OY$PZ;'S$P;'S;=`$b<%lO$P~$eP;=`<%l$P~$mPS~!Q![$h~$uSR~!Q![$p!c!}$p#R#S$p#T#o$p~%WOU~",
   tokenizers: [0],
   topRules: {"Query":[0,2]},
   tokenPrec: 0

@@ -2,20 +2,23 @@
 
 ## Current Status
 
-**Phase:** Grammar Definition  
+**Phase:** Operator Support (Incremental Implementation)  
 **Last Updated:** 2025-12-09
 
 ## Completed Milestones
 
 - [x] Created package structure
-- [x] Defined Lezer grammar for KQL
-- [x] Set up syntax highlighting tags
-- [x] Created development guide
-- [x] Designed AST conversion interface
+- [x] Defined and generated Lezer grammar
+- [x] Implemented core parser functions (parseKQL, toParsedAST, extractHighlightTokens)
+- [x] Fixed all type and lint errors
+- [x] Created comprehensive test suite (88+ tests)
+- [x] Set up testing infrastructure with vitest
 
 ## In Progress
 
-- [ ] Generate parser from grammar
+- [ ] **Step 1: Pipe operators** - Add pipe (|) support to grammar
+- [ ] **Step 2: where clause** - Add where operator with expressions
+- [ ] **Step 3: project operator** - Add column selection
 
 ## Blocked
 
@@ -23,96 +26,59 @@ None currently.
 
 ## Feature Checklist
 
-### Phase 1: Grammar & Parser Setup ✓
-- [x] Create kql.grammar with Lezer syntax
-- [x] Define all KQL operators (where, project, select, filter, summarize, etc.)
-- [x] Expression parsing with correct precedence
-- [x] Token definitions (identifiers, numbers, strings, keywords)
-- [x] Comment handling (line and block)
-- [x] Syntax highlighting tags
+### Phase 1: Core Parser ✓
 
-### Phase 2: Parser Generation & Build
-- [ ] Run lezer-generator to build parser.ts
-- [ ] Build TypeScript to dist/
-- [ ] Verify no build errors
-- [ ] Test parser on sample KQL queries
+- [x] Basic grammar with identifiers, numbers, strings
+- [x] Line comment support
+- [x] Parser generation from grammar
+- [x] parseKQL() function
+- [x] extractHighlightTokens() for highlighting
+- [x] toParsedAST() for AST conversion
+- [x] Error detection
 
-### Phase 3: CodeMirror Integration
-- [ ] Export kql() LanguageSupport function
-- [ ] Test integration with CodeMirror in UI
-- [ ] Verify syntax highlighting in editor
-- [ ] Test incremental parsing on edits
+### Phase 2: Testing ✓
 
-### Phase 4: AST Conversion
-- [ ] Implement toParsedAST() function
-- [ ] Implement extractHighlightTokens() function
-- [ ] Map Lezer tree nodes to kql-ast types
-- [ ] Handle error reporting
+- [x] Test helpers and utilities
+- [x] 88+ comprehensive test cases
+- [x] Grammar validation tests
+- [x] Token extraction tests
+- [x] Comment parsing tests
 
-### Phase 5: Testing
-- [ ] Unit tests for grammar
-- [ ] Integration tests with CodeMirror
-- [ ] Performance benchmarks
-- [ ] Edge cases and error handling
+### Phase 3: Operators (Next - One Feature at a Time)
 
-## Grammar Coverage
+- [ ] Pipe operator (|)
+- [ ] where operator
+- [ ] project operator
+- [ ] select operator
+- [ ] filter operator
+- [ ] summarize operator
+- [ ] sort operator
+- [ ] limit/take operators
+- [ ] distinct operator
+- [ ] union operator
 
-### Operators Implemented
-- `where`: Filter rows by expression
-- `project`: Select and rename columns
-- `select`: Select columns (alias for project)
-- `filter`: Alternative filter syntax
-- `summarize`: Group and aggregate
-- `sort`: Order results
-- `limit`/`take`: Limit row count
-- `distinct`: Remove duplicates
-- `count`: Count rows
-- `union`: Combine tables
+### Phase 4: CodeMirror Integration
 
-### Expressions Supported
-- Logical: `and`, `or`, `not`
-- Comparison: `==`, `!=`, `<`, `>`, `<=`, `>=`
-- String: `contains`, `startswith`, `endswith`, `in`
-- Arithmetic: `+`, `-`, `*`, `/`, `%`
-- Function calls: `now()`, `count()`, `sum()`, etc.
-- Parentheses for grouping
+- [ ] Resolve @lezer dependency conflicts
+- [ ] Full LanguageSupport integration
+- [ ] UI integration and testing
 
-### Token Types
-- Keywords: 30+ KQL keywords
-- Identifiers: Column/table names
-- Numbers: Integer and decimal
-- Strings: Single and double quoted
-- Comments: `//` and `/* */`
-- Operators: All comparison and logical operators
+## Implementation Strategy
 
-## Grammar Statistics
+Adding features one at a time:
 
-| Metric | Count |
-|--------|-------|
-| Grammar rules | ~30 |
-| Keywords | 30+ |
-| Operators | 15+ |
-| Token patterns | 6 |
+1. Expand grammar for new feature
+2. Run tests to verify parsing works
+3. Update test expectations
+4. Commit with feature implementation
 
-## Next Steps
+Next: Start with pipe operator support in grammar.
 
-1. **Build parser**: Run `lezer-generator` to compile grammar to TypeScript
-2. **Test parser**: Verify it parses sample KQL queries correctly
-3. **Integrate with UI**: Add kql-lezer to CodeMirror in @fossiq/ui
-4. **Implement AST conversion**: Complete toParsedAST() and extractHighlightTokens()
-5. **Add tests**: Unit and integration tests
+## Test Coverage
 
-## Known Limitations
-
-- No semantic analysis (scoping, type checking)
-- Error recovery is basic (Lezer provides some, but could be improved)
-- No language server protocol (LSP) support yet
-- Code completion not yet implemented
-
-## Dependencies
-
-- `@lezer/lr`: Lezer parser library
-- `@lezer/highlight`: Syntax highlighting
-- `@lezer/generator`: Grammar compiler (dev-only)
-- `@fossiq/kql-ast`: Shared type definitions (peer dependency)
-- `@codemirror/*`: CodeMirror language support (peer dependencies)
+- **Expressions**: 8+ tests (literals, identifiers)
+- **Highlighting**: 7+ tests (token types, positions)
+- **Grammar**: 7+ tests (basic parsing)
+- **Comments**: 14+ tests (line comments, positions)
+- **Operators**: 10+ tests (with placeholders for future features)
+- **Total**: 88+ tests

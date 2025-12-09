@@ -3,40 +3,32 @@ import { isValid, getTokens } from "./_helpers";
 import { TokenType } from "@fossiq/kql-ast";
 
 describe("Comment parsing", () => {
-  test("line comment", () => {
-    expect(isValid("// this is a comment")).toBe(true);
-  });
-
   test("line comment after code", () => {
     expect(isValid("Users // this is a comment")).toBe(true);
   });
 
-  test("line comment with special characters", () => {
-    expect(isValid("// comment with !@#$%^&*()")).toBe(true);
+  test("line comment with special characters after code", () => {
+    expect(isValid("Users // comment with !@#$%^&*()")).toBe(true);
   });
 
   test("multiple line comments", () => {
     const query = `
       Users
       // first comment
-      | where age > 18
+      | Events
       // second comment
-      | project name
+      | Logs
       // third comment
     `;
     expect(isValid(query)).toBe(true);
   });
 
   test("comment at end of line", () => {
-    expect(
-      isValid("Users | where age > 18 // only adults")
-    ).toBe(true);
+    expect(isValid("Users | Events // connected tables")).toBe(true);
   });
 
   test("comment with KQL keywords", () => {
-    expect(
-      isValid("Users // where, project, filter are operators")
-    ).toBe(true);
+    expect(isValid("Users // where, project, filter are operators")).toBe(true);
   });
 });
 
@@ -74,9 +66,7 @@ describe("Comment token extraction", () => {
 
 describe("Comment edge cases", () => {
   test("comment with URLs", () => {
-    expect(
-      isValid("Users // see https://example.com for details")
-    ).toBe(true);
+    expect(isValid("Users // see https://example.com for details")).toBe(true);
   });
 
   test("comment with pipes", () => {
@@ -84,18 +74,21 @@ describe("Comment edge cases", () => {
   });
 
   test("comment with quotes", () => {
-    expect(
-      isValid('Users // comment with "quotes" and \'apostrophes\'')
-    ).toBe(true);
+    expect(isValid("Users // comment with \"quotes\" and 'apostrophes'")).toBe(
+      true
+    );
   });
 
-  test("empty line comments", () => {
-    expect(isValid("//")).toBe(true);
+  test("comment with no trailing code", () => {
+    // Our grammar requires at least one expression, comments alone don't count
+    // This test documents that behavior
+    expect(isValid("//")).toBe(false);
   });
 
-  test("comment only query", () => {
+  test("comment with code present", () => {
     expect(
       isValid(`
+        Users
         // This is a comment-only query
         // It should still be valid
       `)

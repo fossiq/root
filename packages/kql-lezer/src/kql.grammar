@@ -1,6 +1,8 @@
 @top Query { statement }
 
-statement { expression }
+statement { pipelineExpression }
+
+pipelineExpression { expression (Pipe expression)* }
 
 expression {
   Identifier |
@@ -9,6 +11,7 @@ expression {
 }
 
 @tokens {
+  Pipe { "|" }
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
   Number { @digit+ }
   String { '"' (!["\\\n] | "\\" _)* '"' }

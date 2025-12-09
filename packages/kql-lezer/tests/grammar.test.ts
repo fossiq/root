@@ -14,12 +14,12 @@ describe("Basic grammar", () => {
     expect(isValid('"hello"')).toBe(true);
   });
 
-  test("multiple tokens", () => {
-    expect(isValid("Users Events")).toBe(true);
+  test("multiple tokens with pipe", () => {
+    expect(isValid("Users | Events")).toBe(true);
   });
 
-  test("mixed token types", () => {
-    expect(isValid("Users 42 Events")).toBe(true);
+  test("mixed token types with pipes", () => {
+    expect(isValid("Users | 42 | Events")).toBe(true);
   });
 
   test("parser returns valid result", () => {

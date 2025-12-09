@@ -11,10 +11,36 @@ describe("KQL operators - Basic support", () => {
     expect(isValid('"test"')).toBe(true);
   });
 
-  test("multiple tokens", () => {
-    // Current minimal grammar supports basic token sequences
-    expect(isValid("Users Events")).toBe(true);
-    expect(isValid("Users 42 Events")).toBe(true);
+  test("multiple tokens with pipes", () => {
+    // Current minimal grammar supports basic token sequences with pipes
+    expect(isValid("Users | Events")).toBe(true);
+    expect(isValid("Users | 42 | Events")).toBe(true);
+  });
+});
+
+describe("Pipe operator support", () => {
+  test("single pipe with identifiers", () => {
+    expect(isValid("Users | Events")).toBe(true);
+  });
+
+  test("pipe with numbers", () => {
+    expect(isValid("123 | 456")).toBe(true);
+  });
+
+  test("pipe with strings", () => {
+    expect(isValid('"first" | "second"')).toBe(true);
+  });
+
+  test("multiple pipes (chained)", () => {
+    expect(isValid("Users | Events | Logs")).toBe(true);
+  });
+
+  test("multiple pipes with mixed literals", () => {
+    expect(isValid("Users | 42 | Events")).toBe(true);
+  });
+
+  test("pipe with complex identifiers", () => {
+    expect(isValid("UsersTable | EventsLog")).toBe(true);
   });
 });
 

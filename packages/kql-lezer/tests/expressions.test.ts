@@ -28,19 +28,19 @@ describe("Expression parsing", () => {
     expect(isValid("Users")).toBe(true);
   });
 
-  test("multiple identifiers", () => {
-    expect(isValid("Users Events")).toBe(true);
+  test("multiple identifiers with pipe", () => {
+    expect(isValid("Users | Events")).toBe(true);
   });
 
-  test("mixed literals", () => {
-    expect(isValid("Users 123 456")).toBe(true);
+  test("mixed literals with pipe", () => {
+    expect(isValid("Users | 123 | 456")).toBe(true);
   });
 });
 
 describe("Expression edge cases", () => {
   test("whitespace handling", () => {
-    expect(isValid("Users   Events")).toBe(true);
-    expect(isValid("Users Events")).toBe(true);
+    expect(isValid("Users   |   Events")).toBe(true);
+    expect(isValid("Users | Events")).toBe(true);
   });
 
   test("empty expressions", () => {
