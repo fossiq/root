@@ -1,5 +1,11 @@
 # @fossiq/kql-to-duckdb
 
+## 0.2.1
+
+### Patch Changes
+
+- e09ebfe: Fix TypeScript type errors in translator.ts for strict type checking compliance.
+
 ## 0.2.0
 
 ### Minor Changes
