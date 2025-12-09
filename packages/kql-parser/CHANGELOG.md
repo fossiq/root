@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 1.0.1
+
+### Patch Changes
+
+- feat: inckuding all bindings in one
+
 ## 1.0.0
 
 ### Major Changes

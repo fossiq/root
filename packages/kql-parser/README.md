@@ -10,7 +10,7 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 - ✅ **Type-safe AST** - Fully typed Abstract Syntax Tree with discriminated unions
 - ✅ **89 tests** - Comprehensive test coverage for real-world queries
 - ✅ **Tree-sitter based** - Fast, incremental parsing with excellent error recovery
-- ✅ **Zero dependencies** - Self-contained parser with minimal runtime footprint
+- ✅ **Cross-platform prebuilts** - Includes native bindings for Linux, Windows, and macOS, and WASM for browser environments.
 
 ## Installation
 
@@ -22,18 +22,36 @@ bun add @fossiq/kql-parser
 
 ## Usage
 
+This package provides the KQL grammar and AST builders. To parse a query, you'll need to use either `tree-sitter` (for native environments) or `web-tree-sitter` (for browser/WASM environments) directly.
+
 ```typescript
-import { parse, createParser } from "@fossiq/kql-parser";
-import KQL from "@fossiq/kql-parser/grammar";
+import { buildAST } from "@fossiq/kql-parser";
+import Parser from 'web-tree-sitter'; // or 'tree-sitter' for native
 
-// Parse a KQL query
-const ast = parse(KQL, "Users | where age > 18 | project name, email");
+// For web-tree-sitter (browser/WASM environments)
+// Ensure tree-sitter-kql.wasm is available at the specified path
+async function parseKqlWeb(query: string) {
+  await Parser.init();
+  const KqlLanguage = await Parser.Language.load('./node_modules/@fossiq/kql-parser/tree-sitter-kql.wasm'); // Adjust path as needed
+  const parser = new Parser();
+  parser.setLanguage(KqlLanguage);
+  const tree = parser.parse(query);
+  return buildAST(tree.rootNode);
+}
 
-// Or create a reusable parser instance
-const parser = createParser(KQL);
-const ast = parser.parse("Users | summarize count() by country");
+// For native tree-sitter (Node.js/Bun environments)
+// You would typically import the native binding directly
+// import KqlLanguageNative from '@fossiq/kql-parser/bindings/node';
+// function parseKqlNative(query: string) {
+//   const parser = new Parser();
+//   parser.setLanguage(KqlLanguageNative);
+//   const tree = parser.parse(query);
+//   return buildAST(tree.rootNode);
+// }
 
-console.log(ast);
+// Example Usage
+// const ast = await parseKqlWeb("Users | where age > 18");
+// console.log(ast);
 ```
 
 ## Supported Features
