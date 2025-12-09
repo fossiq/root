@@ -7,10 +7,14 @@ export { translate };
 
 let parser: Parser | null = null;
 
-export async function initParser(wasmPath: string): Promise<void> {
+export async function initParser(wasmPath: string, treeSitterWasmPath?: string): Promise<void> {
   if (parser) return;
 
-  await Parser.init();
+  await Parser.init({
+    locateFile() {
+      return treeSitterWasmPath || '/tree-sitter.wasm';
+    }
+  });
   const KqlLanguage = await Language.load(wasmPath);
 
   parser = new Parser();

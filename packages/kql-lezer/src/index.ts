@@ -7,6 +7,8 @@ import type {
 import { TokenType as TT } from "@fossiq/kql-ast";
 import { parser } from "./parser";
 import { Tree, SyntaxNode } from "@lezer/common";
+import { LRLanguage, LanguageSupport } from "@codemirror/language";
+import { styleTags, tags as t } from "@lezer/highlight";
 
 /**
  * Convert Lezer parse tree to @fossiq/kql-ast ParseResult
@@ -95,11 +97,45 @@ function getTokenType(nodeName: string): TokenType | null {
       return TT.Number;
     case "String":
       return TT.String;
-    case "Query":
-    case "statement":
-    case "expression":
-      return null; // Internal nodes, not highlighted
+    // Keywords
+    case "kw_where":
+    case "kw_project":
+    case "kw_extend":
+    case "kw_sort":
+    case "kw_limit":
+    case "kw_take":
+    case "kw_top":
+    case "kw_distinct":
+    case "kw_summarize":
+    case "kw_by":
+    case "kw_asc":
+    case "kw_desc":
+    case "kw_and":
+    case "kw_or":
+    case "kw_not":
+    case "kw_contains":
+    case "kw_notcontains":
+    case "kw_startswith":
+    case "kw_endswith":
+    case "kw_has":
+    case "kw_nothas":
+    case "kw_in":
+    case "kw_notin":
+    case "let":
+      return TT.Keyword;
+    // Operators
+    case "Pipe":
+    case "ComparisonOp":
+      return TT.Operator;
+    // Punctuation
+    case "ParenthesizedExpression":
+    case "BracketExpression":
+      return TT.Punctuation;
     default:
+      // For internal nodes like Query, statement, expression
+      if (nodeName.endsWith("Clause")) {
+        return TT.Keyword; // Operators like where, project etc.
+      }
       return null;
   }
 }
@@ -124,13 +160,40 @@ function walkTree(
   }
 }
 
+// Define the KQL language for Lezer
+export const kqlLanguage = LRLanguage.define({
+  parser: parser.configure({
+    props: [
+      styleTags({
+        // Keywords
+        "kw_where kw_project kw_extend kw_sort kw_limit kw_take kw_top kw_distinct kw_summarize kw_by kw_asc kw_desc kw_and kw_or kw_not": t.keyword,
+        "kw_contains kw_notcontains kw_startswith kw_endswith kw_has kw_nothas kw_in kw_notin": t.operatorKeyword,
+        // Operators
+        Pipe: t.punctuation,
+        ComparisonOp: t.operator,
+        // Literals
+        Number: t.number,
+        String: t.string,
+        // Comments
+        LineComment: t.lineComment,
+        // Identifiers
+        Identifier: t.variableName,
+        functionName: t.function(t.variableName),
+        // Structure
+        "ParenthesizedExpression BracketExpression": t.paren,
+        "operator": t.typeName // Generic operator nodes
+      }),
+    ],
+  }),
+  languageData: {
+    commentTokens: { line: "//" },
+  },
+});
+
 /**
  * Initialize KQL language for CodeMirror
- *
- * TODO: Implement once dependency versions are aligned
- * This would return: new LanguageSupport(kqlLanguage)
  */
 export function kql() {
-  // Placeholder for CodeMirror language support
-  return null;
+  return new LanguageSupport(kqlLanguage);
 }
+
