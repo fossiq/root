@@ -47,7 +47,7 @@ aggregationList { aggregation ("," aggregation)* }
 
 aggregation { Identifier "=" aggregateFunction | aggregateFunction }
 
-aggregateFunction { functionName "(" argumentList? ")" }
+aggregateFunction { functionName OpenParen argumentList? CloseParen }
 
 functionName { Identifier }
 
@@ -80,7 +80,7 @@ notExpression {
 
 primaryExpression {
   comparison |
-  "(" expression ")" |
+  OpenParen expression CloseParen |
   literal |
   Identifier
 }
@@ -109,6 +109,9 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
 
 @tokens {
   Pipe { "|" }
+  OpenParen { "(" }
+  CloseParen { ")" }
+  Comma { "," }
 
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
   Number { @digit+ }

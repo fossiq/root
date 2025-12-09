@@ -165,23 +165,34 @@ export const kqlLanguage = LRLanguage.define({
   parser: parser.configure({
     props: [
       styleTags({
-        // Keywords
-        "kw_where kw_project kw_extend kw_sort kw_limit kw_take kw_top kw_distinct kw_summarize kw_by kw_asc kw_desc kw_and kw_or kw_not": t.keyword,
-        "kw_contains kw_notcontains kw_startswith kw_endswith kw_has kw_nothas kw_in kw_notin": t.operatorKeyword,
+        // Keywords - these are the specialized token names from kw<term>
+        "where project extend sort limit take top distinct summarize by asc desc and or not":
+          t.keyword,
+        "contains startswith endswith has in": t.operatorKeyword,
         // Operators
         Pipe: t.punctuation,
-        ComparisonOp: t.operator,
+        ComparisonOp: t.compareOperator,
+        // Brackets and punctuation
+        OpenParen: t.paren,
+        CloseParen: t.paren,
+        Comma: t.separator,
         // Literals
         Number: t.number,
         String: t.string,
         // Comments
         LineComment: t.lineComment,
-        // Identifiers
+        // Function names: Identifier inside functionName node
+        "functionName/Identifier": t.function(t.variableName),
+        // Table name (first identifier in query)
+        "tableExpression/Identifier": t.typeName,
+        // Column names in various contexts
+        "columnSpec/Identifier": t.propertyName,
+        "sortColumn/Identifier": t.propertyName,
+        "columnNameList/Identifier": t.propertyName,
+        // Identifiers in aggregation (e.g., "x = count()")
+        "aggregation/Identifier": t.propertyName,
+        // Default identifiers (variables in expressions)
         Identifier: t.variableName,
-        functionName: t.function(t.variableName),
-        // Structure
-        "ParenthesizedExpression BracketExpression": t.paren,
-        "operator": t.typeName // Generic operator nodes
       }),
     ],
   }),
@@ -196,4 +207,3 @@ export const kqlLanguage = LRLanguage.define({
 export function kql() {
   return new LanguageSupport(kqlLanguage);
 }
-
