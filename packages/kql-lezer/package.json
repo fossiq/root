@@ -66,8 +66,7 @@
   },
   "scripts": {
     "build": "bun run build:grammar && tsc",
-    "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && bun run fix:parser-types",
-    "fix:parser-types": "echo '// @ts-nocheck' | cat - src/parser.ts > temp && mv temp src/parser.ts",
+    "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && ./scripts/fix-parser-types.sh",
     "test": "vitest"
   }
 }
