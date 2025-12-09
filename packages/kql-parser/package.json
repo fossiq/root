@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-parser",
-  "version": "0.1.13",
+  "version": "1.0.0",
   "description": "A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

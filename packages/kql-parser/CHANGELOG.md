@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 1.0.0
+
+### Major Changes
+
+- chore: bump version for CI publish test
+
 ## 0.1.13
 
 ### Patch Changes

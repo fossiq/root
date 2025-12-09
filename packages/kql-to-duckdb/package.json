@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-to-duckdb",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Translator from KQL to DuckDB SQL",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
