@@ -30,12 +30,27 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-v2-${{ hashFiles('**/bun.lock') }}
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
           restore-keys: |
-            ${{ runner.os }}-bun-v2-
+            ${{ runner.os }}-bun-
 
       - name: Install dependencies
         run: bun install
+
+      - name: Fix tree-sitter binding for Bun
+        run: |
+          # tree-sitter's Bun support expects the binary in prebuilds/
+          # but node-gyp-build (install script) puts it in build/Release/ if it builds from source.
+          # We assume linux-x64 for this runner.
+          mkdir -p node_modules/tree-sitter/prebuilds/linux-x64
+          # Try copy from build/Release if it exists
+          if [ -f "node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node" ]; then
+            cp node_modules/tree-sitter/build/Release/tree_sitter_runtime_binding.node node_modules/tree-sitter/prebuilds/linux-x64/tree-sitter.node
+            echo "Copied built binding to prebuilds/"
+          else
+            echo "No built binding found in build/Release. Checking if prebuilds existed..."
+            ls -R node_modules/tree-sitter/prebuilds || echo "prebuilds dir not found or empty"
+          fi
 
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
