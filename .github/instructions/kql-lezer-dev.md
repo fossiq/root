@@ -15,6 +15,7 @@ Lezer-based KQL parser for CodeMirror with real-time syntax highlighting. Optimi
 ### Grammar-Based Parser
 
 Uses Lezer grammar DSL (`kql.grammar`) to define:
+
 - KQL statement structure
 - Operator precedence
 - Token patterns
@@ -33,8 +34,12 @@ Uses Lezer grammar DSL (`kql.grammar`) to define:
 packages/kql-lezer/
 ├── src/
 │   ├── kql.grammar      # Lezer grammar definition
-│   ├── parser.ts        # Generated from grammar (auto-generated)
+│   ├── parser.ts        # Generated from grammar (auto-generated, @ts-nocheck)
+│   ├── parser.terms.ts  # Generated from grammar (auto-generated)
 │   └── index.ts         # Language support & AST conversion
+├── scripts/
+│   └── fix-parser-types.sh  # Adds @ts-nocheck header to generated parser
+├── tests/               # Test suite (77 tests)
 ├── dist/                # Compiled output
 ├── package.json
 ├── tsconfig.json
@@ -46,6 +51,7 @@ packages/kql-lezer/
 ### kql.grammar
 
 Defines complete KQL syntax:
+
 - **Top level**: `let` statements, tabular operations
 - **Operators**: where, project, select, filter, summarize, sort, limit, distinct, count, union
 - **Expressions**: Logical operators, comparisons, arithmetic, function calls
@@ -55,6 +61,7 @@ Defines complete KQL syntax:
 ### index.ts
 
 Exports:
+
 - `kqlLanguage`: Lezer language definition
 - `kql()`: CodeMirror LanguageSupport
 - `toParsedAST()`: Convert to @fossiq/kql-ast format
@@ -85,6 +92,7 @@ const editor = new EditorView({
 ## Syntax Highlighting
 
 Tags applied via `styleTags`:
+
 - Keywords: `let`, `where`, `project`, `select`, etc.
 - Types: Identifiers, table names, column names
 - Operators: Comparison, logical, arithmetic
@@ -95,6 +103,7 @@ Tags applied via `styleTags`:
 ## Implementation Status
 
 ### Phase 1: Grammar & Parser ✓
+
 - [x] Define KQL grammar in Lezer format
 - [x] Basic expression parsing
 - [x] Operator precedence
@@ -102,16 +111,19 @@ Tags applied via `styleTags`:
 - [x] Keyword highlighting setup
 
 ### Phase 2: Language Support
+
 - [ ] Generate parser from grammar
 - [ ] Integrate with CodeMirror
 - [ ] Test in UI
 
 ### Phase 3: AST Conversion
+
 - [ ] Implement toParsedAST()
 - [ ] Implement extractHighlightTokens()
 - [ ] Full compatibility with kql-ast types
 
 ### Phase 4: Testing
+
 - [ ] Unit tests for grammar
 - [ ] Integration tests with CodeMirror
 - [ ] Performance benchmarks
@@ -119,13 +131,15 @@ Tags applied via `styleTags`:
 
 ## Design Decisions
 
-1. **Lezer over Tree-sitter for UI**: 
+1. **Lezer over Tree-sitter for UI**:
+
    - No WASM runtime needed
    - Incremental parsing out of the box
    - Direct CodeMirror integration
    - Lighter bundle
 
 2. **Separate from kql-parser**:
+
    - kql-parser (tree-sitter) for backend/CLI
    - kql-lezer (Lezer) for editor syntax highlighting
    - Different use cases, different tools
@@ -138,6 +152,7 @@ Tags applied via `styleTags`:
 ## Testing KQL Grammar
 
 Common test cases:
+
 - Simple table reference: `Events`
 - Where clause: `Events | where EventTime > now(-1d)`
 - Multiple operators: `Events | where EventTime > now(-1d) | project Name, EventTime | sort EventTime desc`

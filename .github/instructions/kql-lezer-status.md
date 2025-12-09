@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**Phase:** Operator Support (Incremental Implementation)  
+**Phase:** Phase 3 Complete, Phase 4 Planning  
 **Last Updated:** 2025-12-09
 
 ## Completed Milestones
@@ -11,8 +11,11 @@
 - [x] Defined and generated Lezer grammar
 - [x] Implemented core parser functions (parseKQL, toParsedAST, extractHighlightTokens)
 - [x] Fixed all type and lint errors
-- [x] Created comprehensive test suite (88+ tests)
+- [x] Created comprehensive test suite (77 tests, all passing)
 - [x] Set up testing infrastructure with vitest
+- [x] Implemented all major KQL operators (where, project, extend, sort, limit, take, top, distinct, summarize)
+- [x] Added @ts-nocheck header to generated parser.ts
+- [x] Moved parser type fix to shell script
 
 ## In Progress
 
