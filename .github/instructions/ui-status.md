@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**Phase:** Editor Component - Complete  
+**Phase:** Phase 7: Functionality & Integration (Polishing)  
 **Last Updated:** 2025-12-09
 
 ## Completed Milestones
@@ -19,11 +19,19 @@
 - [x] CodeMirror 6 integration with basicSetup
 - [x] Query header with Run and Clear buttons
 - [x] Theme-aware editor styling (cursor, active line, gutters)
+- [x] Results table integration (@tanstack/solid-table)
+- [x] Virtualized table component (@tanstack/solid-virtual)
+- [x] Fix kql-lezer build and types
+- [x] KQL syntax highlighting with kql-lezer
+- [x] DuckDB WASM integration
+- [x] Add Data functionality (CSV import)
+- [x] Run Query functionality (KQL -> SQL -> DuckDB)
+- [x] Autocomplete (Schema-aware + Aliases)
 
 ## In Progress
 
-- [ ] Results table integration (@tanstack/solid-table)
-- [ ] KQL syntax highlighting with kql-lezer
+- [ ] Fix: Results rendering issue (Data present, table not showing)
+- [ ] Fix: Syntax highlighting missing (Regression investigation)
 
 ## Blocked
 
@@ -70,7 +78,7 @@ See implementation plan in [Phase 5: kql-lezer Integration](#phase-5-kql-lezer-i
 - [x] Visible cursor with theme color
 - [x] Proper sizing and layout
 
-### Phase 5: KQL Syntax Highlighting with kql-lezer (NEXT)
+### Phase 5: KQL Syntax Highlighting with kql-lezer (Completed) ✓
 
 **Goal:** Add real-time KQL syntax highlighting to the editor
 
@@ -78,24 +86,24 @@ See implementation plan in [Phase 5: kql-lezer Integration](#phase-5-kql-lezer-i
 
 1. **Complete kql-lezer CodeMirror Integration** (in kql-lezer package)
 
-   - Create `LRLanguage` from the Lezer parser with `styleTags` for highlight tokens
-   - Export proper `kql()` function returning `LanguageSupport`
-   - Add imports from `@codemirror/language` and `@lezer/highlight`
+   - [x] Create `LRLanguage` from the Lezer parser with `styleTags` for highlight tokens
+   - [x] Export proper `kql()` function returning `LanguageSupport`
+   - [x] Add imports from `@codemirror/language` and `@lezer/highlight`
 
 2. **Update UI package** (`packages/ui`)
 
-   - Add `@fossiq/kql-lezer` as workspace dependency in `package.json`
-   - Import `kql` from `@fossiq/kql-lezer` in `Editor.tsx`
-   - Add `kql()` to CodeMirror extensions array
+   - [x] Add `@fossiq/kql-lezer` as workspace dependency in `package.json`
+   - [x] Import `kql` from `@fossiq/kql-lezer` in `Editor.tsx`
+   - [x] Add `kql()` to CodeMirror extensions array
 
 3. **Test Integration**
 
-   - Verify syntax highlighting works with common KQL patterns
-   - Test with complex queries (where, project, summarize, etc.)
-   - Ensure light/dark theme styling is applied correctly
+   - [x] Verify syntax highlighting works with common KQL patterns
+   - [x] Test with complex queries (where, project, summarize, etc.)
+   - [x] Ensure light/dark theme styling is applied correctly
 
 4. **Styling**
-   - Define highlight theme colors in CSS for:
+   - [x] Define highlight theme colors in CSS for:
      - Keywords (where, project, etc.)
      - Identifiers (table/column names)
      - Operators (|, ==, >, etc.)
@@ -109,20 +117,23 @@ See implementation plan in [Phase 5: kql-lezer Integration](#phase-5-kql-lezer-i
 - `packages/ui/src/components/Editor.tsx` - Import and use kql()
 - `packages/ui/src/App.tsx` or editor CSS - Add highlight theme colors
 
-### Phase 6: Results Table
+### Phase 6: Results Table ✓
 
-- [ ] TanStack Solid Table setup
-- [ ] Virtualized table component
-- [ ] Dynamic column handling
-- [ ] Sorting and filtering
+- [x] TanStack Solid Table setup
+- [x] Virtualized table component
+- [x] Dynamic column handling
+- [x] Sorting and filtering (Sorting implemented)
 
-### Phase 7: Functionality & Integration
+### Phase 7: Functionality & Integration (Polishing)
 
-- [ ] Connect Run/Clear buttons to editor state
-- [ ] Implement Add Data button functionality
-- [ ] Handle query execution
-- [ ] Display results in table
-- [ ] Add error handling and user feedback
+- [x] Connect Run/Clear buttons to editor state
+- [x] Implement Add Data button functionality
+- [x] Handle query execution (DuckDB integration)
+- [x] Display results in table
+- [x] Add error handling and user feedback
+- [ ] Fix: Results rendering issue (Data present, table not showing)
+- [ ] Fix: Syntax highlighting missing (Regression investigation)
+- [x] Improvement: Autocomplete for query-defined aliases (e.g. `count=count()`)
 
 ### Phase 8: External Dependencies
 

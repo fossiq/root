@@ -73,3 +73,12 @@
 - Configuration should be self-explanatory through comments
 - README files should be minimal and high-level only
 - Code and configs are the documentation
+
+## Tool Usage & Optimization
+
+- **CRITICAL - Context Optimization:**
+  - **Reading Files:** ALWAYS use the `limit` parameter (e.g., `limit: 50`) with `read_file` for exploration. NEVER read a full file unless you are about to edit it or strictly need the whole context.
+  - **Shell Output:** ALWAYS pipe large outputs to `head -n 20`, `tail`, `grep`, or file redirection. NEVER `cat` a whole file without a limiter.
+  - **General:** Minimize output tokens with minimal to no loss of clarity in all interactions.
+  - **Model Selection:** Prioritize using lighter/faster models (e.g., Flash) for simple tasks and reserve heavier models (e.g., Pro) for complex reasoning or architectural planning, if the environment allows model switching.
+  - **Model Selection:** Prioritize using lighter/faster models (e.g., Flash) for simple tasks and reserve heavier models (e.g., Pro) for complex reasoning or architectural planning, if the environment allows model switching.

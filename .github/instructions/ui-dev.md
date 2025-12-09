@@ -20,17 +20,28 @@ packages/ui/
 │   │   ├── Editor.tsx       # CodeMirror-based query editor
 │   │   ├── Header.tsx       # Main header with logo
 │   │   ├── Sidebar.tsx      # Right sidebar with Add Data button
+│   │   ├── ResultsTable.tsx # Virtualized table for query results
 │   │   ├── Layout.tsx       # Main app layout wrapper
 │   │   ├── Icon.tsx         # Icon component for SVG rendering
 │   │   └── App.tsx          # Main app structure
+│   ├── contexts/
+│   │   └── SchemaContext.tsx # Manages DuckDB connection and schema
 │   ├── hooks/
 │   │   └── useTheme.ts      # System theme detection hook
 │   ├── icons/
 │   │   └── index.ts         # Icon registry with inline SVG paths
 │   ├── styles/
-│   │   └── theme.css        # PicoCSS theme customization with light/dark mode
+│   │   ├── theme.css        # PicoCSS theme customization with light/dark mode
+│   │   └── editorTheme.ts   # CodeMirror theme definitions
+│   ├── utils/
+│   │   └── completion.ts    # KQL autocomplete logic
+│   ├── vite-env.d.ts        # Vite type definitions
 │   └── App.tsx              # Main entry point
 ├── public/
+│   ├── duckdb-browser-eh.worker.js # DuckDB worker
+│   ├── duckdb-eh.wasm       # DuckDB WASM binary
+│   ├── tree-sitter.wasm     # Tree-sitter runtime WASM
+│   ├── tree-sitter-kql.wasm # KQL parser WASM
 │   ├── manifest.json        # PWA manifest
 │   └── sw.js                # Service worker for offline support
 ├── dist/                     # Build output
@@ -181,6 +192,13 @@ All components must follow WAI-ARIA standards and semantic HTML best practices:
 - Define CDN URLs in environment config
 - Load @fossiq/kql-to-duckdb and other packages from CDN
 - Fallback to local bundled versions if CDN unavailable
+
+### DuckDB WASM Integration
+
+- **Setup:** Uses `@duckdb/duckdb-wasm` with a dedicated `SchemaContext`.
+- **Static Files:** Requires `duckdb-eh.wasm` and `duckdb-browser-eh.worker.js` to be served from the `public/` directory to avoid bundling issues and ensure correct worker initialization.
+- **Headers:** `vite.config.ts` must configure COOP (`Cross-Origin-Opener-Policy: same-origin`) and COEP (`Cross-Origin-Embedder-Policy: require-corp`) headers for WASM multi-threading support (though we currently use the EH single-threaded variant as a safe default).
+- **Data Loading:** Uses the File System Access API (via `showOpenFilePicker`) to register file handles directly with DuckDB, allowing efficient querying of local CSVs without full memory loading where supported.
 
 ## Notes & Gotchas
 
