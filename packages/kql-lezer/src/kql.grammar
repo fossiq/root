@@ -9,12 +9,49 @@ tableExpression { Identifier }
 operator {
   whereClause |
   projectClause |
+  extendClause |
+  sortClause |
+  limitClause |
+  takeClause |
+  topClause |
+  distinctClause |
+  summarizeClause |
   Identifier |
   Number |
   String
 }
 
 projectClause { kw<"project"> columnList }
+
+extendClause { kw<"extend"> columnList }
+
+sortClause { kw<"sort"> kw<"by">? sortColumnList }
+
+sortColumnList { sortColumn ("," sortColumn)* }
+
+sortColumn { Identifier (kw<"asc"> | kw<"desc">)? }
+
+limitClause { kw<"limit"> Number }
+
+takeClause { kw<"take"> Number }
+
+topClause { kw<"top"> Number kw<"by">? Identifier (kw<"asc"> | kw<"desc">)? }
+
+distinctClause { kw<"distinct"> columnNameList }
+
+columnNameList { Identifier ("," Identifier)* }
+
+summarizeClause { kw<"summarize"> aggregationList (kw<"by"> columnNameList)? }
+
+aggregationList { aggregation ("," aggregation)* }
+
+aggregation { Identifier "=" aggregateFunction | aggregateFunction }
+
+aggregateFunction { functionName "(" argumentList? ")" }
+
+functionName { Identifier }
+
+argumentList { expression ("," expression)* }
 
 columnList { columnSpec ("," columnSpec)* }
 

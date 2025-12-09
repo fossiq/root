@@ -16,7 +16,7 @@
 
 ## In Progress
 
-- [ ] **Step 4: remaining operators** - select, filter, summarize, sort, limit, distinct, union
+- [ ] **Phase 4: CodeMirror Integration** - Resolve dependency conflicts, LanguageSupport
 
 ## Blocked
 
@@ -47,13 +47,12 @@ None currently.
 - [x] Pipe operator (|)
 - [x] where operator (with and/or/not, parentheses, string operators)
 - [x] project operator (column selection, aliases, computed expressions)
-- [ ] select operator
-- [ ] filter operator
-- [ ] summarize operator
-- [ ] sort operator
-- [ ] limit/take operators
-- [ ] distinct operator
-- [ ] union operator
+- [x] extend operator
+- [x] sort operator (with by, asc/desc, multiple columns)
+- [x] limit/take operators
+- [x] top operator
+- [x] distinct operator
+- [x] summarize operator (aggregations, by clause, aliases)
 
 ### Phase 4: CodeMirror Integration
 
@@ -77,8 +76,9 @@ Completed:
 - Pipe operator (|) support enables query chaining like "Users | Events | Logs"
 - Where operator with full expression support (and/or/not, parentheses, string operators like contains/startswith/endswith/has)
 - Project operator with column selection, aliases, and computed expressions
+- Extend, sort, limit, take, top, distinct, summarize operators
 
-Next: Step 4 - remaining operators (select, filter, summarize, sort, limit, distinct, union)
+Next: Phase 4 - CodeMirror integration
 
 ## Test Coverage
 
@@ -86,5 +86,5 @@ Next: Step 4 - remaining operators (select, filter, summarize, sort, limit, dist
 - **Highlighting**: 6 tests (token types, positions)
 - **Grammar**: 10 tests (basic parsing, error handling)
 - **Comments**: 14 tests (line comments, positions)
-- **Operators**: 27 tests (pipe, where, project)
-- **Total**: 66 tests
+- **Operators**: 38 tests (pipe, where, project, extend, sort, limit, take, top, distinct, summarize)
+- **Total**: 77 tests

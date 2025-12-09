@@ -16,4 +16,14 @@ export const
   String = 17,
   and = 18,
   or = 19,
-  project = 20
+  project = 20,
+  extend = 21,
+  sort = 22,
+  by = 23,
+  asc = 24,
+  desc = 25,
+  limit = 26,
+  take = 27,
+  top = 28,
+  distinct = 29,
+  summarize = 30
