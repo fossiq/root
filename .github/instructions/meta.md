@@ -25,6 +25,7 @@
 - Small, focused functions (single responsibility)
 - Descriptive names
 - **Use Bun as runtime** - Bun's `$` for shell commands, not Node's child_process
+- **Always use `bunx` instead of `npx`** and **`bun run` instead of `npm run`**
 - **DO NOT generate boilerplate/examples unless explicitly asked**
 
 ## Architecture
