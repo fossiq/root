@@ -32,8 +32,12 @@
 
 ## In Progress
 
-- [ ] Fix: Results rendering issue (Data present, table not showing)
 - [ ] Improve: Syntax highlighting contrast (colors not vibrant enough)
+
+## Recently Fixed
+
+- [x] Fix: Results rendering issue - Made table reactivity work with SolidJS (rows, headerGroups, virtualItems as reactive memos)
+- [x] Fix: Results table using CSS Grid with divs instead of table elements for proper virtualization
 
 ## Blocked
 
@@ -137,7 +141,9 @@ See implementation plan in [Phase 5: kql-lezer Integration](#phase-5-kql-lezer-i
 - [x] File persistence: Store file handles in IndexedDB, restore on page reload
 - [x] Restore UI: "Restore X files" button in sidebar when permission needed
 - [x] GitHub Primer theme: Updated editor colors from primer/primitives
-- [ ] Fix: Results rendering issue (Data present, table not showing)
+- [x] Query and results persistence across page reloads (localStorage)
+- [x] Fix: Results table reactivity with SolidJS
+- [x] Results table: CSS Grid layout with divs, alternating row backgrounds, horizontal scroll
 - [ ] Improve: Syntax highlighting contrast (colors not vibrant enough)
 
 ### Phase 8: External Dependencies

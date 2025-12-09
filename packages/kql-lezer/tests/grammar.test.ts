@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest";
-import { parse, isValid, getErrorCount } from "./_helpers";
+import { parse, isValid } from "./_helpers";
 
 describe("Basic grammar", () => {
   test("simple table reference", () => {

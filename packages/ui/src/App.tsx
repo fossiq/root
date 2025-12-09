@@ -4,15 +4,47 @@ import Layout from "./components/Layout";
 import Editor from "./components/Editor";
 import ResultsTable from "./components/ResultsTable";
 import { SchemaProvider, useSchema } from "./contexts/SchemaContext";
-import { Component, createSignal, onMount, Show } from "solid-js";
+import { Component, createSignal, createEffect, onMount, Show } from "solid-js";
 import { kqlToDuckDB, initParser } from "@fossiq/kql-to-duckdb";
 
+const STORAGE_KEY_QUERY = "fossiq-query";
+const STORAGE_KEY_RESULTS = "fossiq-results";
+
 const AppContent: Component = () => {
-  const [query, setQuery] = createSignal("Events | take 10");
-  const [results, setResults] = createSignal<any[]>([]);
+  // Load persisted query and results from localStorage
+  const savedQuery =
+    localStorage.getItem(STORAGE_KEY_QUERY) || "Events | take 10";
+  const savedResults = (() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_RESULTS);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const [query, setQuery] = createSignal(savedQuery);
+  const [results, setResults] = createSignal<any[]>(savedResults);
   const [error, setError] = createSignal<string | null>(null);
   const [isRunning, setIsRunning] = createSignal(false);
   const { conn } = useSchema();
+
+  // Persist query to localStorage when it changes
+  createEffect(() => {
+    localStorage.setItem(STORAGE_KEY_QUERY, query());
+  });
+
+  // Persist results to localStorage when they change
+  createEffect(() => {
+    const currentResults = results();
+    if (currentResults.length > 0) {
+      // Convert BigInt to Number for JSON serialization
+      const serializable = JSON.stringify(currentResults, (_, value) =>
+        typeof value === "bigint" ? Number(value) : value
+      );
+      localStorage.setItem(STORAGE_KEY_RESULTS, serializable);
+    }
+  });
 
   onMount(async () => {
     try {
@@ -73,6 +105,7 @@ const AppContent: Component = () => {
                 onClick={() => {
                   setResults([]);
                   setError(null);
+                  localStorage.removeItem(STORAGE_KEY_RESULTS);
                 }}
               >
                 ✕ Clear

@@ -1,4 +1,4 @@
-import { Component, For, createMemo, createEffect } from "solid-js";
+import { Component, For, createMemo } from "solid-js";
 import {
   createSolidTable,
   getCoreRowModel,
@@ -16,9 +16,7 @@ interface ResultsTableProps {
 
 const ResultsTable: Component<ResultsTableProps> = (props) => {
   const [sorting, setSorting] = createSignal<SortingState>([]);
-  const [parentRef, setParentRef] = createSignal<HTMLDivElement | undefined>(
-    undefined
-  );
+  let parentRef: HTMLDivElement | undefined;
 
   // Dynamically generate columns based on the first item in data
   const columns = createMemo<ColumnDef<any>[]>(() => {
@@ -48,118 +46,124 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  const { rows } = table.getRowModel();
+  // Use createMemo to reactively get rows and headers when data changes
+  const rows = createMemo(() => table.getRowModel().rows);
+  const headerGroups = createMemo(() => table.getHeaderGroups());
 
   const rowVirtualizer = createVirtualizer({
-    count: rows.length,
-    getScrollElement: () => parentRef() ?? null,
+    get count() {
+      return rows().length;
+    },
+    getScrollElement: () => parentRef ?? null,
     estimateSize: () => 35, // Estimate row height
     overscan: 10,
   });
 
+  // Create reactive accessors for virtualizer methods
+  const virtualItems = () => rowVirtualizer.getVirtualItems();
+  const totalSize = () => rowVirtualizer.getTotalSize();
+
+  const columnCount = () => headerGroups()[0]?.headers.length || 1;
+
   return (
     <div
-      ref={setParentRef}
+      ref={parentRef}
       class="table-container"
       style={{
         height: "100%",
         overflow: "auto",
-        position: "relative", // Needed for sticky header context
       }}
     >
       <div
         style={{
-          height: `${rowVirtualizer.getTotalSize()}px`,
-          width: "100%",
-          position: "relative",
+          display: "grid",
+          "grid-template-columns": `repeat(${columnCount()}, minmax(max-content, 1fr))`,
+          "min-width": "100%",
+          width: "max-content",
         }}
       >
-        <table style={{ width: "100%", "table-layout": "fixed" }}>
-          <thead
-            style={{
-              position: "sticky",
-              top: 0,
-              "z-index": 1,
-              background: "var(--bg-secondary)",
-              display: "grid", // Use grid for alignment with virtual rows if needed, or keeping it simple
-            }}
-          >
-            <For each={table.getHeaderGroups()}>
-              {(headerGroup) => (
-                <tr style={{ display: "flex", width: "100%" }}>
-                  <For each={headerGroup.headers}>
-                    {(header) => (
-                      <th
-                        style={{
-                          width: `${100 / headerGroup.headers.length}%`, // Simple equal width for now
-                          display: "flex",
-                          cursor: header.column.getCanSort()
-                            ? "pointer"
-                            : "default",
-                        }}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {{
-                          asc: " 🔼",
-                          desc: " 🔽",
-                        }[header.column.getIsSorted() as string] ?? null}
-                      </th>
-                    )}
-                  </For>
-                </tr>
+        {/* Header */}
+        <For each={headerGroups()}>
+          {(headerGroup) => (
+            <For each={headerGroup.headers}>
+              {(header) => (
+                <div
+                  style={{
+                    padding: "0.5rem 1rem",
+                    "font-weight": "bold",
+                    "white-space": "nowrap",
+                    background: "var(--bg-secondary)",
+                    position: "sticky",
+                    top: 0,
+                    "z-index": 1,
+                    cursor: header.column.getCanSort() ? "pointer" : "default",
+                  }}
+                  onClick={header.column.getToggleSortingHandler()}
+                >
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                  {{
+                    asc: " 🔼",
+                    desc: " 🔽",
+                  }[header.column.getIsSorted() as string] ?? null}
+                </div>
               )}
             </For>
-          </thead>
-          <tbody
-            style={{
-              display: "grid",
-              height: `${rowVirtualizer.getTotalSize()}px`,
-              width: "100%",
-              position: "relative",
+          )}
+        </For>
+
+        {/* Virtual rows container */}
+        <div
+          style={{
+            "grid-column": "1 / -1",
+            height: `${totalSize()}px`,
+            position: "relative",
+          }}
+        >
+          <For each={virtualItems()}>
+            {(virtualRow) => {
+              const row = rows()[virtualRow.index];
+              const isEven = virtualRow.index % 2 === 0;
+              return (
+                <div
+                  style={{
+                    display: "grid",
+                    "grid-template-columns": `repeat(${columnCount()}, minmax(max-content, 1fr))`,
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: `${virtualRow.size}px`,
+                    transform: `translateY(${virtualRow.start}px)`,
+                    "background-color": isEven
+                      ? "var(--bg-primary)"
+                      : "var(--bg-secondary)",
+                  }}
+                >
+                  <For each={row.getVisibleCells()}>
+                    {(cell) => (
+                      <div
+                        style={{
+                          padding: "0.5rem 1rem",
+                          "white-space": "nowrap",
+                          overflow: "hidden",
+                          "text-overflow": "ellipsis",
+                        }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </div>
+                    )}
+                  </For>
+                </div>
+              );
             }}
-          >
-            <For each={rowVirtualizer.getVirtualItems()}>
-              {(virtualRow) => {
-                const row = rows[virtualRow.index];
-                return (
-                  <tr
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
-                      display: "flex",
-                    }}
-                  >
-                    <For each={row.getVisibleCells()}>
-                      {(cell) => (
-                        <td
-                          style={{
-                            width: `${100 / row.getVisibleCells().length}%`,
-                            overflow: "hidden",
-                            "text-overflow": "ellipsis",
-                            "white-space": "nowrap",
-                          }}
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </td>
-                      )}
-                    </For>
-                  </tr>
-                );
-              }}
-            </For>
-          </tbody>
-        </table>
+          </For>
+        </div>
       </div>
     </div>
   );

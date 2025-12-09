@@ -214,6 +214,21 @@ All components must follow WAI-ARIA standards and semantic HTML best practices:
 - **Fallback:** Files loaded via `<input type="file">` fallback cannot be persisted (no FileSystemFileHandle).
 - **Utility:** `src/utils/fileHandleStore.ts` provides `storeFileHandle`, `getStoredFileHandles`, `removeFileHandle`, `clearAllFileHandles` functions.
 
+### Query and Results Persistence
+
+- **Query:** Stored in localStorage (`fossiq-query`) on every change via `createEffect`.
+- **Results:** Stored in localStorage (`fossiq-results`) when results are populated.
+- **BigInt Handling:** Results are serialized with a custom replacer to convert BigInt to Number.
+- **Clear:** The Clear button removes results from localStorage.
+
+### Results Table Implementation
+
+- **Layout:** CSS Grid with divs (not table elements) for proper virtualization support.
+- **Virtualization:** Uses `@tanstack/solid-virtual` for efficient rendering of large datasets.
+- **Reactivity:** Key values (`rows`, `headerGroups`, `virtualItems`, `totalSize`) wrapped in `createMemo` or accessor functions for SolidJS reactivity.
+- **Styling:** Alternating row backgrounds (`--bg-primary` / `--bg-secondary`), no borders, horizontally scrollable.
+- **Grid Template:** `repeat(N, minmax(max-content, 1fr))` - columns stretch to fill space but never shrink below content.
+
 ## Notes & Gotchas
 
 - **Solid vs React:** Remember Solid has different reactivity model - no hooks, use createSignal/createMemo
