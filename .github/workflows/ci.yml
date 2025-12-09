@@ -150,3 +150,13 @@ jobs:
         run: bunx npm@latest publish ./packages/kql-to-duckdb --ignore-scripts --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: changesets/action@v1
+        with:
+          publish: echo "Already published via bun commands above" # We publish manually to control order/flags
+          commit: "chore: version packages"
+          title: "Release packages"
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
