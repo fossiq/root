@@ -32,26 +32,23 @@ const Icon: Component<IconProps> = (props) => {
       when={icons[props.name]}
       fallback={<span title={`Icon "${props.name}" not found`}>❌</span>}
     >
-      {() => {
-        const icon = icons[props.name];
-        return (
-          <svg
-            class={`icon icon-${props.name} ${props.class || ""}`}
-            style={{
-              width: size(),
-              height: size(),
-              "min-width": size(),
-              "min-height": size(),
-            }}
-            aria-hidden={!props.title}
-            role={props.title ? "img" : undefined}
-            viewBox={icon.viewBox}
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <g innerHTML={icon.path} />
-          </svg>
-        );
-      }}
+      {(icon) => (
+        <svg
+          class={`icon icon-${props.name} ${props.class || ""}`}
+          style={{
+            width: size(),
+            height: size(),
+            "min-width": size(),
+            "min-height": size(),
+          }}
+          aria-hidden={!props.title}
+          role={props.title ? "img" : undefined}
+          viewBox={icon().viewBox}
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g innerHTML={icon().path} />
+        </svg>
+      )}
     </Show>
   );
 };
