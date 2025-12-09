@@ -244,5 +244,251 @@ describe("KQL Parser Integration", () => {
       const sql = kqlToDuckDB(kql);
       expect(sql).toContain("LIKE");
     });
+
+    test("should translate inner join", () => {
+      const kql = "Table1 | join kind=inner Table2 on Col1 == Col2";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("INNER JOIN");
+      expect(sql).toContain("Table2");
+      expect(sql).toContain("ON");
+    });
+
+    test("should translate left outer join", () => {
+      const kql = "Table1 | join kind=leftouter Table2 on Id == UserId";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LEFT OUTER JOIN");
+      expect(sql).toContain("Table2");
+      expect(sql).toContain("Table1.Id = Table2.UserId");
+    });
+
+    test("should translate right outer join", () => {
+      const kql = "Table1 | join kind=rightouter Table2 on Key == Key";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("RIGHT OUTER JOIN");
+      expect(sql).toContain("Table2");
+    });
+
+    test("should translate full outer join", () => {
+      const kql = "Table1 | join kind=fullouter Table2 on X == Y";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("FULL OUTER JOIN");
+      expect(sql).toContain("Table2");
+    });
+
+    test("should translate left anti join", () => {
+      const kql = "Table1 | join kind=leftanti Table2 on Id == Id";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LEFT ANTI JOIN");
+    });
+
+    test("should translate right anti join", () => {
+      const kql = "Table1 | join kind=rightanti Table2 on Id == Id";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("RIGHT ANTI JOIN");
+    });
+
+    test("should translate left semi join", () => {
+      const kql = "Table1 | join kind=leftsemi Table2 on Id == Id";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LEFT SEMI JOIN");
+    });
+
+    test("should translate right semi join", () => {
+      const kql = "Table1 | join kind=rightsemi Table2 on Id == Id";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("RIGHT SEMI JOIN");
+    });
+
+    test("should translate join with multiple conditions", () => {
+      const kql =
+        "Table1 | join kind=inner Table2 on Col1 == Col2, Col3 == Col4";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("INNER JOIN");
+      expect(sql).toContain("AND");
+      expect(sql).toContain("Table1.Col1 = Table2.Col2");
+      expect(sql).toContain("Table1.Col3 = Table2.Col4");
+    });
+
+    test("should translate join in pipeline", () => {
+      const kql =
+        "Table1 | where Status == 'active' | join kind=inner Table2 on Id == UserId | project Name, Value";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain(
+        "cte_0 AS (SELECT * FROM Table1 WHERE Status = 'active')"
+      );
+      expect(sql).toContain("INNER JOIN Table2");
+      expect(sql).toContain("SELECT Name, Value FROM");
+    });
+
+    test("should translate default join as inner join", () => {
+      const kql = "Table1 | join Table2 on Id == Id";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("INNER JOIN");
+    });
+
+    test("should translate top without order", () => {
+      const kql = "Table | top 10";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LIMIT 10");
+    });
+
+    test("should translate top with ascending order", () => {
+      const kql = "Table | top 5 by Score asc";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ORDER BY Score ASC");
+      expect(sql).toContain("LIMIT 5");
+    });
+
+    test("should translate top with descending order", () => {
+      const kql = "Table | top 20 by Amount desc";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ORDER BY Amount DESC");
+      expect(sql).toContain("LIMIT 20");
+    });
+
+    test("should translate top with default descending order", () => {
+      const kql = "Table | top 15 by Value";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ORDER BY Value DESC");
+      expect(sql).toContain("LIMIT 15");
+    });
+
+    test("should translate top in pipeline", () => {
+      const kql = "Table | where Status == 'active' | top 10 by Score desc";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain(
+        "cte_0 AS (SELECT * FROM Table WHERE Status = 'active')"
+      );
+      expect(sql).toContain("ORDER BY Score DESC");
+      expect(sql).toContain("LIMIT 10");
+    });
+
+    test("should translate complex pipeline with top", () => {
+      const kql =
+        "Table | project Name, Score | where Score > 50 | top 5 by Score desc";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SELECT Name, Score FROM Table");
+      expect(sql).toContain("WHERE Score > 50");
+      expect(sql).toContain("ORDER BY Score DESC");
+      expect(sql).toContain("LIMIT 5");
+    });
+
+    test("should translate inner union", () => {
+      const kql = "Table1 | union kind=inner Table2";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SELECT * FROM Table1");
+      expect(sql).toContain("UNION");
+      expect(sql).toContain("SELECT * FROM Table2");
+      expect(sql).not.toContain("UNION ALL");
+    });
+
+    test("should translate outer union with all", () => {
+      const kql = "Table1 | union kind=outer Table2";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SELECT * FROM Table1");
+      expect(sql).toContain("UNION ALL");
+      expect(sql).toContain("SELECT * FROM Table2");
+    });
+
+    test("should translate default union as inner", () => {
+      const kql = "Table1 | union Table2";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UNION");
+      expect(sql).not.toContain("UNION ALL");
+    });
+
+    test("should translate union with multiple tables", () => {
+      const kql = "Table1 | union kind=inner Table2, Table3, Table4";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SELECT * FROM Table1");
+      expect(sql).toContain("SELECT * FROM Table2");
+      expect(sql).toContain("SELECT * FROM Table3");
+      expect(sql).toContain("SELECT * FROM Table4");
+      const unionCount = (sql.match(/UNION/g) || []).length;
+      expect(unionCount).toBe(3);
+    });
+
+    test("should translate outer union with multiple tables", () => {
+      const kql = "Table1 | union kind=outer Table2, Table3";
+      const sql = kqlToDuckDB(kql);
+      const unionAllCount = (sql.match(/UNION ALL/g) || []).length;
+      expect(unionAllCount).toBe(2);
+    });
+
+    test("should translate substring function", () => {
+      const kql = "Table | extend Sub = substring(Name, 0, 3)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SUBSTR");
+    });
+
+    test("should translate tolower function", () => {
+      const kql = "Table | extend Lower = tolower(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LOWER");
+    });
+
+    test("should translate toupper function", () => {
+      const kql = "Table | extend Upper = toupper(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("UPPER");
+    });
+
+    test("should translate indexof function in extend", () => {
+      const kql = "Table | extend Idx = indexof(Email, '@')";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("STRPOS");
+    });
+
+    test("should translate length function", () => {
+      const kql = "Table | extend Len = length(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LENGTH");
+    });
+
+    test("should translate trim function", () => {
+      const kql = "Table | extend Trimmed = trim(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("TRIM");
+    });
+
+    test("should translate ltrim function", () => {
+      const kql = "Table | extend LTrimmed = ltrim(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LTRIM");
+    });
+
+    test("should translate rtrim function", () => {
+      const kql = "Table | extend RTrimmed = rtrim(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("RTRIM");
+    });
+
+    test("should translate replace function", () => {
+      const kql = "Table | extend Replaced = replace(Text, 'old', 'new')";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("REPLACE");
+      expect(sql).toContain("'old'");
+      expect(sql).toContain("'new'");
+    });
+
+    test("should translate reverse function", () => {
+      const kql = "Table | extend Rev = reverse(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("REVERSE");
+    });
+
+    test("should translate split function", () => {
+      const kql = "Table | extend Parts = split(Name, ' ')";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("STRING_SPLIT");
+    });
+
+    test("should use string functions in complex expression", () => {
+      const kql =
+        "Table | extend NameLen = length(Name), LowerName = tolower(Name)";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("LOWER");
+      expect(sql).toContain("LENGTH");
+    });
   });
 });

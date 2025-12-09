@@ -18,6 +18,9 @@ import type {
   SortClause,
   SortExpression,
   DistinctClause,
+  JoinClause,
+  TopClause,
+  UnionClause,
 } from "@fossiq/kql-parser";
 
 export function translate(ast: SourceFile): string {
@@ -41,6 +44,12 @@ function translateQuery(query: QueryStatement): string {
   let cteIndex = 0;
 
   for (const pipe of query.pipes) {
+    // Check if this is a union operator
+    if (pipe.operator.type === "union_clause") {
+      const unionOp = translateUnion(pipe.operator as UnionClause, tableName);
+      return unionOp;
+    }
+
     const nextCteName = `cte_${cteIndex++}`;
     const sql = translatePipe(pipe.operator, currentRelation);
     ctes.push(`${nextCteName} AS (${sql})`);
@@ -72,6 +81,10 @@ function translatePipe(operator: Operator, inputRelation: string): string {
       return translateSort(operator, inputRelation);
     case "distinct_clause":
       return translateDistinct(operator, inputRelation);
+    case "join_clause":
+      return translateJoin(operator, inputRelation);
+    case "top_clause":
+      return translateTop(operator, inputRelation);
     default:
       throw new Error(`Unsupported operator: ${operator.type}`);
   }
@@ -148,6 +161,61 @@ function translateDistinct(
   return `SELECT DISTINCT * FROM ${inputRelation}`;
 }
 
+function translateJoin(operator: JoinClause, inputRelation: string): string {
+  const joinKind = operator.kind || "inner";
+  const rightTable = operator.rightTable.name;
+
+  // Map KQL join kinds to SQL
+  const kindMap: Record<string, string> = {
+    inner: "INNER",
+    leftouter: "LEFT OUTER",
+    rightouter: "RIGHT OUTER",
+    fullouter: "FULL OUTER",
+    leftanti: "LEFT ANTI",
+    rightanti: "RIGHT ANTI",
+    leftsemi: "LEFT SEMI",
+    rightsemi: "RIGHT SEMI",
+  };
+
+  const sqlKind = kindMap[joinKind] || "INNER";
+
+  // Build join conditions
+  const onClauses = operator.conditions.map((condition) => {
+    const leftCol = condition.left.name;
+    const rightCol = condition.right.name;
+    return `${inputRelation}.${leftCol} = ${rightTable}.${rightCol}`;
+  });
+
+  const onClause = onClauses.join(" AND ");
+
+  return `SELECT * FROM ${inputRelation} ${sqlKind} JOIN ${rightTable} ON ${onClause}`;
+}
+
+function translateTop(operator: TopClause, inputRelation: string): string {
+  const count = operator.count.value;
+
+  if (operator.by) {
+    const column = operator.by.column.name;
+    const direction = operator.by.direction
+      ? operator.by.direction.toUpperCase()
+      : "DESC";
+    return `SELECT * FROM ${inputRelation} ORDER BY ${column} ${direction} LIMIT ${count}`;
+  }
+
+  return `SELECT * FROM ${inputRelation} LIMIT ${count}`;
+}
+
+function translateUnion(operator: UnionClause, sourceTable: string): string {
+  const unionKind = operator.kind || "inner";
+  const allDuplicates = unionKind === "outer" ? " ALL" : "";
+
+  const tableQueries = [sourceTable, ...operator.tables.map((t) => t.name)].map(
+    (table) => `SELECT * FROM ${table}`
+  );
+
+  return tableQueries.join(`\nUNION${allDuplicates}\n`);
+}
+
 function translateColumnExpression(col: ColumnExpression): string {
   if (col.type === "identifier") {
     return col.name;
@@ -192,7 +260,10 @@ function translateBinaryExpression(expr: BinaryExpression): string {
 }
 
 function translateComparisonExpression(expr: ComparisonExpression): string {
-  const left = expr.left.name;
+  const left =
+    expr.left.type === "identifier"
+      ? expr.left.name
+      : translateExpression(expr.left as Expression);
   const right = translateExpression(expr.right);
   const opMap: Record<string, string> = {
     "==": "=",
@@ -254,6 +325,23 @@ function translateFunctionCall(expr: FunctionCall): string {
     return `${name}(${args})`;
   }
 
+  // Map KQL functions to DuckDB equivalents
+  const functionMap: Record<string, string> = {
+    SUBSTRING: "SUBSTR",
+    TOLOWER: "LOWER",
+    TOUPPER: "UPPER",
+    INDEXOF: "STRPOS",
+    SPLIT: "STRING_SPLIT",
+    REPLACE: "REPLACE",
+    LENGTH: "LENGTH",
+    TRIM: "TRIM",
+    LTRIM: "LTRIM",
+    RTRIM: "RTRIM",
+    REVERSE: "REVERSE",
+  };
+
+  const sqlFunc = functionMap[name] || name;
+
   // Handle other functions
   const args = expr.arguments
     .map((arg) => {
@@ -264,5 +352,5 @@ function translateFunctionCall(expr: FunctionCall): string {
     })
     .join(", ");
 
-  return `${name}(${args})`;
+  return `${sqlFunc}(${args})`;
 }

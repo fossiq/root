@@ -12,9 +12,9 @@
 - Conversational but professional
 - Use markdown with code blocks: `path/to/file.ts#L1-10`
 - Don't apologize excessively - just proceed
-- **Keep responses concise** - minimize redundant explanations
+- **Keep responses VERY short** - minimize redundant explanations
 - User sees all actions, no need to repeat what was done
-- **No large summaries after each turn** - avoid recap sections unless requested
+- **CRITICAL: No large summaries after each turn** - do NOT recap what was done or provide summary sections. Only provide status updates if asked. Use single sentence or short bullet points at most
 - **Only run tests if you modified source files** - don't re-run to confirm unchanged code
 
 ## Code Style
