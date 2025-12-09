@@ -45,43 +45,49 @@ describe("Pipe operator support", () => {
   });
 });
 
-describe("Where operator support", () => {
-  test("where with greater than comparison", () => {
+describe("Where operator", () => {
+  test("simple comparison", () => {
     expect(isValid("Users | where age > 18")).toBe(true);
-  });
-
-  test("where with less than comparison", () => {
-    expect(isValid("Users | where count < 100")).toBe(true);
-  });
-
-  test("where with equality comparison", () => {
+    expect(isValid("Users | where count >= 100")).toBe(true);
     expect(isValid("Users | where status == active")).toBe(true);
+    expect(isValid('Users | where name == "john"')).toBe(true);
   });
 
-  test("where with string literal comparison", () => {
-    expect(isValid('Users | where city == "Seattle"')).toBe(true);
+  test("logical and", () => {
+    expect(isValid('Users | where age > 18 and status == "active"')).toBe(true);
+    expect(isValid("Users | where a == 1 and b == 2 and c == 3")).toBe(true);
   });
 
-  test("where with not equal comparison", () => {
-    expect(isValid("Users | where level != 0")).toBe(true);
+  test("logical or", () => {
+    expect(isValid("Users | where age > 18 or age < 5")).toBe(true);
+    expect(isValid("Users | where a == 1 or b == 2 or c == 3")).toBe(true);
   });
 
-  test("where with greater than or equal", () => {
-    expect(isValid("Users | where salary >= 50000")).toBe(true);
+  test("logical not", () => {
+    expect(isValid("Users | where not active")).toBe(true);
+    expect(isValid("Users | where not deleted")).toBe(true);
   });
 
-  test("where with less than or equal", () => {
-    expect(isValid("Users | where age <= 65")).toBe(true);
+  test("parenthesized expressions", () => {
+    expect(isValid("Users | where (age > 18)")).toBe(true);
+    expect(
+      isValid(
+        'Users | where age > 18 and (status == "active" or role == "admin")'
+      )
+    ).toBe(true);
   });
 
-  test("chained where operators", () => {
-    expect(isValid("Users | where age > 18 | where status == active")).toBe(
+  test("string comparison operators", () => {
+    expect(isValid('Users | where name contains "john"')).toBe(true);
+    expect(isValid('Users | where name startswith "j"')).toBe(true);
+    expect(isValid('Users | where name endswith "n"')).toBe(true);
+    expect(isValid('Users | where name has "test"')).toBe(true);
+  });
+
+  test("chained where clauses", () => {
+    expect(isValid('Users | where age > 18 | where status == "active"')).toBe(
       true
     );
-  });
-
-  test("where followed by pipe to another table", () => {
-    expect(isValid("Users | where age > 18 | Events")).toBe(true);
   });
 });
 

@@ -16,7 +16,6 @@
 
 ## In Progress
 
-- [ ] **Step 2: where clause** - Add where operator with expressions
 - [ ] **Step 3: project operator** - Add column selection
 
 ## Blocked
@@ -46,7 +45,7 @@ None currently.
 ### Phase 3: Operators (Next - One Feature at a Time)
 
 - [x] Pipe operator (|)
-- [ ] where operator
+- [x] where operator (with and/or/not, parentheses, string operators)
 - [ ] project operator
 - [ ] select operator
 - [ ] filter operator
@@ -73,15 +72,18 @@ Adding features one at a time:
 5. Verify all tests pass
 6. Commit with feature implementation
 
-Completed: Pipe operator (|) support enables query chaining like "Users | Events | Logs"
+Completed:
 
-Next: Step 2 - where clause support for conditional filtering
+- Pipe operator (|) support enables query chaining like "Users | Events | Logs"
+- Where operator with full expression support (and/or/not, parentheses, string operators like contains/startswith/endswith/has)
+
+Next: Step 3 - project operator for column selection
 
 ## Test Coverage
 
-- **Expressions**: 8+ tests (literals, identifiers)
-- **Highlighting**: 7+ tests (token types, positions)
-- **Grammar**: 7+ tests (basic parsing)
-- **Comments**: 14+ tests (line comments, positions)
-- **Operators**: 10+ tests (with placeholders for future features)
-- **Total**: 88+ tests
+- **Expressions**: 9 tests (literals, identifiers)
+- **Highlighting**: 6 tests (token types, positions)
+- **Grammar**: 10 tests (basic parsing, error handling)
+- **Comments**: 14 tests (line comments, positions)
+- **Operators**: 24 tests (pipe, where with and/or/not/parentheses)
+- **Total**: 63 tests

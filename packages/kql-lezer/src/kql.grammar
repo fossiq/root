@@ -13,21 +13,61 @@ operator {
   String
 }
 
-whereClause { "where" comparison }
+whereClause { kw<"where"> expression }
+
+expression {
+  orExpression
+}
+
+orExpression {
+  andExpression (kw<"or"> andExpression)*
+}
+
+andExpression {
+  notExpression (kw<"and"> notExpression)*
+}
+
+notExpression {
+  kw<"not"> notExpression |
+  primaryExpression
+}
+
+primaryExpression {
+  comparison |
+  "(" expression ")" |
+  literal |
+  Identifier
+}
 
 comparison {
-  Identifier ComparisonOp (Number | String | Identifier)
+  Identifier comparisonOperator value
 }
+
+comparisonOperator {
+  ComparisonOp |
+  kw<"contains"> | kw<"!contains"> |
+  kw<"startswith"> | kw<"endswith"> |
+  kw<"has"> | kw<"!has"> |
+  kw<"in"> | kw<"!in">
+}
+
+value {
+  literal | Identifier
+}
+
+literal {
+  Number | String
+}
+
+kw<term> { @specialize[@name={term}]<Identifier, term> }
 
 @tokens {
   Pipe { "|" }
 
-  @precedence { "where", Identifier }
-
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
   Number { @digit+ }
   String { '"' (!["\\\n] | "\\" _)* '"' }
-  ComparisonOp { "==" | "!=" | ">" | "<" | ">=" | "<=" | "in" | "!in" | "contains" }
+  ComparisonOp { "==" | "!=" | ">=" | "<=" | ">" | "<" }
   LineComment { "//" ![\n]* }
   whitespace { $[ \t\n\r]+ }
 }
