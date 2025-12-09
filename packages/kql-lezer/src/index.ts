@@ -2,7 +2,7 @@ import type {
   ParseResult,
   HighlightToken,
   TokenType,
-  KQLDocument,
+  ParseError,
 } from "@fossiq/kql-ast";
 import { TokenType as TT } from "@fossiq/kql-ast";
 import { parser } from "./parser";
@@ -16,7 +16,7 @@ import { Tree, SyntaxNode } from "@lezer/common";
  */
 export function toParsedAST(doc: string): ParseResult {
   const tree = parser.parse(doc);
-  const errors = findErrors(tree, doc);
+  const errors = findErrors(tree);
 
   return {
     ast: undefined, // TODO: Full AST conversion when needed
@@ -32,7 +32,7 @@ export function extractHighlightTokens(doc: string): HighlightToken[] {
   const tokens: HighlightToken[] = [];
 
   walkTree(tree.topNode, doc, (node, text) => {
-    const tokenType = getTokenType(node.name, text);
+    const tokenType = getTokenType(node.name);
     if (tokenType) {
       tokens.push({
         type: tokenType,
@@ -51,7 +51,7 @@ export function extractHighlightTokens(doc: string): HighlightToken[] {
  */
 export function parseKQL(doc: string): ParseResult {
   const tree = parser.parse(doc);
-  const errors = findErrors(tree, doc);
+  const errors = findErrors(tree);
   const tokens = extractHighlightTokens(doc);
 
   return {
@@ -64,8 +64,8 @@ export function parseKQL(doc: string): ParseResult {
 /**
  * Find parse errors in the tree
  */
-function findErrors(tree: Tree, doc: string) {
-  const errors = [];
+function findErrors(tree: Tree): ParseError[] {
+  const errors: ParseError[] = [];
 
   const cursor = tree.cursor();
   do {
@@ -85,7 +85,7 @@ function findErrors(tree: Tree, doc: string) {
 /**
  * Map token names to TokenType for syntax highlighting
  */
-function getTokenType(nodeName: string, text: string): TokenType | null {
+function getTokenType(nodeName: string): TokenType | null {
   switch (nodeName) {
     case "LineComment":
       return TT.Comment;
