@@ -8,9 +8,10 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 
 - ✅ **Complete KQL grammar** - Supports all major KQL operators and expressions
 - ✅ **Type-safe AST** - Fully typed Abstract Syntax Tree with discriminated unions
-- ✅ **89 tests** - Comprehensive test coverage for real-world queries
+- ✅ **88 tests** - Comprehensive test coverage for real-world queries
 - ✅ **Tree-sitter based** - Fast, incremental parsing with excellent error recovery
-- ✅ **Cross-platform prebuilts** - Includes native bindings for Linux, Windows, and macOS, and WASM for browser environments.
+- ✅ **Cross-platform prebuilts** - Includes native bindings for Linux, Windows, and macOS, and WASM for browser environments
+- ✅ **Minimal dependencies** - Only requires `tree-sitter` for native environments or `web-tree-sitter` for browsers
 
 ## Installation
 
@@ -26,13 +27,15 @@ This package provides the KQL grammar and AST builders. To parse a query, you'll
 
 ```typescript
 import { buildAST } from "@fossiq/kql-parser";
-import Parser from 'web-tree-sitter'; // or 'tree-sitter' for native
+import Parser from "web-tree-sitter"; // or 'tree-sitter' for native
 
 // For web-tree-sitter (browser/WASM environments)
 // Ensure tree-sitter-kql.wasm is available at the specified path
 async function parseKqlWeb(query: string) {
   await Parser.init();
-  const KqlLanguage = await Parser.Language.load('./node_modules/@fossiq/kql-parser/tree-sitter-kql.wasm'); // Adjust path as needed
+  const KqlLanguage = await Parser.Language.load(
+    "./node_modules/@fossiq/kql-parser/tree-sitter-kql.wasm"
+  ); // Adjust path as needed
   const parser = new Parser();
   parser.setLanguage(KqlLanguage);
   const tree = parser.parse(query);
@@ -204,23 +207,23 @@ The parser is built in three layers:
 2. **Types** (`src/types.ts`) - TypeScript AST type definitions
 3. **Builders** (`src/builders/`) - Convert tree-sitter nodes to typed AST
 
-See `.copilot/kql-parser/architecture.md` for detailed documentation.
+See `.github/instructions/kql-parser-dev.md` for detailed documentation.
 
 ## Testing
 
-The parser includes 71 E2E tests covering all KQL features:
+The parser includes 88 E2E tests covering all KQL features:
 
 ```bash
 bun run test
 ```
 
-Tests are organized by feature (operators, expressions, etc.) and validate that queries parse without errors using the tree-sitter CLI.
+Tests are organized by feature (operators, expressions, comments, etc.) and validate that queries parse without errors using the tree-sitter CLI.
 
 ## Status
 
 **98% feature complete** - The parser handles the vast majority of real-world KQL queries.
 
-See [status.md](../../.copilot/kql-parser/status.md) for detailed feature checklist.
+See [status.md](../../.github/instructions/kql-parser-status.md) for detailed feature checklist.
 
 ## License
 
@@ -232,4 +235,4 @@ This package was developed with the assistance of AI models including Claude (An
 
 ## Contributing
 
-Contributions welcome! Please see the implementation guide at `.copilot/kql-parser/implementation-guide.md` for details on adding new features.
+Contributions welcome! Please see the development guide at `.github/instructions/kql-parser-dev.md` for details on adding new features.

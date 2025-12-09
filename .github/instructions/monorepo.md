@@ -103,8 +103,8 @@ Create files one at a time, getting approval between steps:
   - `bun run lint:fix` - Auto-fix linting issues
 - **Dependencies:** ESLint and TypeScript plugins installed at root level
 - **Package-specific rules:**
-  - `packages/app`: JSX support for Solid.js
   - `packages/kql-parser`: Restricts `bun:test` imports in `src/` folder
+  - `packages/kql-to-duckdb`: Restricts `bun:test` imports in `src/` folder
 
 ### Adding ESLint to New Packages
 

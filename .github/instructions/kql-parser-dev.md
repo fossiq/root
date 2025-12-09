@@ -20,9 +20,32 @@ packages/kql-parser/
 │   ├── types.ts              # AST type definitions
 │   └── index.ts              # Public API
 ├── scripts/
-│   └── test-grammar.ts       # Grammar test runner
-└── grammar.js                # Generated tree-sitter grammar
+│   ├── test-grammar.ts       # Grammar test runner
+│   ├── build-binding.ts      # Build native bindings (cross-platform)
+│   └── build-wasm.ts         # Build WASM (optional, requires Emscripten)
+├── prebuilds/                # Pre-built native bindings
+│   ├── linux-x64/
+│   ├── linux-arm64/
+│   ├── darwin-arm64/
+│   └── win32-x64/
+├── grammar.js                # Generated tree-sitter grammar
+└── tree-sitter-kql.wasm      # Pre-built WASM binary (committed to repo)
 ```
+
+## Build System
+
+**No Docker Required for Development**
+
+- **Native Bindings:** Built in CI for each platform, pre-built versions available
+- **WASM:** Pre-built and committed to repo, optional to rebuild locally
+- Local `bun build` only requires TypeScript compilation
+
+**Build Scripts:**
+
+- `bun run generate` - Compile grammar (no Docker needed)
+- `bun run build:binding` - Build native bindings (platform-specific)
+- `bun run build:wasm` - Build WASM (skipped if already exists; requires Emscripten if rebuilding)
+- `bun run build` - Full build (TypeScript only for development)
 
 ## Core Principles
 
@@ -50,9 +73,9 @@ export type ASTNode = SourceFile | Operator | Expression | Literal;
 export type Operator = WhereClause | ProjectClause | SummarizeClause;
 
 export interface SummarizeClause {
-  type: 'summarize_clause';  // Discriminator
+  type: "summarize_clause"; // Discriminator
   aggregations: AggregationExpression[];
-  by?: Expression[];         // Optional with ?
+  by?: Expression[]; // Optional with ?
 }
 ```
 
@@ -66,23 +89,24 @@ export function buildSummarizeClause(
   buildAST: (node: SyntaxNode) => any
 ): SummarizeClause {
   // 1. Find child nodes
-  const list = node.children.find(c => c.type === 'aggregation_list');
-  
+  const list = node.children.find((c) => c.type === "aggregation_list");
+
   // 2. Build children recursively
   const aggregations = [];
   for (let i = 0; i < list.childCount; i++) {
     const child = list.child(i);
-    if (child && child.type === 'aggregation_expression') {
+    if (child && child.type === "aggregation_expression") {
       aggregations.push(buildAggregationExpression(child, buildAST));
     }
   }
-  
+
   // 3. Return typed node
-  return { type: 'summarize_clause', aggregations };
+  return { type: "summarize_clause", aggregations };
 }
 ```
 
 **Organization:**
+
 - `literals.ts` - Identifier, string, number, boolean, null
 - `expressions.ts` - Binary, comparison, arithmetic, string, in, between
 - `operators.ts` - Where, project, extend, summarize, sort, etc.
@@ -109,6 +133,7 @@ bun run test-grammar -> validate
 The `kql-parser` relies on native C++ bindings (`tree-sitter-kql.node`). For distribution, we prebuild these bindings for common platforms.
 
 **Supported Targets:**
+
 - `linux-x64`
 - `linux-arm64`
 - `win32-x64`
@@ -118,17 +143,19 @@ The `kql-parser` relies on native C++ bindings (`tree-sitter-kql.node`). For dis
 
 **Generating Prebuilds:**
 We use GitHub Actions to generate these artifacts:
+
 1. Push changes to `main`.
 2. The `.github/workflows/build-bindings.yml` workflow runs.
 3. Download artifacts from the workflow run and commit them to `packages/kql-parser/prebuilds/` if manual distribution is required (usually automated via release process).
 
 **Local Build:**
-Running `bun run build` will always build the binding for your *current* platform and place it in the correct `prebuilds/` subdirectory.
+Running `bun run build` will always build the binding for your _current_ platform and place it in the correct `prebuilds/` subdirectory.
 
 ## Key Patterns
 
 **Wrapper Nodes (Tree-sitter 0.25+):**
 Newer versions of tree-sitter may introduce wrapper nodes like `operator`, `expression`, or `literal` around the actual content.
+
 ```typescript
 // src/builders/index.ts
 case 'operator':
@@ -138,18 +165,21 @@ case 'literal':
 ```
 
 **Lists with separators:**
+
 ```typescript
 for (let i = 0; i < list.childCount; i++) {
   const child = list.child(i);
-  if (child && child.type !== ',') {  // Skip separators
+  if (child && child.type !== ",") {
+    // Skip separators
     items.push(buildAST(child));
   }
 }
 ```
 
 **Optional parts:**
+
 ```typescript
-const byIndex = node.children.findIndex(c => c.text === 'by');
+const byIndex = node.children.findIndex((c) => c.text === "by");
 if (byIndex !== -1) {
   const expr = node.children[byIndex + 1];
   if (expr) optional = buildAST(expr);
@@ -157,11 +187,12 @@ if (byIndex !== -1) {
 ```
 
 **Assignment detection:**
+
 ```typescript
-const hasAssignment = node.children.some(c => c.text === '=');
+const hasAssignment = node.children.some((c) => c.text === "=");
 if (hasAssignment) {
   name = node.child(0);
-  value = node.child(2);  // index 1 is '='
+  value = node.child(2); // index 1 is '='
 }
 ```
 
@@ -207,7 +238,7 @@ Add to operator choice in `rules.ts`:
 export const operator: RuleFunction = ($) =>
   choice(
     // ... existing
-    $.new_operator_clause,
+    $.new_operator_clause
   );
 ```
 
@@ -216,7 +247,7 @@ export const operator: RuleFunction = ($) =>
 ```typescript
 export function buildNewOperatorClause(
   node: SyntaxNode,
-  buildAST: (node: SyntaxNode) => any,
+  buildAST: (node: SyntaxNode) => any
 ): NewOperatorClause {
   const list = node.children.find((c) => c.type === "item_list");
   if (!list) throw new Error("Missing item list");

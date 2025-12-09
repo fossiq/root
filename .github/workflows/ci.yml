@@ -122,6 +122,17 @@ jobs:
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
 
+      - name: Build WASM (requires Docker/Emscripten in CI environment)
+        working-directory: packages/kql-parser
+        run: |
+          if command -v docker &> /dev/null; then
+            bunx tree-sitter build --wasm
+            echo "✓ WASM built successfully"
+          else
+            echo "⚠️  Docker not available, skipping WASM build"
+            echo "   Using prebuilt WASM if available"
+          fi
+
       - name: Build all packages
         run: ./.github/scripts/build-packages.sh
 
