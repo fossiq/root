@@ -2,4 +2,6 @@
 export const
   LineComment = 1,
   Query = 2,
-  Identifier = 3
+  Identifier = 3,
+  Number = 4,
+  String = 5

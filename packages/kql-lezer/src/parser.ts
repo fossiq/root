@@ -2,14 +2,14 @@
 import {LRParser} from "@lezer/lr"
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "[OYQPOOQOQPOO",
-  stateData: "_~OUOSPOS~ORPO~O",
-  goto: "QPP",
-  nodeNames: "⚠ LineComment Query Identifier",
-  maxTerm: 6,
+  states: "bOYQPOOOOQO'#Ce'#CeQOQPOO",
+  stateData: "e~OWOSPOS~ORPOSPOTPO~O",
+  goto: "^YPPPPPPPPPZRQO",
+  nodeNames: "⚠ LineComment Query Identifier Number String",
+  maxTerm: 9,
   skippedNodes: [0,1],
   repeatNodeCount: 0,
-  tokenData: "!|~RWXYkYZk]^kpqk!P!Q|!c!}!k#R#S!k#T#o!k~pSU~XYkYZk]^kpqk~!PP!P!Q!S~!XSP~OY!SZ;'S!S;'S;=`!e<%lO!S~!hP;=`<%l!S~!pSR~!Q![!k!c!}!k#R#S!k#T#o!k",
+  tokenData: "%O~RYXYqYZq]^qpqqrs!S!P!Q#v!Q![$e!c!}$m#R#S$m#T#o$m~vSW~XYqYZq]^qpqq~!VWOY!SZr!Srs!os#O!S#O#P!t#P;'S!S;'S;=`#p<%lO!S~!tOT~~!wRO;'S!S;'S;=`#Q;=`O!S~#TXOY!SZr!Srs!os#O!S#O#P!t#P;'S!S;'S;=`#p;=`<%l!S<%lO!S~#sP;=`<%l!S~#yP!P!Q#|~$RSP~OY#|Z;'S#|;'S;=`$_<%lO#|~$bP;=`<%l#|~$jPS~!Q![$e~$rSR~!Q![$m!c!}$m#R#S$m#T#o$m",
   tokenizers: [0],
   topRules: {"Query":[0,2]},
   tokenPrec: 0

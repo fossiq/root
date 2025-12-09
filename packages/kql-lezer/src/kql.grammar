@@ -1,6 +1,12 @@
 @top Query { statement }
 
-statement { Identifier }
+statement { expression }
+
+expression {
+  Identifier |
+  Number |
+  String
+}
 
 @tokens {
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
@@ -8,8 +14,6 @@ statement { Identifier }
   String { '"' (!["\\\n] | "\\" _)* '"' }
   LineComment { "//" ![\n]* }
   whitespace { $[ \t\n\r]+ }
-
-  "where" "project" "select" "filter" "summarize" "sort" "limit"
 }
 
 @skip { whitespace | LineComment }
