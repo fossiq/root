@@ -171,3 +171,9 @@ jobs:
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger UI deployment
+        run: |
+          gh workflow run deploy.yml --repo fossiq/fossiq.github.io
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
