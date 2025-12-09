@@ -22,14 +22,6 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter. Provi
 
 A translator that converts KQL queries to DuckDB SQL. Supports 11 core operators and 35+ functions including joins, unions, datetime operations, and advanced string/math transformations.
 
-**Features:**
-
-- 11 core operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search)
-- 8 join types (inner, left/right outer, full outer, left/right anti, left/right semi)
-- 35+ mapped functions (string, math, type conversions, datetime)
-- Variable definitions with let statements
-- 113 passing integration tests
-
 [![npm version](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb)
 
 ### [@fossiq/app](./packages/app) (Private)
