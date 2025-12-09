@@ -7,6 +7,7 @@ on:
     paths:
       - "packages/**"
       - "!packages/**/*.md"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 permissions:
@@ -15,21 +16,49 @@ permissions:
   packages: write # Required for GitHub Packages
 
 jobs:
-  # Wait for cross-platform bindings to be built in the separate workflow
-  wait-for-bindings:
-    runs-on: ubuntu-latest
+  # Cross-platform binding build matrix
+  build_bindings:
+    name: Build Binding ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+
     steps:
-      - name: Wait for Build Bindings workflow
-        uses: fountainhead/action-wait-for-check@v1.2.0
-        id: wait-for-build
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: Build Binding ubuntu-latest - x64
-          ref: ${{ github.sha }}
-          timeoutSeconds: 600 # 10 minutes
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build Binding
+        working-directory: packages/kql-parser
+        run: bun scripts/build-binding.ts
+
+      - name: Upload Binding Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binding-${{ matrix.platform }}-${{ matrix.arch }}
+          path: packages/kql-parser/prebuilds/${{ matrix.platform }}-${{ matrix.arch }}/tree-sitter-kql.node
+          if-no-files-found: error
 
   build-test-publish:
-    needs: wait-for-bindings
+    needs: build_bindings
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,23 +80,17 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      # Download all binding artifacts from the triggered 'Build Bindings' workflow
-      # Note: We assume the other workflow runs on the same SHA and artifacts are available.
-      # The official 'download-artifact' action only works for artifacts in the SAME workflow run.
-      # Since we split them, we need a way to get them.
-      # Actually, merging them into one workflow is cleaner if possible, or using `dawidd6/action-download-artifact`.
+      # Download all binding artifacts from the build_bindings job
       - name: Download Cross-Platform Bindings
-        uses: dawidd6/action-download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          workflow: build-bindings.yml
-          commit: ${{ github.sha }}
           path: packages/kql-parser/prebuilds
-          name: binding-*
-          name_is_regexp: true
+          pattern: binding-*
+          merge-multiple: false
 
       - name: Organize Bindings
         run: |
-          # dawidd6/action-download-artifact downloads into folders named after the artifact
+          # actions/download-artifact downloads into folders named after the artifact
           # e.g. packages/kql-parser/prebuilds/binding-linux-x64/tree-sitter-kql.node
           # We want packages/kql-parser/prebuilds/linux-x64/tree-sitter-kql.node
           cd packages/kql-parser/prebuilds
@@ -77,6 +100,7 @@ jobs:
             mv "$dir"/* "$target/"
             rmdir "$dir"
           done
+          echo "Listing organized prebuilds:"
           ls -R
 
       - name: Setup tree-sitter CLI
