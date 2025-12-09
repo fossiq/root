@@ -1,5 +1,9 @@
 # Fossiq
 
+## For AI Agents
+
+Please refer to the detailed operating instructions in [.github/copilot-instructions.md](/.github/copilot-instructions.md).
+
 [![CI](https://github.com/fossiq/root/actions/workflows/ci.yml/badge.svg)](https://github.com/fossiq/root/actions/workflows/ci.yml)
 
 A monorepo containing KQL (Kusto Query Language) tooling and applications.
