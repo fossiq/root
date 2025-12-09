@@ -440,7 +440,10 @@ function translateFunctionCall(expr: FunctionCall): string {
   if (name === "AGO") {
     const arg = expr.arguments[0];
     if (!arg) return "NOW()";
-    const timespan = translateExpression(arg);
+    if (arg.type === "named_argument") {
+      throw new Error("Named arguments in AGO function not supported");
+    }
+    const timespan = translateExpression(arg as Expression);
     // timespan already includes INTERVAL, so just subtract it
     return `NOW() - ${timespan}`;
   }
@@ -463,7 +466,7 @@ function translateMvExpand(
   inputRelation: string
 ): string {
   // Translate the column expression to expand
-  const columnExpr = translateExpression(operator.column);
+  const columnExpr = translateExpression(operator.column as Expression);
 
   // Build the UNNEST clause
   // DuckDB uses UNNEST() to expand arrays/multi-valued columns
