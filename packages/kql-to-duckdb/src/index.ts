@@ -1,6 +1,9 @@
 import { Parser, Language } from "web-tree-sitter";
 import { buildAST } from "@fossiq/kql-parser";
 import type { SourceFile } from "@fossiq/kql-parser";
+import { translate } from "./translator";
+
+export { translate };
 
 let parser: Parser | null = null;
 
@@ -21,4 +24,9 @@ export function parseKql(query: string): SourceFile {
   const tree = parser.parse(query);
   // @ts-expect-error - web-tree-sitter types might differ slightly from native but AST structure is same
   return buildAST(tree.rootNode) as SourceFile;
+}
+
+export function kqlToDuckDB(query: string): string {
+  const ast = parseKql(query);
+  return translate(ast);
 }

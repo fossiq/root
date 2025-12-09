@@ -53,10 +53,9 @@ export function buildProjectClause(node: SyntaxNode, buildAST: (node: SyntaxNode
     if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
       const colExpr = child.type === 'column_expression' ? child.child(0) : child;
       if (colExpr) {
-        if (colExpr.type === 'column_assignment') {
-          columns.push(buildColumnAssignment(colExpr, buildAST));
-        } else if (colExpr.type === 'identifier') {
-          columns.push(buildIdentifier(colExpr));
+        const ast = buildAST(colExpr);
+        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+          columns.push(ast);
         }
       }
     }
@@ -80,10 +79,9 @@ export function buildExtendClause(node: SyntaxNode, buildAST: (node: SyntaxNode)
     if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
       const colExpr = child.type === 'column_expression' ? child.child(0) : child;
       if (colExpr) {
-        if (colExpr.type === 'column_assignment') {
-          columns.push(buildColumnAssignment(colExpr, buildAST));
-        } else if (colExpr.type === 'identifier') {
-          columns.push(buildIdentifier(colExpr));
+        const ast = buildAST(colExpr);
+        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+          columns.push(ast);
         }
       }
     }
@@ -432,10 +430,9 @@ export function buildDistinctClause(node: SyntaxNode, buildAST: (node: SyntaxNod
     if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
       const colExpr = child.type === 'column_expression' ? child.child(0) : child;
       if (colExpr) {
-        if (colExpr.type === 'column_assignment') {
-          columns.push(buildColumnAssignment(colExpr, buildAST));
-        } else if (colExpr.type === 'identifier') {
-          columns.push(buildIdentifier(colExpr));
+        const ast = buildAST(colExpr);
+        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+          columns.push(ast);
         }
       }
     }
@@ -502,10 +499,9 @@ export function buildSearchClause(node: SyntaxNode, buildAST: (node: SyntaxNode)
     if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
       const colExpr = child.type === 'column_expression' ? child.child(0) : child;
       if (colExpr) {
-        if (colExpr.type === 'column_assignment') {
-          columns.push(buildColumnAssignment(colExpr, buildAST));
-        } else if (colExpr.type === 'identifier') {
-          columns.push(buildIdentifier(colExpr));
+        const ast = buildAST(colExpr);
+        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+          columns.push(ast);
         }
       }
     }
