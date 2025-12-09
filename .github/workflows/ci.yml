@@ -15,7 +15,21 @@ permissions:
   packages: write # Required for GitHub Packages
 
 jobs:
+  # Wait for cross-platform bindings to be built in the separate workflow
+  wait-for-bindings:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Build Bindings workflow
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-build
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Build Binding ubuntu-latest - x64
+          ref: ${{ github.sha }}
+          timeoutSeconds: 600 # 10 minutes
+
   build-test-publish:
+    needs: wait-for-bindings
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +50,34 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      # Download all binding artifacts from the triggered 'Build Bindings' workflow
+      # Note: We assume the other workflow runs on the same SHA and artifacts are available.
+      # The official 'download-artifact' action only works for artifacts in the SAME workflow run.
+      # Since we split them, we need a way to get them.
+      # Actually, merging them into one workflow is cleaner if possible, or using `dawidd6/action-download-artifact`.
+      - name: Download Cross-Platform Bindings
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: build-bindings.yml
+          commit: ${{ github.sha }}
+          path: packages/kql-parser/prebuilds
+          name: binding-*
+          name_is_regexp: true
+
+      - name: Organize Bindings
+        run: |
+          # dawidd6/action-download-artifact downloads into folders named after the artifact
+          # e.g. packages/kql-parser/prebuilds/binding-linux-x64/tree-sitter-kql.node
+          # We want packages/kql-parser/prebuilds/linux-x64/tree-sitter-kql.node
+          cd packages/kql-parser/prebuilds
+          for dir in binding-*; do
+            target="${dir#binding-}"
+            mkdir -p "$target"
+            mv "$dir"/* "$target/"
+            rmdir "$dir"
+          done
+          ls -R
 
       - name: Setup tree-sitter CLI
         run: bunx tree-sitter-cli@latest --version
@@ -61,5 +103,10 @@ jobs:
 
       - name: Publish kql-parser package
         run: bunx npm@latest publish ./packages/kql-parser --ignore-scripts --provenance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish kql-to-duckdb package
+        run: bunx npm@latest publish ./packages/kql-to-duckdb --ignore-scripts --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
