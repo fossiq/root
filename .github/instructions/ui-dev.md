@@ -17,64 +17,91 @@ A modern UI framework for Fossiq, built with SolidJS and designed to mimic Azure
 packages/ui/
 ├── src/
 │   ├── components/          # SolidJS components
-│   │   ├── Editor/          # CodeMirror-based query editor
-│   │   ├── Table/           # TanStack Solid Table wrapper
-│   │   ├── Layout/          # Main app layout (similar to ADX)
-│   │   └── Icons/           # Icon components (from css.gg)
-│   ├── styles/              # PicoCSS theme customization
-│   ├── types.ts             # Type definitions
-│   └── index.tsx            # Main entry point
+│   │   ├── Editor.tsx       # CodeMirror-based query editor
+│   │   ├── Header.tsx       # Main header with logo
+│   │   ├── Sidebar.tsx      # Right sidebar with Add Data button
+│   │   ├── Layout.tsx       # Main app layout wrapper
+│   │   ├── Icon.tsx         # Icon component for SVG rendering
+│   │   └── App.tsx          # Main app structure
+│   ├── hooks/
+│   │   └── useTheme.ts      # System theme detection hook
+│   ├── icons/
+│   │   └── index.ts         # Icon registry with inline SVG paths
+│   ├── styles/
+│   │   └── theme.css        # PicoCSS theme customization with light/dark mode
+│   └── App.tsx              # Main entry point
+├── public/
+│   ├── manifest.json        # PWA manifest
+│   └── sw.js                # Service worker for offline support
 ├── dist/                     # Build output
 ├── package.json
 ├── tsconfig.json
-├── bunfig.toml              # Bun bundler configuration
-└── README.md
+├── vite.config.ts           # Vite configuration with SolidJS plugin
+└── index.html               # HTML entry point
 ```
 
 ## Implementation Phases
 
-### Phase 1: Project Setup ✓ (Planning)
+### Phase 1: Project Setup ✓ (Complete)
 
 - [x] Create documentation (this file)
-- [ ] Create `packages/ui/` directory structure
-- [ ] Set up `package.json` with dependencies
-- [ ] Configure `tsconfig.json` and `bunfig.toml`
-- [ ] Create basic index.tsx entry point
+- [x] Create `packages/ui/` directory structure
+- [x] Set up `package.json` with dependencies
+- [x] Configure `tsconfig.json` and `vite.config.ts`
+- [x] Create basic App.tsx entry point
+- [x] Set up PWA with manifest.json and service worker
 
-### Phase 2: Layout & Theming
+### Phase 2: Layout & Theming ✓ (Complete)
 
-- [ ] Set up PicoCSS with system native fonts
-- [ ] Implement light/dark theme auto-detection and switching
-- [ ] Create main Layout component (header, sidebar, editor pane, results pane)
-- [ ] Add basic header with title and controls
+- [x] Set up PicoCSS with system native fonts
+- [x] Implement light/dark theme auto-detection via CSS media query
+- [x] Create main Layout component with header, sidebar, editor pane, results pane
+- [x] Add main header with Fossiq logo icon
+- [x] Create right sidebar (280px) with "Add Data" button spanning full width
+- [x] Implement modern design with gradients, glass effects, low contrast styling
+- [x] Ensure all components respect system theme preference
 
-### Phase 3: Editor Component
+### Phase 3: Icon System ✓ (Complete)
 
-- [ ] Integrate CodeMirror with Kusto language support
-- [ ] Create Editor component wrapper
-- [ ] Add query submission button
-- [ ] Style editor to match ADX aesthetic
+- [x] Create inline SVG icon registry in TypeScript (src/icons/index.ts)
+- [x] Implement Icon component that renders from registry
+- [x] Add logo icon to main header
+- [x] Add plus-circle icon to sidebar "Add Data" button
+- [x] Remove unused SVG sprite file
 
-### Phase 4: Results Table
+### Phase 4: Editor Component ✓ (Complete)
 
-- [ ] Integrate @tanstack/solid-table@alpha
+- [x] Integrate CodeMirror 6 with basicSetup
+- [x] Create Editor component wrapper
+- [x] Add Query header with Run and Clear buttons
+- [x] Style editor to match theme (light/dark modes)
+- [x] Make active line highlighting subtle (5% opacity)
+- [x] Style cursor with proper theme color
+- [x] Ensure proper sizing and layout
+
+### Phase 5: Results Table
+
+- [ ] Integrate @tanstack/solid-table
 - [ ] Implement virtualized table component
 - [ ] Handle dynamic column generation from KQL results
 - [ ] Add table styling with PicoCSS
+- [ ] Implement sorting and filtering
 
-### Phase 5: Icons & Visual Polish
+### Phase 6: Functionality & Integration
 
-- [ ] Add css.gg icons to components (header icons, buttons)
-- [ ] Polish layout spacing and alignment
-- [ ] Add ADX-style visual hierarchy
+- [ ] Connect Run/Clear buttons to editor state
+- [ ] Implement Add Data button functionality
+- [ ] Handle query execution
+- [ ] Display results in table
+- [ ] Add error handling and user feedback
 
-### Phase 6: External Dependencies Integration
+### Phase 7: External Dependencies Integration
 
 - [ ] Configure CDN URLs for @fossiq/kql\* packages
 - [ ] Create module loading utilities
 - [ ] Test loading and using external packages
 
-### Phase 7: Testing & Optimization
+### Phase 8: Testing & Optimization
 
 - [ ] Add unit tests for components
 - [ ] Performance optimization
@@ -98,6 +125,28 @@ All components must follow WAI-ARIA standards and semantic HTML best practices:
 - Dialogs/modals must have `role="dialog"` and trap focus
 - Provide alt text for images or `aria-hidden="true"` if decorative
 - Test with screen readers (NVDA, JAWS, or VoiceOver)
+
+## Behavioral Guidelines
+
+### Assistant Behavior Instructions
+
+- **No Long Summaries:** Provide concise summaries at the end of each turn with only what was changed and next steps
+- **Avoid Over-Engineering:** Only make changes that are directly requested or clearly necessary
+  - Don't add features, refactor, or make "improvements" beyond what was asked
+  - Keep solutions simple and focused
+  - Minimal error handling - trust framework guarantees and validate only at system boundaries
+  - No premature abstractions - inline code is better than complex utilities
+- **Minimal Iterations:** Use Google/WebFetch for facts before making changes, not after
+- **Code Quality:**
+  - Use semantic HTML and WAI-ARIA standards throughout
+  - Keep CSS minimal and organized
+  - Follow SolidJS best practices (no hooks, use createSignal/createMemo)
+- **No Emojis:** Unless explicitly requested by user
+- **Tool Usage:**
+  - Prefer specialized tools over bash commands
+  - Use Task tool for complex explorations
+  - Always read file before editing
+  - Use parallel tool calls when independent
 
 ## Key Implementation Details
 

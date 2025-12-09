@@ -2,7 +2,7 @@
 
 ## Current Status
 
-**Phase:** Planning  
+**Phase:** Editor Component - Complete  
 **Last Updated:** 2025-12-09
 
 ## Completed Milestones
@@ -10,10 +10,19 @@
 - [x] Created development guide (`ui-dev.md`)
 - [x] Planned tech stack and architecture
 - [x] Defined implementation phases
+- [x] Project setup with Vite, SolidJS, PicoCSS, TypeScript
+- [x] PWA setup with manifest.json and service worker
+- [x] Layout & Theming (header, sidebar, panes)
+- [x] Modern design with gradients, glass effects, low contrast
+- [x] Light/dark mode support via system theme preference
+- [x] Icon system with inline SVG registry
+- [x] CodeMirror 6 integration with basicSetup
+- [x] Query header with Run and Clear buttons
+- [x] Theme-aware editor styling (cursor, active line, gutters)
 
 ## In Progress
 
-- [ ] Project setup phase
+- [ ] Results table integration (@tanstack/solid-table)
 
 ## Blocked
 
@@ -21,44 +30,81 @@ None currently.
 
 ## Feature Checklist
 
-### Phase 1: Project Setup
-- [ ] Create package directory structure
-- [ ] Configure package.json
-- [ ] Configure TypeScript and Bun
-- [ ] Create basic entry point
+### Phase 1: Project Setup ✓
 
-### Phase 2: Layout & Theming
-- [ ] PicoCSS integration
-- [ ] Light/dark theme support
-- [ ] Main layout component
+- [x] Create package directory structure
+- [x] Configure package.json with Vite and SolidJS
+- [x] Configure TypeScript and vite.config.ts
+- [x] Create basic App.tsx entry point
+- [x] PWA setup with manifest and service worker
 
-### Phase 3: Editor Component
-- [ ] CodeMirror integration
-- [ ] Kusto language support
-- [ ] Query editor UI
+### Phase 2: Layout & Theming ✓
 
-### Phase 4: Results Table
+- [x] PicoCSS integration
+- [x] Light/dark theme support (system preference)
+- [x] Main layout component with header, sidebar, editor, results panes
+- [x] Modern styling with low contrast and subtle effects
+- [x] Sidebar (280px) on right with full-width "Add Data" button
+- [x] Logo in header
+
+### Phase 3: Icon System ✓
+
+- [x] Inline SVG icon registry in TypeScript
+- [x] Icon component for rendering SVG from registry
+- [x] Logo icon (slanted lines) in header
+- [x] Plus-circle icon in sidebar
+- [x] Remove unused SVG sprite file
+
+### Phase 4: Editor Component ✓
+
+- [x] CodeMirror 6 integration
+- [x] Create Editor component wrapper
+- [x] Query header with Run/Clear buttons
+- [x] Theme-aware styling (light/dark modes)
+- [x] Subtle active line highlighting (5% opacity)
+- [x] Visible cursor with theme color
+- [x] Proper sizing and layout
+
+### Phase 5: Results Table
+
 - [ ] TanStack Solid Table setup
 - [ ] Virtualized table component
 - [ ] Dynamic column handling
+- [ ] Sorting and filtering
 
-### Phase 5: Icons & Polish
-- [ ] css.gg icon integration
-- [ ] Visual styling
-- [ ] ADX aesthetic polish
+### Phase 6: Functionality & Integration
 
-### Phase 6: External Dependencies
-- [ ] CDN URL configuration
+- [ ] Connect Run/Clear buttons to editor state
+- [ ] Implement Add Data button functionality
+- [ ] Handle query execution
+- [ ] Display results in table
+- [ ] Add error handling and user feedback
+
+### Phase 7: External Dependencies
+
+- [ ] CDN URL configuration for @fossiq/kql\* packages
 - [ ] Module loading utilities
 - [ ] External package integration
 
-### Phase 7: Testing & Optimization
+### Phase 8: Testing & Optimization
+
 - [ ] Unit tests
 - [ ] Performance optimization
 - [ ] Build finalization
 
+## Key Implementation Details
+
+- **Layout:** Header (top) with logo and title, Editor pane (left, flexible), Results pane (bottom, flexible), Sidebar (right, 280px, full-height)
+- **Theme:** System preference detection via CSS media query `@media (prefers-color-scheme: dark)`
+- **Icons:** Inline SVG registry in `src/icons/index.ts` with TypeScript definitions
+- **Editor:** CodeMirror 6 with basicSetup, theme-aware styling, subtle UI elements
+- **Button Alignment:** Run/Clear buttons in Query header, Add Data button in sidebar—both aligned at 2rem height
+
 ## Notes
 
-- Waiting for user approval to begin Phase 1: Project Setup
-- All implementation will be done incrementally, one feature at a time
-- Each phase will be reviewed and approved before proceeding
+- All components follow semantic HTML and WAI-ARIA standards
+- No emojis in code/UI (icons used instead)
+- Minimal, focused changes per user request
+- CodeMirror properly integrated with system theme support
+- Dev server running on http://localhost:5173
+- Next priority: Integrate @tanstack/solid-table for results display

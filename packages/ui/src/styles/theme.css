@@ -381,7 +381,8 @@ p {
 /* Code editor */
 .cm-editor {
   height: 100% !important;
-  font-family: "Fira Code", "Consolas", "Monaco", "Courier New", monospace;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", "Monaco", "Courier New",
+    monospace;
   font-size: 13px;
   background-color: var(--bg-primary) !important;
   color: var(--text-primary) !important;

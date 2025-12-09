@@ -11,10 +11,11 @@ export default defineConfig({
     },
   },
   build: {
-    target: "esnext",
+    target: "es2023",
     minify: "terser",
-    sourcemap: false,
+    sourcemap: true,
     rollupOptions: {
+      external: ["web-tree-sitter", "tree-sitter", /tree-sitter-.*/],
       output: {
         manualChunks: {
           vendor: ["solid-js"],
