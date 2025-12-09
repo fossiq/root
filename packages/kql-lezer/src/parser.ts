@@ -2,15 +2,15 @@
 import {LRParser} from "@lezer/lr"
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "!QOYQPOOOOQO'#Ch'#ChOeQPO'#CgQOQPOOOYQPO'#CcOmQPO,59ROOQO,58},58}OOQO-E6a-E6a",
-  stateData: "u~OYOSPOS~ORPOSPOTPO~OUSOWZX~OUSOWZa~O",
-  goto: "m]PPPPPPP^PPPdgQTQRVTRROQQORUS",
-  nodeNames: "⚠ LineComment Query Identifier Number String Pipe",
-  maxTerm: 12,
+  states: "!pOYQPOOO_QPO'#ChQOQPOOOgQPO'#CdOuQPO,59SOOQO'#Ci'#CiOOQO,59O,59OO}QPO'#CiOOQO-E6b-E6bO!SQQO'#CkOOQO,59T,59TO!XQPO,59VOOQO1G.q1G.q",
+  stateData: "!g~OZOSPOS~ORPO~OSROX[X~ORTOUTOVTO^VO~OSROX[a~ORXO~OTZO~OR[OU[OV[O~O^R~",
+  goto: "p`PPPPPPPPaPPPgjPmQSPRWSRQORURRYV",
+  nodeNames: "⚠ LineComment Query Identifier Pipe ComparisonOp Number String",
+  maxTerm: 15,
   skippedNodes: [0,1],
   repeatNodeCount: 1,
-  tokenData: "%W~RZXYtYZt]^tpqtrs!V!P!Q#y!Q![$h!c!}$p#R#S$p#T#o$p#p#q%R~ySY~XYtYZt]^tpqt~!YWOY!VZr!Vrs!rs#O!V#O#P!w#P;'S!V;'S;=`#s<%lO!V~!wOT~~!zRO;'S!V;'S;=`#T;=`O!V~#WXOY!VZr!Vrs!rs#O!V#O#P!w#P;'S!V;'S;=`#s;=`<%l!V<%lO!V~#vP;=`<%l!V~#|P!P!Q$P~$USP~OY$PZ;'S$P;'S;=`$b<%lO$P~$eP;=`<%l$P~$mPS~!Q![$h~$uSR~!Q![$p!c!}$p#R#S$p#T#o$p~%WOU~",
-  tokenizers: [0],
+  tokenData: "-_~ReXY!dYZ!d]^!dpq!dqr!urs#Z!P!Q$}!Q![%l!^!_%t!_!`%|!`!a%t!c!}&S#R#S&S#T#V&S#V#W&e#W#]&S#]#^*^#^#k&S#k#l*u#l#o&S#p#q-Y~!iSZ~XY!dYZ!d]^!dpq!dQ!xQ!_!`#O#]#^#TQ#TOTQQ#WP#b#c#O~#^WOY#ZZr#Zrs#vs#O#Z#O#P#{#P;'S#Z;'S;=`$w<%lO#Z~#{OV~~$ORO;'S#Z;'S;=`$X;=`O#Z~$[XOY#ZZr#Zrs#vs#O#Z#O#P#{#P;'S#Z;'S;=`$w;=`<%l#Z<%lO#Z~$zP;=`<%l#Z~%QP!P!Q%T~%YSP~OY%TZ;'S%T;'S;=`%f<%lO%T~%iP;=`<%l%T~%qPU~!Q![%lQ%yPTQ!_!`#OQ&PP!_!`#OP&XSRP!Q![&S!c!}&S#R#S&S#T#o&SR&jURP!Q![&S!c!}&S#R#S&S#T#c&S#c#d&|#d#o&SR'RURP!Q![&S!c!}&S#R#S&S#T#b&S#b#c'e#c#o&SR'jURP!Q![&S!c!}&S#R#S&S#T#h&S#h#i'|#i#o&SR(RTRP!Q![&S!c!}&S#R#S&S#T#U(b#U#o&SR(gURP!Q![&S!c!}&S#R#S&S#T#]&S#]#^(y#^#o&SR)OURP!Q![&S!c!}&S#R#S&S#T#b&S#b#c)b#c#o&SR)gURP!Q![&S!c!}&S#R#S&S#T#g&S#g#h)y#h#o&SR*QSTQRP!Q![&S!c!}&S#R#S&S#T#o&SR*cURP!Q![&S!c!}&S#R#S&S#T#b&S#b#c)y#c#o&S~*zURP!Q![&S!c!}&S#R#S&S#T#[&S#[#]+^#]#o&S~+cURP!Q![&S!c!}&S#R#S&S#T#X&S#X#Y+u#Y#o&S~+zURP!Q![&S!c!}&S#R#S&S#T#f&S#f#g,^#g#o&S~,cURP!Q![&S!c!}&S#R#S&S#T#X&S#X#Y,u#Y#o&S~,|S^~RP!Q![&S!c!}&S#R#S&S#T#o&S~-_OS~",
+  tokenizers: [0, 1],
   topRules: {"Query":[0,2]},
-  tokenPrec: 0
+  tokenPrec: 66
 })

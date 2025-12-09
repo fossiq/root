@@ -2,19 +2,32 @@
 
 statement { pipelineExpression }
 
-pipelineExpression { expression (Pipe expression)* }
+pipelineExpression { tableExpression (Pipe operator)* }
 
-expression {
+tableExpression { Identifier }
+
+operator {
+  whereClause |
   Identifier |
   Number |
   String
 }
 
+whereClause { "where" comparison }
+
+comparison {
+  Identifier ComparisonOp (Number | String | Identifier)
+}
+
 @tokens {
   Pipe { "|" }
+
+  @precedence { "where", Identifier }
+
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
   Number { @digit+ }
   String { '"' (!["\\\n] | "\\" _)* '"' }
+  ComparisonOp { "==" | "!=" | ">" | "<" | ">=" | "<=" | "in" | "!in" | "contains" }
   LineComment { "//" ![\n]* }
   whitespace { $[ \t\n\r]+ }
 }

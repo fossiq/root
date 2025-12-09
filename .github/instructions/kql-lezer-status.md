@@ -16,7 +16,6 @@
 
 ## In Progress
 
-- [ ] **Step 1: Pipe operators** - Add pipe (|) support to grammar
 - [ ] **Step 2: where clause** - Add where operator with expressions
 - [ ] **Step 3: project operator** - Add column selection
 
@@ -46,7 +45,7 @@ None currently.
 
 ### Phase 3: Operators (Next - One Feature at a Time)
 
-- [ ] Pipe operator (|)
+- [x] Pipe operator (|)
 - [ ] where operator
 - [ ] project operator
 - [ ] select operator
@@ -68,11 +67,15 @@ None currently.
 Adding features one at a time:
 
 1. Expand grammar for new feature
-2. Run tests to verify parsing works
-3. Update test expectations
-4. Commit with feature implementation
+2. Run lezer-generator to build parser
+3. Add test cases for new feature
+4. Update existing tests to use new syntax
+5. Verify all tests pass
+6. Commit with feature implementation
 
-Next: Start with pipe operator support in grammar.
+Completed: Pipe operator (|) support enables query chaining like "Users | Events | Logs"
+
+Next: Step 2 - where clause support for conditional filtering
 
 ## Test Coverage
 

@@ -6,9 +6,9 @@ describe("KQL operators - Basic support", () => {
     expect(isValid("Users")).toBe(true);
   });
 
-  test("simple numbers and strings", () => {
-    expect(isValid("123")).toBe(true);
-    expect(isValid('"test"')).toBe(true);
+  test("identifiers with where clauses", () => {
+    expect(isValid("Users | where status == active")).toBe(true);
+    expect(isValid('Events | where type == "error"')).toBe(true);
   });
 
   test("multiple tokens with pipes", () => {
@@ -23,12 +23,13 @@ describe("Pipe operator support", () => {
     expect(isValid("Users | Events")).toBe(true);
   });
 
-  test("pipe with numbers", () => {
-    expect(isValid("123 | 456")).toBe(true);
+  test("pipe chaining identifiers", () => {
+    expect(isValid("Users | Events")).toBe(true);
+    expect(isValid("Table1 | Table2")).toBe(true);
   });
 
-  test("pipe with strings", () => {
-    expect(isValid('"first" | "second"')).toBe(true);
+  test("pipe with where clauses", () => {
+    expect(isValid('Events | where type == "error" | Logs')).toBe(true);
   });
 
   test("multiple pipes (chained)", () => {
@@ -44,18 +45,53 @@ describe("Pipe operator support", () => {
   });
 });
 
-describe("Operator support (to be expanded)", () => {
-  test("future: where operator", () => {
-    // Once grammar is expanded
-    // expect(isValid("Users | where age > 18")).toBe(true);
+describe("Where operator support", () => {
+  test("where with greater than comparison", () => {
+    expect(isValid("Users | where age > 18")).toBe(true);
   });
 
+  test("where with less than comparison", () => {
+    expect(isValid("Users | where count < 100")).toBe(true);
+  });
+
+  test("where with equality comparison", () => {
+    expect(isValid("Users | where status == active")).toBe(true);
+  });
+
+  test("where with string literal comparison", () => {
+    expect(isValid('Users | where city == "Seattle"')).toBe(true);
+  });
+
+  test("where with not equal comparison", () => {
+    expect(isValid("Users | where level != 0")).toBe(true);
+  });
+
+  test("where with greater than or equal", () => {
+    expect(isValid("Users | where salary >= 50000")).toBe(true);
+  });
+
+  test("where with less than or equal", () => {
+    expect(isValid("Users | where age <= 65")).toBe(true);
+  });
+
+  test("chained where operators", () => {
+    expect(isValid("Users | where age > 18 | where status == active")).toBe(
+      true
+    );
+  });
+
+  test("where followed by pipe to another table", () => {
+    expect(isValid("Users | where age > 18 | Events")).toBe(true);
+  });
+});
+
+describe("Operator support (to be expanded)", () => {
   test("future: project operator", () => {
     // Once grammar is expanded
     // expect(isValid("Users | project name")).toBe(true);
   });
 
-  test("future: chained operators", () => {
+  test("future: chained where and project", () => {
     // Once grammar is expanded
     // expect(isValid("Users | where age > 18 | project name")).toBe(true);
   });

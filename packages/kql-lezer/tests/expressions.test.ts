@@ -2,17 +2,16 @@ import { describe, test, expect } from "vitest";
 import { isValid, getErrorCount } from "./_helpers";
 
 describe("Expression parsing", () => {
-  test("literal numbers", () => {
-    expect(isValid("42")).toBe(true);
-    // Note: Decimal numbers not yet supported in minimal grammar
-    // expect(isValid("3.14")).toBe(true);
-    expect(isValid("0")).toBe(true);
+  test("literal numbers as table names", () => {
+    // Grammar now requires identifiers as table expressions
+    // Numbers can only appear in where clauses or after pipes
+    expect(isValid("Table1")).toBe(true);
+    expect(isValid("Events")).toBe(true);
   });
 
-  test("string literals", () => {
-    expect(isValid('"hello"')).toBe(true);
-    expect(isValid('"hello world"')).toBe(true);
-    expect(isValid('""')).toBe(true);
+  test("string literals in where clauses", () => {
+    // Strings can appear in where clause comparisons
+    expect(isValid('Users | where city == "Seattle"')).toBe(true);
   });
 
   test("identifiers", () => {

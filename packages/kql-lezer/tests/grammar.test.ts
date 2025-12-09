@@ -6,12 +6,12 @@ describe("Basic grammar", () => {
     expect(isValid("Users")).toBe(true);
   });
 
-  test("number literal", () => {
-    expect(isValid("42")).toBe(true);
+  test("identifier as table", () => {
+    expect(isValid("MyTable")).toBe(true);
   });
 
-  test("string literal", () => {
-    expect(isValid('"hello"')).toBe(true);
+  test("number in where clause", () => {
+    expect(isValid("Users | where age > 42")).toBe(true);
   });
 
   test("multiple tokens with pipe", () => {

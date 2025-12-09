@@ -3,6 +3,7 @@ export const
   LineComment = 1,
   Query = 2,
   Identifier = 3,
-  Number = 4,
-  String = 5,
-  Pipe = 6
+  Pipe = 4,
+  ComparisonOp = 5,
+  Number = 6,
+  String = 7
