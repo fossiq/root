@@ -18,6 +18,8 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter. Provi
 
 ### [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb)
 
+[![npm version](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb)
+
 A translator that converts KQL queries to DuckDB SQL. Supports 11 core operators and 35+ functions including joins, unions, datetime operations, and advanced string/math transformations.
 
 **Features:**
