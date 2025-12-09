@@ -1,4 +1,5 @@
-import { Component } from "solid-js";
+import { Component, Show } from "solid-js";
+import { icons } from "../icons";
 
 interface IconProps {
   name: string;
@@ -10,14 +11,14 @@ interface IconProps {
 /**
  * Icon Component
  *
- * Renders an icon from the SVG sprite file.
+ * Renders an icon from the icons registry.
  *
  * @example
- * <Icon name="moon" size={24} />
- * <Icon name="plus" size="2rem" class="my-icon" />
+ * <Icon name="plus-circle" size={24} />
+ * <Icon name="plus-circle" size="2rem" class="my-icon" />
  *
  * To add a new icon:
- * 1. Add a new <symbol> to public/icons.svg with id="icon-{name}"
+ * 1. Add it to src/icons/index.ts with viewBox and path
  * 2. Use <Icon name="{name}" /> in your components
  */
 const Icon: Component<IconProps> = (props) => {
@@ -27,19 +28,31 @@ const Icon: Component<IconProps> = (props) => {
   };
 
   return (
-    <svg
-      class={`icon icon-${props.name} ${props.class || ""}`}
-      style={{
-        width: size(),
-        height: size(),
-        "min-width": size(),
-        "min-height": size(),
-      }}
-      aria-hidden={!props.title}
-      role={props.title ? "img" : undefined}
+    <Show
+      when={icons[props.name]}
+      fallback={<span title={`Icon "${props.name}" not found`}>❌</span>}
     >
-      <use href={`/icons.svg#icon-${props.name}`} />
-    </svg>
+      {() => {
+        const icon = icons[props.name];
+        return (
+          <svg
+            class={`icon icon-${props.name} ${props.class || ""}`}
+            style={{
+              width: size(),
+              height: size(),
+              "min-width": size(),
+              "min-height": size(),
+            }}
+            aria-hidden={!props.title}
+            role={props.title ? "img" : undefined}
+            viewBox={icon.viewBox}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g innerHTML={icon.path} />
+          </svg>
+        );
+      }}
+    </Show>
   );
 };
 

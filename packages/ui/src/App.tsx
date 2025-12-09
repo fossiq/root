@@ -9,10 +9,12 @@ export default function App() {
         <div class="editor-pane">
           <div class="pane-header">
             <h2>Query Editor</h2>
-          </div>
-          <div class="toolbar">
-            <button title="Run query (Ctrl+Shift+Enter)">▶ Run</button>
-            <button title="Clear results">✕ Clear</button>
+            <div class="pane-actions">
+              <button title="Run query (Ctrl+Shift+Enter)">▶ Run</button>
+              <button class="secondary" title="Clear results">
+                ✕ Clear
+              </button>
+            </div>
           </div>
           <div class="editor-container">
             <p style={{ color: "var(--text-secondary)" }}>

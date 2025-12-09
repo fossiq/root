@@ -14,7 +14,8 @@ const Sidebar: Component<SidebarProps> = (props) => {
         aria-label="Add data source"
         class="add-source-btn"
       >
-        <Icon name="icon-plus-circle" size={22} />
+        <Icon name="plus-circle" size={20} />
+        <span>Add Data</span>
       </button>
     </aside>
   );
