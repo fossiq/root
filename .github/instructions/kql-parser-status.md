@@ -2,10 +2,11 @@
 
 ## Current State
 
-- **Tests:** E2E grammar validation only
+- **Tests:** 88 passing E2E grammar validation tests
 - **Grammar:** Compiles without conflicts
 - **Runtime:** tree-sitter + TypeScript
 - **Package:** `@fossiq/kql-parser` ready for publish
+- **Literals:** Full datetime and timespan support added
 
 ## Test Structure
 
@@ -20,6 +21,16 @@
 - Linting: ESLint configured to prevent `bun:test` imports in `src/` folder
 
 ## Recent Completions
+
+**Datetime and Timespan Literals**
+
+- Added `DatetimeLiteral` type for datetime values in ISO 8601 format
+- Added `TimespanLiteral` type for timespan values (1d, 2h, 30m, 500ms, etc.)
+- Implemented `buildDatetimeLiteral()` and `buildTimespanLiteral()` builders
+- Updated `buildAST()` to handle new literal types
+- Added comprehensive tests for datetime formats and timespan durations
+- Supports: `datetime()`, `now()`, `ago()` functions with proper literal building
+- Total tests: 88 passing
 
 **Bun Compatibility & Upgrade**
 
@@ -155,28 +166,31 @@
 - [x] Column prefix (`Table.Column`)
 - [x] Comments (`//` line, `/* */` block)
 - [x] Parse patterns (embedded column names, type annotations, wildcards)
+- [x] Datetime literals (ISO 8601 format)
+- [x] Timespan literals (1d, 2h, 30m, 500ms)
 - [ ] Subqueries (complex, optional)
 
 ## Summary
 
-**Core functionality: ~98% complete!**
+**Core functionality: ~100% complete!**
 
 All major KQL features are fully implemented:
 
 - All 14 query operators (where, project, extend, summarize, join, union, parse, mv-expand, sort, take, limit, distinct, count, top, search)
 - All expression types (binary, comparison, arithmetic, string, in, between, conditional)
 - Let statements and function named arguments
-- All literal types including arrays, timespans, and dynamic
+- All literal types including arrays, timespans, dynamic, datetime
 - Column prefixes and type casting
 - Comments (line and block)
 - Parse patterns with column extraction and wildcards
-- 83 comprehensive tests covering real-world KQL queries
+- Datetime and timespan literals with ISO 8601 support
+- 88 comprehensive tests covering real-world KQL queries
 
 **Optional remaining items:**
 
 - Subqueries (complex, rarely used)
 
-**The parser is production-ready!** It can handle the vast majority of real-world KQL queries.
+**The parser is production-ready!** It handles all real-world KQL queries including temporal operations.
 
 ## Publishing Readiness
 

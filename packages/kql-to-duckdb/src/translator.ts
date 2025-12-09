@@ -1,17 +1,12 @@
 import type {
   SourceFile,
-  Statement,
   QueryStatement,
-  PipeExpression,
   Operator,
   Expression,
   BinaryExpression,
   ComparisonExpression,
-  Identifier,
-  Literal,
-  StringLiteral,
-  NumberLiteral,
-  BooleanLiteral,
+  ArithmeticExpression,
+  StringExpression,
   WhereClause,
   ProjectClause,
   TakeClause,
@@ -19,6 +14,10 @@ import type {
   ColumnExpression,
   SummarizeClause,
   FunctionCall,
+  ExtendClause,
+  SortClause,
+  SortExpression,
+  DistinctClause,
 } from "@fossiq/kql-parser";
 
 export function translate(ast: SourceFile): string {
@@ -37,7 +36,7 @@ export function translate(ast: SourceFile): string {
 
 function translateQuery(query: QueryStatement): string {
   const tableName = query.table.name;
-  let ctes: string[] = [];
+  const ctes: string[] = [];
   let currentRelation = tableName;
   let cteIndex = 0;
 
@@ -67,15 +66,18 @@ function translatePipe(operator: Operator, inputRelation: string): string {
       return translateLimit(operator, inputRelation);
     case "summarize_clause":
       return translateSummarize(operator, inputRelation);
+    case "extend_clause":
+      return translateExtend(operator, inputRelation);
+    case "sort_clause":
+      return translateSort(operator, inputRelation);
+    case "distinct_clause":
+      return translateDistinct(operator, inputRelation);
     default:
       throw new Error(`Unsupported operator: ${operator.type}`);
   }
 }
 
-function translateWhere(
-  operator: WhereClause,
-  inputRelation: string
-): string {
+function translateWhere(operator: WhereClause, inputRelation: string): string {
   const condition = translateExpression(operator.expression);
   return `SELECT * FROM ${inputRelation} WHERE ${condition}`;
 }
@@ -108,18 +110,42 @@ function translateSummarize(
   return `SELECT ${selectList} FROM ${inputRelation}${groupBy}`;
 }
 
-function translateTake(
-  operator: TakeClause,
-  inputRelation: string
-): string {
+function translateTake(operator: TakeClause, inputRelation: string): string {
   return `SELECT * FROM ${inputRelation} LIMIT ${operator.count.value}`;
 }
 
-function translateLimit(
-  operator: LimitClause,
+function translateLimit(operator: LimitClause, inputRelation: string): string {
+  return `SELECT * FROM ${inputRelation} LIMIT ${operator.count.value}`;
+}
+
+function translateExtend(
+  operator: ExtendClause,
   inputRelation: string
 ): string {
-  return `SELECT * FROM ${inputRelation} LIMIT ${operator.count.value}`;
+  const columns = operator.columns.map(translateColumnExpression).join(", ");
+  return `SELECT *, ${columns} FROM ${inputRelation}`;
+}
+
+function translateSort(operator: SortClause, inputRelation: string): string {
+  const orderBy = operator.expressions.map(translateSortExpression).join(", ");
+  return `SELECT * FROM ${inputRelation} ORDER BY ${orderBy}`;
+}
+
+function translateSortExpression(expr: SortExpression): string {
+  const column = expr.column.name;
+  const direction = expr.direction ? expr.direction.toUpperCase() : "ASC";
+  return `${column} ${direction}`;
+}
+
+function translateDistinct(
+  operator: DistinctClause,
+  inputRelation: string
+): string {
+  if (operator.columns && operator.columns.length > 0) {
+    const columns = operator.columns.map(translateColumnExpression).join(", ");
+    return `SELECT DISTINCT ${columns} FROM ${inputRelation}`;
+  }
+  return `SELECT DISTINCT * FROM ${inputRelation}`;
 }
 
 function translateColumnExpression(col: ColumnExpression): string {
@@ -138,6 +164,10 @@ function translateExpression(expr: Expression): string {
       return translateBinaryExpression(expr);
     case "comparison_expression":
       return translateComparisonExpression(expr);
+    case "arithmetic_expression":
+      return translateArithmeticExpression(expr);
+    case "string_expression":
+      return translateStringExpression(expr);
     case "function_call":
       return translateFunctionCall(expr);
     case "identifier":
@@ -164,23 +194,75 @@ function translateBinaryExpression(expr: BinaryExpression): string {
 function translateComparisonExpression(expr: ComparisonExpression): string {
   const left = expr.left.name;
   const right = translateExpression(expr.right);
-  let op = expr.operator;
-  if (op === "==") op = "=";
+  const opMap: Record<string, string> = {
+    "==": "=",
+    "!=": "!=",
+    ">": ">",
+    "<": "<",
+    ">=": ">=",
+    "<=": "<=",
+  };
+  const op = opMap[expr.operator];
   return `${left} ${op} ${right}`;
+}
+
+function translateArithmeticExpression(expr: ArithmeticExpression): string {
+  const left = translateExpression(expr.left);
+  const right = translateExpression(expr.right);
+  return `(${left} ${expr.operator} ${right})`;
+}
+
+function translateStringExpression(expr: StringExpression): string {
+  const column = expr.left.name;
+  const value = translateExpression(expr.right);
+
+  if (expr.operator === "contains") {
+    return `${column} LIKE '%' || ${value} || '%'`;
+  } else if (expr.operator === "startswith") {
+    return `${column} LIKE ${value} || '%'`;
+  } else if (expr.operator === "endswith") {
+    return `${column} LIKE '%' || ${value}`;
+  } else if (expr.operator === "matches") {
+    return `${column} REGEXP ${value}`;
+  } else if (expr.operator === "has") {
+    return `${column} LIKE '%' || ${value} || '%'`;
+  }
+
+  return `${column} LIKE ${value}`;
 }
 
 function translateFunctionCall(expr: FunctionCall): string {
   const name = expr.name.name.toUpperCase();
+
+  // Handle COUNT(*) special case
   if (name === "COUNT" && expr.arguments.length === 0) {
     return "COUNT(*)";
   }
-  
-  const args = expr.arguments.map((arg) => {
-    if (arg.type === 'named_argument') {
+
+  // Handle standard aggregation functions (SUM, AVG, MIN, MAX)
+  const aggregationFunctions = ["SUM", "AVG", "MIN", "MAX", "COUNT"];
+  if (aggregationFunctions.includes(name)) {
+    const args = expr.arguments
+      .map((arg) => {
+        if (arg.type === "named_argument") {
+          throw new Error("Named arguments in functions not supported yet");
+        }
+        return translateExpression(arg);
+      })
+      .join(", ");
+
+    return `${name}(${args})`;
+  }
+
+  // Handle other functions
+  const args = expr.arguments
+    .map((arg) => {
+      if (arg.type === "named_argument") {
         throw new Error("Named arguments in functions not supported yet");
-    }
-    return translateExpression(arg);
-  }).join(", ");
-  
+      }
+      return translateExpression(arg);
+    })
+    .join(", ");
+
   return `${name}(${args})`;
 }

@@ -14,6 +14,8 @@
 - Don't apologize excessively - just proceed
 - **Keep responses concise** - minimize redundant explanations
 - User sees all actions, no need to repeat what was done
+- **No large summaries after each turn** - avoid recap sections unless requested
+- **Only run tests if you modified source files** - don't re-run to confirm unchanged code
 
 ## Code Style
 
