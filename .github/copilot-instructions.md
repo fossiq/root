@@ -12,6 +12,8 @@
 
 **NEVER auto-commit** - always prompt user before committing changes.
 
+**Do not patch things. Always ask me before proceeding and wait for my explicit approval for anything.**
+
 ## Project Overview
 
 Fossiq monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun.

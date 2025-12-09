@@ -9,7 +9,8 @@
     "src",
     "grammar.js",
     "binding.gyp",
-    "README.md"
+    "README.md",
+    "tree-sitter-kql.wasm"
   ],
   "keywords": [
     "kql",
@@ -45,7 +46,8 @@
     "compile-grammar": "bun src/grammar/compile.ts",
     "generate": "bun run compile-grammar && bunx tree-sitter-cli generate",
     "build:binding": "bun scripts/build-binding.ts",
-    "build": "bun run generate && bun run build:binding && tsc",
+    "build:wasm": "bunx tree-sitter build --wasm",
+    "build": "bun run generate && bun run build:binding && bun run build:wasm && tsc",
     "prebuild": "bun run generate",
     "prepublishOnly": "bun run build && bun run test",
     "test": "bun test tests",

@@ -9,7 +9,8 @@
     "test": "bun test tests"
   },
   "dependencies": {
-    "@fossiq/kql-parser": "workspace:*"
+    "@fossiq/kql-parser": "workspace:*",
+    "web-tree-sitter": "^0.25.10"
   },
   "devDependencies": {
     "@types/bun": "^1.3.4",
