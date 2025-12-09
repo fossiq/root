@@ -19,7 +19,14 @@
 
 ## In Progress
 
-- [ ] **Phase 4: CodeMirror Integration** - Resolve dependency conflicts, LanguageSupport
+- [ ] Improve syntax highlighting contrast (token colors not vibrant enough)
+
+## Recently Completed
+
+- [x] **Phase 4: CodeMirror Integration** - LRLanguage with styleTags, LanguageSupport export
+- [x] Fixed styleTags to use correct token names from grammar (e.g., `where` not `kw_where`)
+- [x] Added named tokens for brackets (OpenParen, CloseParen) and styling
+- [x] Path-based styleTags for context-aware highlighting (functionName/Identifier, tableExpression/Identifier, etc.)
 
 ## Blocked
 
@@ -57,11 +64,18 @@ None currently.
 - [x] distinct operator
 - [x] summarize operator (aggregations, by clause, aliases)
 
-### Phase 4: CodeMirror Integration
+### Phase 4: CodeMirror Integration ✓
 
-- [ ] Resolve @lezer dependency conflicts
-- [ ] Full LanguageSupport integration
-- [ ] UI integration and testing
+- [x] LRLanguage with styleTags configuration
+- [x] Full LanguageSupport integration via kql() export
+- [x] UI integration and testing
+- [x] Fixed token names to match grammar output (where, project, etc. not kw_where)
+- [x] Added OpenParen, CloseParen, Comma tokens for bracket highlighting
+- [x] Path-based styleTags for context-aware highlighting:
+  - functionName/Identifier -> function style
+  - tableExpression/Identifier -> type style
+  - columnSpec/Identifier, sortColumn/Identifier, columnNameList/Identifier -> property style
+  - aggregation/Identifier -> property style
 
 ## Implementation Strategy
 

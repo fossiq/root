@@ -200,6 +200,20 @@ All components must follow WAI-ARIA standards and semantic HTML best practices:
 - **Headers:** `vite.config.ts` must configure COOP (`Cross-Origin-Opener-Policy: same-origin`) and COEP (`Cross-Origin-Embedder-Policy: require-corp`) headers for WASM multi-threading support (though we currently use the EH single-threaded variant as a safe default).
 - **Data Loading:** Uses the File System Access API (via `showOpenFilePicker`) to register file handles directly with DuckDB, allowing efficient querying of local CSVs without full memory loading where supported.
 
+### File Persistence Across Page Reloads
+
+- **Storage:** File handles are stored in IndexedDB (`fossiq-file-handles` database) after loading.
+- **Restore Flow:**
+  1. On page load, `SchemaContext` checks for stored file handles
+  2. For each handle, `queryPermission()` checks if permission is already granted
+  3. Files with permission are restored automatically
+  4. Files needing permission are queued in `pendingFiles` state
+  5. A "Restore X files" button appears in the sidebar
+  6. Clicking triggers `requestPermission()` (requires user gesture) and loads files
+- **Cleanup:** When a table is removed, its file handle is also removed from IndexedDB.
+- **Fallback:** Files loaded via `<input type="file">` fallback cannot be persisted (no FileSystemFileHandle).
+- **Utility:** `src/utils/fileHandleStore.ts` provides `storeFileHandle`, `getStoredFileHandles`, `removeFileHandle`, `clearAllFileHandles` functions.
+
 ## Notes & Gotchas
 
 - **Solid vs React:** Remember Solid has different reactivity model - no hooks, use createSignal/createMemo

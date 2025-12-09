@@ -27,11 +27,13 @@
 - [x] Add Data functionality (CSV import)
 - [x] Run Query functionality (KQL -> SQL -> DuckDB)
 - [x] Autocomplete (Schema-aware + Aliases)
+- [x] File persistence across page reloads (File System Access API + IndexedDB)
+- [x] GitHub Primer theme colors for syntax highlighting
 
 ## In Progress
 
 - [ ] Fix: Results rendering issue (Data present, table not showing)
-- [ ] Fix: Syntax highlighting missing (Regression investigation)
+- [ ] Improve: Syntax highlighting contrast (colors not vibrant enough)
 
 ## Blocked
 
@@ -131,9 +133,12 @@ See implementation plan in [Phase 5: kql-lezer Integration](#phase-5-kql-lezer-i
 - [x] Handle query execution (DuckDB integration)
 - [x] Display results in table
 - [x] Add error handling and user feedback
-- [ ] Fix: Results rendering issue (Data present, table not showing)
-- [ ] Fix: Syntax highlighting missing (Regression investigation)
 - [x] Improvement: Autocomplete for query-defined aliases (e.g. `count=count()`)
+- [x] File persistence: Store file handles in IndexedDB, restore on page reload
+- [x] Restore UI: "Restore X files" button in sidebar when permission needed
+- [x] GitHub Primer theme: Updated editor colors from primer/primitives
+- [ ] Fix: Results rendering issue (Data present, table not showing)
+- [ ] Improve: Syntax highlighting contrast (colors not vibrant enough)
 
 ### Phase 8: External Dependencies
 
