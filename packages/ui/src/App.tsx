@@ -24,6 +24,7 @@ const AppContent: Component = () => {
   })();
 
   const [query, setQuery] = createSignal(savedQuery);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query results have dynamic schema based on user query
   const [results, setResults] = createSignal<any[]>(savedResults);
   const [error, setError] = createSignal<string | null>(null);
   const [isRunning, setIsRunning] = createSignal(false);
@@ -77,6 +78,7 @@ const AppContent: Component = () => {
       const rows = result.toArray().map((row) => row.toJSON());
       console.log("Query Results:", rows);
       setResults(rows);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Error can be any type from DuckDB or KQL translation
     } catch (err: any) {
       console.error("Query Error:", err);
       setError(err.message || String(err));

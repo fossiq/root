@@ -169,6 +169,7 @@ export function SchemaProvider(props: { children: JSX.Element }) {
 
     // Get schema
     const schemaResult = await connection.query(`DESCRIBE ${tableName}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- DuckDB Arrow row type is not strongly typed
     const columns: Column[] = schemaResult.toArray().map((row: any) => ({
       name: row.column_name,
       type: row.column_type,

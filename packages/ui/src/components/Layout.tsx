@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import { useTheme } from "../hooks/useTheme";
 
 interface LayoutProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SolidJS children can be any renderable type
   children?: any;
 }
 

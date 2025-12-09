@@ -11,6 +11,7 @@ import { createVirtualizer } from "@tanstack/solid-virtual";
 import { createSignal } from "solid-js";
 
 interface ResultsTableProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query results have dynamic schema based on user query
   data: any[];
 }
 
@@ -19,6 +20,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   let parentRef: HTMLDivElement | undefined;
 
   // Dynamically generate columns based on the first item in data
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Column definitions are generic for dynamic query results
   const columns = createMemo<ColumnDef<any>[]>(() => {
     if (!props.data || props.data.length === 0) return [];
     const firstItem = props.data[0];
