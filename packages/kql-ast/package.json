@@ -1,0 +1,48 @@
+{
+  "name": "@fossiq/kql-ast",
+  "version": "0.1.0",
+  "description": "Shared KQL AST type definitions for multiple parser implementations",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "kql",
+    "kusto",
+    "ast",
+    "types",
+    "parser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fossiq/root.git",
+    "directory": "packages/kql-ast"
+  },
+  "bugs": {
+    "url": "https://github.com/fossiq/root/issues"
+  },
+  "homepage": "https://github.com/fossiq/root/tree/main/packages/kql-ast#readme",
+  "author": "Sushruth Sastry",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": false,
+    "registry": "https://npm.pkg.github.com"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
