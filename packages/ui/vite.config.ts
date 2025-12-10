@@ -4,6 +4,7 @@ import path from "path";
 import { visualizer } from "rollup-plugin-visualizer";
 
 export default defineConfig({
+  logLevel: "info",
   plugins: [
     solid(),
     visualizer({
@@ -11,6 +12,32 @@ export default defineConfig({
       template: "treemap",
       gzipSize: true,
     }),
+    {
+      name: "suppress-web-tree-sitter-warnings",
+      apply: "build",
+      configResolved(config) {
+        const originalWarn = config.logger.warn;
+        config.logger.warn = (msg, options) => {
+          // Suppress web-tree-sitter Node.js module warnings
+          // web-tree-sitter includes Node.js fallbacks that are safe to ignore in browser context
+          if (
+            msg.includes("fs/promises") &&
+            msg.includes("web-tree-sitter") &&
+            msg.includes("externalized")
+          ) {
+            return;
+          }
+          if (
+            msg.includes('Module "module"') &&
+            msg.includes("web-tree-sitter") &&
+            msg.includes("externalized")
+          ) {
+            return;
+          }
+          originalWarn(msg, options);
+        };
+      },
+    },
   ],
   resolve: {
     alias: {
@@ -18,7 +45,10 @@ export default defineConfig({
         __dirname,
         "../kql-to-duckdb/src/index.ts"
       ),
-      "@fossiq/kql-parser": path.resolve(__dirname, "../kql-parser/src/index.ts"),
+      "@fossiq/kql-parser": path.resolve(
+        __dirname,
+        "../kql-parser/src/index.ts"
+      ),
     },
   },
   server: {
@@ -36,6 +66,7 @@ export default defineConfig({
       "@fossiq/kql-parser",
       "@fossiq/kql-to-duckdb",
     ],
+    include: ["web-tree-sitter"],
   },
   build: {
     target: "es2023",
@@ -48,6 +79,10 @@ export default defineConfig({
           vendor: ["solid-js"],
         },
       },
+    },
+    commonjsOptions: {
+      ignoreDynamicRequires: true,
+      ignore: ["fs/promises", "module"],
     },
   },
 });

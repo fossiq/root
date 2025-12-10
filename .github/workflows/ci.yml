@@ -8,7 +8,6 @@ on:
       - "packages/**"
       - "!packages/**/*.md"
       - ".github/workflows/**"
-  workflow_dispatch:
 
 permissions:
   id-token: write # Required for OIDC
