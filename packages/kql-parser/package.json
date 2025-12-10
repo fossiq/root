@@ -58,7 +58,8 @@
     "prebuild": "bun run generate",
     "prepublishOnly": "bun run build && bun run test",
     "test": "bun test tests",
-    "test:watch": "bun test tests --watch"
+    "test:watch": "bun test tests --watch",
+    "test:coverage": "bun test tests --coverage"
   },
   "dependencies": {
     "tree-sitter": "^0.25.0",

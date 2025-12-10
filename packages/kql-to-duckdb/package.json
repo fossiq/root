@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "bun test tests"
+    "test": "bun test tests",
+    "test:coverage": "bun test tests --coverage"
   },
   "dependencies": {
     "@fossiq/kql-parser": "workspace:*",

@@ -124,7 +124,7 @@ jobs:
           bun run --cwd packages/ui build
 
       - name: Run tests
-        run: bun run --filter "*" test --coverage
+        run: bun run --filter "*" test:coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

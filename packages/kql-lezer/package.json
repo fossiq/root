@@ -66,6 +66,7 @@
   "scripts": {
     "build": "bun run build:grammar && tsc",
     "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && ./scripts/fix-parser-types.sh",
-    "test": "bun test tests"
+    "test": "bun test tests",
+    "test:coverage": "bun test tests --coverage"
   }
 }
