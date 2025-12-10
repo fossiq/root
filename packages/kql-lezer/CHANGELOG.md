@@ -1,5 +1,11 @@
 # @fossiq/kql-lezer
 
+## 1.1.2
+
+### Patch Changes
+
+- @fossiq/kql-ast@1.1.2
+
 ## 1.1.1
 
 ### Patch Changes

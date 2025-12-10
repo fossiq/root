@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 1.1.2
+
+### Patch Changes
+
+- CI: use bun publish for package publishing
+
 ## 1.1.1
 
 ### Patch Changes
