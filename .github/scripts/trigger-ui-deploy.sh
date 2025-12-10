@@ -1,13 +1,9 @@
 #!/bin/bash
-# Builds UI and deploys to fossiq.github.io
+# Deploys built UI files to fossiq.github.io
+# UI is already built by turborepo in the build step
 # Requires DEPLOY_KEY_GITHUB_IO secret to be passed via environment
 
 set -e
-
-echo "=== Building UI ==="
-cd packages/ui
-bun run build
-cd ../..
 
 echo "=== Setting up SSH ==="
 eval "$(ssh-agent -s)"
