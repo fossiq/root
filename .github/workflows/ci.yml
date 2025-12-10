@@ -230,11 +230,10 @@ jobs:
 
       - name: Create GitHub Release
         if: steps.version-check.outputs.changed == 'true'
-        uses: changesets/action@v1
-        with:
-          publish: echo "Already published via turbo"
-          commit: "chore: version packages"
-          title: "Release packages"
-          createGithubReleases: true
+        run: |
+          VERSION=$(jq -r '.version' packages/kql-parser/package.json)
+          gh release create "v$VERSION" \
+            --title "v$VERSION" \
+            --notes "Release v$VERSION - see individual package CHANGELOGs for details"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
