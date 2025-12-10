@@ -14,10 +14,8 @@ on:
         required: false
 
 permissions:
-  id-token: write
-  contents: write
-  packages: write
-  checks: write
+  contents: read
+  id-token: read
 
 jobs:
   # Check which files have changed to optimize builds
