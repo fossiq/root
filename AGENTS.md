@@ -74,6 +74,10 @@ This document contains all instructions for AI agents working on the Fossiq code
 - Use `gh run view <run-id> --log` or `gh run view --job=<job-id> --log` to get logs
 - Do NOT use WebFetch for GitHub Actions pages
 
+### MCP Tools
+
+- **Use context7 MCP** for fetching library/framework documentation when needed
+
 ### Before Making Changes
 
 - **Always read files before editing** - understand existing code first
