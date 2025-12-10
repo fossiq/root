@@ -254,6 +254,29 @@ packages/ui/
 
 ## Monorepo Management
 
+### Architecture Tasks (In Progress)
+
+The following architectural changes are being implemented to fix publish/versioning issues:
+
+- [x] **Task 1: Add Turborepo** - Use turborepo for running commands in dependency order
+- [x] **Task 2: Unified Versioning** - Sync all packages to version `1.1.0`
+- [x] **Task 3: Configure Changesets** - Set up `fixed` mode so all packages version together; handle changelog entries for unchanged packages
+- [x] **Task 4: Add ci:publish scripts** - Add `ci:publish` script to all publishable packages (not ui) that runs `bunx npm@latest publish --ignore-scripts --provenance`
+- [x] **Task 5: Fix WASM Build** - Use WASI SDK in CI (auto-downloads, no Docker needed) via `tree-sitter build --wasm`
+
+**Decisions made:**
+
+- Target version: `1.1.0` for all packages
+- WASM strategy: Build in CI using WASI SDK (no binary committed to repo)
+
+**Current package versions:**
+
+- `@fossiq/kql-ast`: 0.2.1
+- `@fossiq/kql-lezer`: 0.2.1
+- `@fossiq/kql-parser`: 1.0.3
+- `@fossiq/kql-to-duckdb`: 0.2.2
+- `@fossiq/ui`: 0.2.1
+
 ### Package Naming
 
 - Use `@fossiq/` prefix
