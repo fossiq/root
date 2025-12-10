@@ -4,12 +4,16 @@ import { resolve } from "path";
 
 describe("KQL Parser Integration", () => {
   beforeAll(async () => {
-    // Resolve path to the WASM file in the monorepo
+    // Resolve path to the WASM file from node_modules
     const wasmPath = resolve(
       import.meta.dir,
       "../../kql-parser/tree-sitter-kql.wasm"
     );
-    await initParser(wasmPath);
+    const treeSitterWasmPath = resolve(
+      import.meta.dir,
+      "../node_modules/web-tree-sitter/tree-sitter.wasm"
+    );
+    await initParser(wasmPath, treeSitterWasmPath);
   });
 
   test("should parse a simple query", () => {
