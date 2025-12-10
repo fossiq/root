@@ -169,80 +169,76 @@ jobs:
           path: packages/kql-parser/tree-sitter-kql.wasm
           if-no-files-found: error
 
-  validate:
-    name: Validate & Publish
-    needs: [changes, build_bindings, build_wasm, lint]
-    # Always run unless dependencies failed
-    if: |
-      always() &&
-      needs.changes.result == 'success' &&
-      needs.lint.result == 'success' &&
-      (needs.build_bindings.result == 'success' || needs.build_bindings.result == 'skipped') &&
-      (needs.build_wasm.result == 'success' || needs.build_wasm.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    validate:
+      name: Validate & Publish
+      needs: [changes, build_bindings, build_wasm, lint]
+      # Always run unless dependencies failed (skipped is ok)
+      if: always() && needs.changes.result == 'success' && needs.lint.result == 'success' && (needs.build_bindings.result == 'success' || needs.build_bindings.result == 'skipped') && (needs.build_wasm.result == 'success' || needs.build_wasm.result == 'skipped')
+      runs-on: ubuntu-latest
+      env:
+        PARSER_CHANGED: ${{ needs.changes.outputs.parser }}
+      steps:
+        - uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
 
-      - uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: 1.3.4
-          no-cache: true
+        - uses: oven-sh/setup-bun@v1
+          with:
+            bun-version: 1.3.4
+            no-cache: true
 
-      - name: Cache node_modules
-        id: cache-node-modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-x64-node-modules-${{ hashFiles('bun.lock') }}
+        - name: Cache node_modules
+          id: cache-node-modules
+          uses: actions/cache@v4
+          with:
+            path: node_modules
+            key: ${{ runner.os }}-x64-node-modules-${{ hashFiles('bun.lock') }}
 
-      - name: Cache Turborepo
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
+        - name: Cache Turborepo
+          uses: actions/cache@v4
+          with:
+            path: .turbo
+            key: ${{ runner.os }}-turbo-${{ github.sha }}
+            restore-keys: |
+              ${{ runner.os }}-turbo-
 
-      - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: bun install --frozen-lockfile
+        - name: Install dependencies
+          if: steps.cache-node-modules.outputs.cache-hit != 'true'
+          run: bun install --frozen-lockfile
 
-      # Logic for Artifacts: Download if built, Restore from Cache if skipped
+        # Logic for Artifacts: Download if built, Restore from Cache if skipped
 
-      # 1. Bindings
-      - name: Download Cross-Platform Bindings
-        if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          path: packages/kql-parser/prebuilds
-          pattern: binding-*
-          merge-multiple: false
+        # 1. Bindings
+        - name: Download Cross-Platform Bindings
+          if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
+          uses: actions/download-artifact@v4
+          with:
+            path: packages/kql-parser/prebuilds
+            pattern: binding-*
+            merge-multiple: false
 
-      - name: Organize Bindings
-        if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
-        run: .github/scripts/organize-bindings.sh
+        - name: Organize Bindings
+          if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
+          run: .github/scripts/organize-bindings.sh
 
-      # Note: For PRs with no parser change, we skip downloading bindings.
-      # Local tests on Linux will either build local binding or use what's available.
+        # Note: For PRs with no parser change, we skip downloading bindings.
+        # Local tests on Linux will either build local binding or use what's available.
 
-      # 2. WASM
-      - name: Download WASM
-        if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
-        uses: actions/download-artifact@v4
-        with:
-          name: wasm
-          path: packages/kql-parser
+        # 2. WASM
+        - name: Download WASM
+          if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
+          uses: actions/download-artifact@v4
+          with:
+            name: wasm
+            path: packages/kql-parser
 
-      - name: Restore WASM from Cache (if build skipped)
-        if: inputs.is_pr == true && needs.changes.outputs.parser != 'true'
-        uses: actions/cache/restore@v4
-        with:
-          path: packages/kql-parser/tree-sitter-kql.wasm
-          key: wasm-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/grammar.js') }}
-          fail-on-cache-miss: false
-
+        - name: Restore WASM from Cache (if build skipped)
+          if: inputs.is_pr == true && env.PARSER_CHANGED != 'true'
+          uses: actions/cache/restore@v4
+          with:
+            path: packages/kql-parser/tree-sitter-kql.wasm
+            key: wasm-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/grammar.js') }}
+            fail-on-cache-miss: false
       # Build & Test
       - name: Build all packages (turbo)
         run: bun run build
