@@ -61,10 +61,10 @@ jobs:
         run: bun install
 
       - name: Setup tree-sitter CLI
-        run: bunx tree-sitter-cli@latest --version
+        run: bun x tree-sitter-cli@latest --version
 
       - name: Build all packages
-        run: ./.github/scripts/build-packages.sh
+        run: bun --workspaces run build
 
   test:
     name: Test
@@ -88,10 +88,10 @@ jobs:
         run: bun install
 
       - name: Setup tree-sitter CLI
-        run: bunx tree-sitter-cli@latest --version
+        run: bun x tree-sitter-cli@latest --version
 
       - name: Run tests
-        run: ./.github/scripts/test-packages.sh
+        run: bun --workspaces run test --coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
