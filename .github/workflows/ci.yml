@@ -134,8 +134,13 @@ jobs:
             echo "   Using prebuilt WASM if available"
           fi
 
-      - name: Build all packages
-        run: bun run --filter "*" build
+      - name: Build all packages (in dependency order)
+        run: |
+          bun run --cwd packages/kql-ast build
+          bun run --cwd packages/kql-lezer build
+          bun run --cwd packages/kql-parser build
+          bun run --cwd packages/kql-to-duckdb build
+          bun run --cwd packages/ui build
 
       - name: Run tests with coverage
         run: bun run --filter "*" test --coverage

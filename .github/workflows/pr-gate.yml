@@ -63,8 +63,13 @@ jobs:
       - name: Setup tree-sitter CLI
         run: bun x tree-sitter-cli@latest --version
 
-      - name: Build all packages
-        run: bun run --filter "*" build
+      - name: Build all packages (in dependency order)
+        run: |
+          bun run --cwd packages/kql-ast build
+          bun run --cwd packages/kql-lezer build
+          bun run --cwd packages/kql-parser build
+          bun run --cwd packages/kql-to-duckdb build
+          bun run --cwd packages/ui build
 
   test:
     name: Test
@@ -89,6 +94,14 @@ jobs:
 
       - name: Setup tree-sitter CLI
         run: bun x tree-sitter-cli@latest --version
+
+      - name: Build all packages first (in dependency order)
+        run: |
+          bun run --cwd packages/kql-ast build
+          bun run --cwd packages/kql-lezer build
+          bun run --cwd packages/kql-parser build
+          bun run --cwd packages/kql-to-duckdb build
+          bun run --cwd packages/ui build
 
       - name: Run tests
         run: bun run --filter "*" test --coverage
