@@ -210,7 +210,19 @@ jobs:
         run: |
           for pkg in kql-ast kql-lezer kql-parser kql-to-duckdb; do
             echo "Publishing @fossiq/$pkg..."
-            cd packages/$pkg && bun publish --ignore-scripts && cd ../..
+            cd packages/$pkg
+            if bun publish --ignore-scripts 2>&1 | tee /tmp/publish-output.txt; then
+              echo "✓ @fossiq/$pkg published successfully"
+            else
+              if grep -q "409 Conflict" /tmp/publish-output.txt; then
+                echo "⚠ @fossiq/$pkg already published (409 Conflict) - skipping"
+              else
+                echo "✗ @fossiq/$pkg publish failed"
+                cat /tmp/publish-output.txt
+                exit 1
+              fi
+            fi
+            cd ../..
           done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
