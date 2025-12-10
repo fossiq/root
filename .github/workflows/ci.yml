@@ -153,28 +153,57 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
+      - name: Check if versions changed
+        id: version-check
+        run: |
+          # Check kql-parser version
+          KQL_PARSER_LOCAL=$(jq -r '.version' packages/kql-parser/package.json)
+          KQL_PARSER_REMOTE=$(npm view @fossiq/kql-parser version --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
+
+          # Check kql-to-duckdb version
+          KQL_DUCKDB_LOCAL=$(jq -r '.version' packages/kql-to-duckdb/package.json)
+          KQL_DUCKDB_REMOTE=$(npm view @fossiq/kql-to-duckdb version --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
+
+          echo "kql-parser: local=$KQL_PARSER_LOCAL, remote=$KQL_PARSER_REMOTE"
+          echo "kql-to-duckdb: local=$KQL_DUCKDB_LOCAL, remote=$KQL_DUCKDB_REMOTE"
+
+          # Set outputs
+          if [ "$KQL_PARSER_LOCAL" != "$KQL_PARSER_REMOTE" ]; then
+            echo "kql_parser_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "kql_parser_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          if [ "$KQL_DUCKDB_LOCAL" != "$KQL_DUCKDB_REMOTE" ]; then
+            echo "kql_duckdb_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "kql_duckdb_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if any version changed (for release step)
+          if [ "$KQL_PARSER_LOCAL" != "$KQL_PARSER_REMOTE" ] || [ "$KQL_DUCKDB_LOCAL" != "$KQL_DUCKDB_REMOTE" ]; then
+            echo "any_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "any_changed=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Setup .npmrc for GitHub Packages
+        if: steps.version-check.outputs.any_changed == 'true'
         run: |
           echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
       - name: Publish kql-parser package
+        if: steps.version-check.outputs.kql_parser_changed == 'true'
         run: bunx npm@latest publish ./packages/kql-parser --ignore-scripts --provenance
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish kql-to-duckdb package
+        if: steps.version-check.outputs.kql_duckdb_changed == 'true'
         run: bunx npm@latest publish ./packages/kql-to-duckdb --ignore-scripts --provenance
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create GitHub Release
-        uses: changesets/action@v1
-        with:
-          publish: echo "Already published via bun commands above" # We publish manually to control order/flags
-          commit: "chore: version packages"
-          title: "Release packages"
-          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -183,3 +212,14 @@ jobs:
           gh workflow run deploy.yml --repo fossiq/fossiq.github.io
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        if: steps.version-check.outputs.any_changed == 'true'
+        uses: changesets/action@v1
+        with:
+          publish: echo "Already published via bun commands above" # We publish manually to control order/flags
+          commit: "chore: version packages"
+          title: "Release packages"
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
