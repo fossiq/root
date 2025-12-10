@@ -74,8 +74,52 @@ jobs:
           path: packages/kql-parser/prebuilds/${{ matrix.platform }}-${{ matrix.arch }}/tree-sitter-kql.node
           if-no-files-found: error
 
+  # WASM build using WASI SDK (no Docker needed)
+  build_wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.4
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Cache WASM build
+        id: cache-wasm
+        uses: actions/cache@v4
+        with:
+          path: packages/kql-parser/tree-sitter-kql.wasm
+          key: wasm-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/grammar.js') }}
+
+      - name: Build WASM (uses WASI SDK, auto-downloads)
+        if: steps.cache-wasm.outputs.cache-hit != 'true'
+        working-directory: packages/kql-parser
+        run: |
+          bunx tree-sitter-cli@latest build --wasm
+          echo "WASM built successfully"
+          ls -la tree-sitter-kql.wasm
+
+      - name: Upload WASM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: packages/kql-parser/tree-sitter-kql.wasm
+          if-no-files-found: error
+
   build-test-publish:
-    needs: build_bindings
+    needs: [build_bindings, build_wasm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -97,7 +141,7 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      # Download all binding artifacts from the build_bindings job
+      # Download all binding artifacts
       - name: Download Cross-Platform Bindings
         uses: actions/download-artifact@v4
         with:
@@ -107,9 +151,6 @@ jobs:
 
       - name: Organize Bindings
         run: |
-          # actions/download-artifact downloads into folders named after the artifact
-          # e.g. packages/kql-parser/prebuilds/binding-linux-x64/tree-sitter-kql.node
-          # We want packages/kql-parser/prebuilds/linux-x64/tree-sitter-kql.node
           cd packages/kql-parser/prebuilds
           for dir in binding-*; do
             target="${dir#binding-}"
@@ -117,33 +158,21 @@ jobs:
             mv "$dir"/* "$target/"
             rmdir "$dir"
           done
-          echo "Listing organized prebuilds:"
+          echo "Organized prebuilds:"
           ls -R
 
-      - name: Setup tree-sitter CLI
-        run: bunx tree-sitter-cli@latest --version
+      # Download WASM artifact
+      - name: Download WASM
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm
+          path: packages/kql-parser
 
-      - name: Build WASM (requires Docker/Emscripten in CI environment)
-        working-directory: packages/kql-parser
-        run: |
-          if command -v docker &> /dev/null; then
-            bunx tree-sitter build --wasm
-            echo "✓ WASM built successfully"
-          else
-            echo "⚠️  Docker not available, skipping WASM build"
-            echo "   Using prebuilt WASM if available"
-          fi
+      - name: Build all packages
+        run: bun run build
 
-      - name: Build all packages (in dependency order)
-        run: |
-          bun run --cwd packages/kql-ast build
-          bun run --cwd packages/kql-lezer build
-          bun run --cwd packages/kql-parser build
-          bun run --cwd packages/kql-to-duckdb build
-          bun run --cwd packages/ui build
-
-      - name: Run tests with coverage
-        run: bun run --filter "*" test --coverage
+      - name: Run tests
+        run: bun run test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -153,71 +182,42 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-      - name: Check if versions changed
+      - name: Check if version changed
         id: version-check
         run: |
-          # Check kql-parser version
-          KQL_PARSER_LOCAL=$(jq -r '.version' packages/kql-parser/package.json)
-          KQL_PARSER_REMOTE=$(npm view @fossiq/kql-parser version --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
-
-          # Check kql-to-duckdb version
-          KQL_DUCKDB_LOCAL=$(jq -r '.version' packages/kql-to-duckdb/package.json)
-          KQL_DUCKDB_REMOTE=$(npm view @fossiq/kql-to-duckdb version --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
-
-          echo "kql-parser: local=$KQL_PARSER_LOCAL, remote=$KQL_PARSER_REMOTE"
-          echo "kql-to-duckdb: local=$KQL_DUCKDB_LOCAL, remote=$KQL_DUCKDB_REMOTE"
-
-          # Set outputs
-          if [ "$KQL_PARSER_LOCAL" != "$KQL_PARSER_REMOTE" ]; then
-            echo "kql_parser_changed=true" >> $GITHUB_OUTPUT
+          LOCAL_VERSION=$(jq -r '.version' packages/kql-parser/package.json)
+          REMOTE_VERSION=$(npm view @fossiq/kql-parser version --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
+          echo "local=$LOCAL_VERSION, remote=$REMOTE_VERSION"
+          if [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
           else
-            echo "kql_parser_changed=false" >> $GITHUB_OUTPUT
-          fi
-
-          if [ "$KQL_DUCKDB_LOCAL" != "$KQL_DUCKDB_REMOTE" ]; then
-            echo "kql_duckdb_changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "kql_duckdb_changed=false" >> $GITHUB_OUTPUT
-          fi
-
-          # Check if any version changed (for release step)
-          if [ "$KQL_PARSER_LOCAL" != "$KQL_PARSER_REMOTE" ] || [ "$KQL_DUCKDB_LOCAL" != "$KQL_DUCKDB_REMOTE" ]; then
-            echo "any_changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "any_changed=false" >> $GITHUB_OUTPUT
+            echo "changed=false" >> $GITHUB_OUTPUT
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup .npmrc for GitHub Packages
-        if: steps.version-check.outputs.any_changed == 'true'
+        if: steps.version-check.outputs.changed == 'true'
         run: |
           echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
-      - name: Publish kql-parser package
-        if: steps.version-check.outputs.kql_parser_changed == 'true'
-        run: bunx npm@latest publish ./packages/kql-parser --ignore-scripts --provenance
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish kql-to-duckdb package
-        if: steps.version-check.outputs.kql_duckdb_changed == 'true'
-        run: bunx npm@latest publish ./packages/kql-to-duckdb --ignore-scripts --provenance
+      - name: Publish packages
+        if: steps.version-check.outputs.changed == 'true'
+        run: bun run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger UI deployment
-        run: |
-          gh workflow run deploy.yml --repo fossiq/fossiq.github.io
+        run: gh workflow run deploy.yml --repo fossiq/fossiq.github.io
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.version-check.outputs.any_changed == 'true'
+        if: steps.version-check.outputs.changed == 'true'
         uses: changesets/action@v1
         with:
-          publish: echo "Already published via bun commands above" # We publish manually to control order/flags
+          publish: echo "Already published via turbo"
           commit: "chore: version packages"
           title: "Release packages"
           createGithubReleases: true
