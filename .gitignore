@@ -24,6 +24,9 @@ build/
 *.dylib
 .test-query.kql
 
+# Turbo
+.turbo
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

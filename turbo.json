@@ -1,0 +1,27 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "*.wasm"],
+      "inputs": ["src/**", "package.json", "tsconfig.json"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": [],
+      "inputs": ["src/**", "tests/**"]
+    },
+    "test:coverage": {
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "tests/**"]
+    },
+    "lint": {
+      "outputs": []
+    },
+    "ci:publish": {
+      "dependsOn": ["build", "test"],
+      "outputs": []
+    }
+  }
+}
