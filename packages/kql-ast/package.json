@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-ast",
-  "version": "0.2.1",
+  "version": "1.1.0",
   "description": "Shared KQL AST type definitions for multiple parser implementations",
   "type": "module",
   "main": "dist/index.js",
@@ -39,7 +39,8 @@
   "scripts": {
     "build": "tsc",
     "test": "echo \"No tests specified\"",
-    "test:coverage": "echo \"No tests specified\""
+    "test:coverage": "echo \"No tests specified\"",
+    "ci:publish": "bunx npm@latest publish --ignore-scripts --provenance"
   },
   "devDependencies": {
     "@types/node": "catalog:",

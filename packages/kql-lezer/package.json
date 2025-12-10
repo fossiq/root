@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-lezer",
-  "version": "0.2.1",
+  "version": "1.1.0",
   "description": "Lezer-based KQL parser for CodeMirror with syntax highlighting support",
   "type": "module",
   "main": "dist/index.js",
@@ -67,6 +67,7 @@
     "build": "bun run build:grammar && tsc",
     "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && ./scripts/fix-parser-types.sh",
     "test": "bun test tests",
-    "test:coverage": "bun test tests --coverage"
+    "test:coverage": "bun test tests --coverage",
+    "ci:publish": "bunx npm@latest publish --ignore-scripts --provenance"
   }
 }

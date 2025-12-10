@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-parser",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -59,7 +59,8 @@
     "prepublishOnly": "bun run build && bun run test",
     "test": "bun test tests",
     "test:watch": "bun test tests --watch",
-    "test:coverage": "bun test tests --coverage"
+    "test:coverage": "bun test tests --coverage",
+    "ci:publish": "bunx npm@latest publish --ignore-scripts --provenance"
   },
   "dependencies": {
     "tree-sitter": "^0.25.0",

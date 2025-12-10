@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-to-duckdb",
-  "version": "0.2.2",
+  "version": "1.1.0",
   "description": "Translator from KQL to DuckDB SQL",
   "type": "module",
   "main": "dist/index.js",
@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc",
     "test": "bun test tests",
-    "test:coverage": "bun test tests --coverage"
+    "test:coverage": "bun test tests --coverage",
+    "ci:publish": "bunx npm@latest publish --ignore-scripts --provenance"
   },
   "dependencies": {
     "@fossiq/kql-parser": "workspace:*",
