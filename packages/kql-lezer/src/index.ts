@@ -4,7 +4,6 @@ import type {
   TokenType,
   ParseError,
 } from "@fossiq/kql-ast";
-import { TokenType as TT } from "@fossiq/kql-ast";
 import { parser } from "./parser";
 import { Tree, SyntaxNode } from "@lezer/common";
 import { LRLanguage, LanguageSupport } from "@codemirror/language";
@@ -90,13 +89,13 @@ function findErrors(tree: Tree): ParseError[] {
 function getTokenType(nodeName: string): TokenType | null {
   switch (nodeName) {
     case "LineComment":
-      return TT.Comment;
+      return "comment";
     case "Identifier":
-      return TT.Identifier;
+      return "identifier";
     case "Number":
-      return TT.Number;
+      return "number";
     case "String":
-      return TT.String;
+      return "string";
     // Keywords
     case "kw_where":
     case "kw_project":
@@ -122,19 +121,19 @@ function getTokenType(nodeName: string): TokenType | null {
     case "kw_in":
     case "kw_notin":
     case "let":
-      return TT.Keyword;
+      return "keyword";
     // Operators
     case "Pipe":
     case "ComparisonOp":
-      return TT.Operator;
+      return "operator";
     // Punctuation
     case "ParenthesizedExpression":
     case "BracketExpression":
-      return TT.Punctuation;
+      return "punctuation";
     default:
       // For internal nodes like Query, statement, expression
       if (nodeName.endsWith("Clause")) {
-        return TT.Keyword; // Operators like where, project etc.
+        return "keyword"; // Operators like where, project etc.
       }
       return null;
   }
