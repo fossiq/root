@@ -1,5 +1,15 @@
 # @fossiq/kql-parser
 
+## 1.1.1
+
+### Patch Changes
+
+- CI improvements: turborepo for builds, WASI SDK for WASM, node_modules caching
+- cc43114: Fix CI test script to handle packages without test files
+
+  - Updated test-packages.sh to check if test files exist before running bun test
+  - Prevents CI failures for packages like kql-ast that have test scripts but no test files
+
 ## 1.0.3
 
 ### Patch Changes

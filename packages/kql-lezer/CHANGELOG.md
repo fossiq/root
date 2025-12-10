@@ -1,5 +1,17 @@
 # @fossiq/kql-lezer
 
+## 1.1.1
+
+### Patch Changes
+
+- cc43114: Fix CI test script to handle packages without test files
+
+  - Updated test-packages.sh to check if test files exist before running bun test
+  - Prevents CI failures for packages like kql-ast that have test scripts but no test files
+
+- Updated dependencies [cc43114]
+  - @fossiq/kql-ast@1.1.1
+
 ## 0.2.1
 
 ### Patch Changes
