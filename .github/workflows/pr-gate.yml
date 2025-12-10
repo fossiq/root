@@ -64,7 +64,7 @@ jobs:
         run: bun x tree-sitter-cli@latest --version
 
       - name: Build all packages
-        run: bun --workspaces run build
+        run: bun run --filter "*" build
 
   test:
     name: Test
@@ -91,7 +91,7 @@ jobs:
         run: bun x tree-sitter-cli@latest --version
 
       - name: Run tests
-        run: bun --workspaces run test --coverage
+        run: bun run --filter "*" test --coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

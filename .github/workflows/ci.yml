@@ -135,10 +135,10 @@ jobs:
           fi
 
       - name: Build all packages
-        run: bun --workspaces run build
+        run: bun run --filter "*" build
 
       - name: Run tests with coverage
-        run: bun --workspaces run test --coverage
+        run: bun run --filter "*" test --coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
