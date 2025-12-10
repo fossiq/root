@@ -207,7 +207,11 @@ jobs:
 
       - name: Publish packages
         if: steps.version-check.outputs.changed == 'true'
-        run: bun run release
+        run: |
+          for pkg in kql-ast kql-lezer kql-parser kql-to-duckdb; do
+            echo "Publishing @fossiq/$pkg..."
+            cd packages/$pkg && bun publish --ignore-scripts && cd ../..
+          done
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
