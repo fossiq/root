@@ -1,4 +1,4 @@
-import { Component, For, createMemo } from "solid-js";
+import { Component, For, createMemo, createSignal, Show } from "solid-js";
 import {
   createSolidTable,
   getCoreRowModel,
@@ -8,16 +8,24 @@ import {
   SortingState,
 } from "@tanstack/solid-table";
 import { createVirtualizer } from "@tanstack/solid-virtual";
-import { createSignal } from "solid-js";
 
 interface ResultsTableProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query results have dynamic schema based on user query
   data: any[];
 }
 
+interface TooltipState {
+  content: string;
+  x: number;
+  y: number;
+}
+
 const ResultsTable: Component<ResultsTableProps> = (props) => {
   const [sorting, setSorting] = createSignal<SortingState>([]);
+  const [tooltip, setTooltip] = createSignal<TooltipState | null>(null);
   let parentRef: HTMLDivElement | undefined;
+
+  const MAX_COLUMN_WIDTH = 250;
 
   // Dynamically generate columns based on the first item in data
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Column definitions are generic for dynamic query results
@@ -57,20 +65,38 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
       return rows().length;
     },
     getScrollElement: () => parentRef ?? null,
-    estimateSize: () => 35, // Estimate row height
+    estimateSize: () => 35,
     overscan: 10,
   });
 
-  // Create reactive accessors for virtualizer methods
   const virtualItems = () => rowVirtualizer.getVirtualItems();
   const totalSize = () => rowVirtualizer.getTotalSize();
 
-  const columnCount = () => headerGroups()[0]?.headers.length || 1;
+  const handleCellClick = (e: MouseEvent, value: unknown) => {
+    const target = e.currentTarget as HTMLElement;
+    const stringValue = String(value ?? "");
 
-  // Use equal-width columns that distribute available space evenly
-  const gridTemplateColumns = createMemo(() => {
-    return `repeat(${columnCount()}, minmax(150px, 1fr))`;
-  });
+    // Check if text is actually overflowing
+    if (target.scrollWidth <= target.clientWidth) {
+      return;
+    }
+
+    const currentTooltip = tooltip();
+    // Toggle off if clicking the same cell
+    if (currentTooltip && currentTooltip.content === stringValue) {
+      setTooltip(null);
+      return;
+    }
+
+    const rect = target.getBoundingClientRect();
+    setTooltip({
+      content: stringValue,
+      x: rect.left,
+      y: rect.bottom + 4,
+    });
+  };
+
+  const closeTooltip = () => setTooltip(null);
 
   return (
     <div
@@ -79,113 +105,172 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
       style={{
         height: "100%",
         overflow: "auto",
-        display: "flex",
-        "flex-direction": "column",
+        position: "relative",
+      }}
+      onClick={(e) => {
+        // Close tooltip when clicking outside cells
+        if (!(e.target as HTMLElement).closest("td")) {
+          closeTooltip();
+        }
       }}
     >
-      <div
-        style={{
-          display: "grid",
-          "grid-template-columns": gridTemplateColumns(),
-          width: "100%",
-          "flex-shrink": 0,
-        }}
-      >
-        {/* Header */}
-        <For each={headerGroups()}>
-          {(headerGroup) => (
-            <For each={headerGroup.headers}>
-              {(header) => (
-                <div
-                  style={{
-                    padding: "0.5rem 1rem",
-                    "font-weight": "bold",
-                    "white-space": "nowrap",
-                    overflow: "hidden",
-                    "text-overflow": "ellipsis",
-                    background: "var(--bg-secondary)",
-                    position: "sticky",
-                    top: 0,
-                    "z-index": 1,
-                    cursor: header.column.getCanSort() ? "pointer" : "default",
-                    "border-bottom": "1px solid var(--border-color)",
-                  }}
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                  {{
-                    asc: " 🔼",
-                    desc: " 🔽",
-                  }[header.column.getIsSorted() as string] ?? null}
-                </div>
-              )}
-            </For>
-          )}
-        </For>
-      </div>
-
-      {/* Virtual rows container */}
-      <div
-        style={{
-          flex: 1,
-          overflow: "auto",
-          position: "relative",
-        }}
-      >
-        <div
+      <table style={{ width: "100%", "border-collapse": "collapse" }}>
+        <thead
           style={{
-            position: "relative",
-            height: `${totalSize()}px`,
+            position: "sticky",
+            top: 0,
+            "z-index": 1,
+            background: "var(--bg-secondary)",
           }}
         >
+          <For each={headerGroups()}>
+            {(headerGroup) => (
+              <tr>
+                <For each={headerGroup.headers}>
+                  {(header) => (
+                    <th
+                      style={{
+                        padding: "0.5rem 1rem",
+                        "font-weight": "bold",
+                        "white-space": "nowrap",
+                        "text-align": "left",
+                        cursor: header.column.getCanSort()
+                          ? "pointer"
+                          : "default",
+                        "border-bottom": "1px solid var(--border-color)",
+                        "min-width": "100px",
+                        "max-width": `${MAX_COLUMN_WIDTH}px`,
+                        overflow: "hidden",
+                        "text-overflow": "ellipsis",
+                      }}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                      {{
+                        asc: " 🔼",
+                        desc: " 🔽",
+                      }[header.column.getIsSorted() as string] ?? null}
+                    </th>
+                  )}
+                </For>
+              </tr>
+            )}
+          </For>
+        </thead>
+        <tbody>
+          {/* Spacer row for virtual scroll offset */}
+          {virtualItems().length > 0 && (
+            <tr>
+              <td
+                style={{ height: `${virtualItems()[0]?.start ?? 0}px` }}
+                colspan={headerGroups()[0]?.headers.length || 1}
+              />
+            </tr>
+          )}
           <For each={virtualItems()}>
             {(virtualRow) => {
               const row = rows()[virtualRow.index];
               const isEven = virtualRow.index % 2 === 0;
               return (
-                <div
+                <tr
                   style={{
-                    display: "grid",
-                    "grid-template-columns": gridTemplateColumns(),
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
                     height: `${virtualRow.size}px`,
-                    transform: `translateY(${virtualRow.start}px)`,
                     "background-color": isEven
                       ? "var(--bg-primary)"
                       : "var(--bg-secondary)",
-                    width: "100%",
                   }}
                 >
                   <For each={row.getVisibleCells()}>
-                    {(cell) => (
-                      <div
-                        style={{
-                          padding: "0.5rem 1rem",
-                          "white-space": "nowrap",
-                          overflow: "hidden",
-                          "text-overflow": "ellipsis",
-                          "min-width": 0,
-                        }}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </div>
-                    )}
+                    {(cell) => {
+                      const value = cell.getValue();
+                      return (
+                        <td
+                          style={{
+                            padding: "0.5rem 1rem",
+                            "white-space": "nowrap",
+                            overflow: "hidden",
+                            "text-overflow": "ellipsis",
+                            "max-width": `${MAX_COLUMN_WIDTH}px`,
+                            cursor: "pointer",
+                          }}
+                          onClick={(e) => handleCellClick(e, value)}
+                          title=""
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      );
+                    }}
                   </For>
-                </div>
+                </tr>
               );
             }}
           </For>
-        </div>
-      </div>
+          {/* Spacer row for remaining virtual scroll space */}
+          {virtualItems().length > 0 && (
+            <tr>
+              <td
+                style={{
+                  height: `${
+                    totalSize() -
+                    (virtualItems()[virtualItems().length - 1]?.end ?? 0)
+                  }px`,
+                }}
+                colspan={headerGroups()[0]?.headers.length || 1}
+              />
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      {/* Persistent tooltip */}
+      <Show when={tooltip()}>
+        {(t) => (
+          <div
+            style={{
+              position: "fixed",
+              left: `${t().x}px`,
+              top: `${t().y}px`,
+              "max-width": "400px",
+              "max-height": "200px",
+              overflow: "auto",
+              padding: "0.75rem",
+              background: "var(--bg-primary)",
+              border: "1px solid var(--border-color)",
+              "border-radius": "4px",
+              "box-shadow": "0 4px 12px rgba(0,0,0,0.15)",
+              "z-index": 1000,
+              "white-space": "pre-wrap",
+              "word-break": "break-all",
+              "font-family": "monospace",
+              "font-size": "0.875rem",
+            }}
+          >
+            <button
+              style={{
+                position: "absolute",
+                top: "4px",
+                right: "4px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "2px 6px",
+                "font-size": "0.75rem",
+                color: "var(--text-secondary)",
+              }}
+              onClick={closeTooltip}
+            >
+              ✕
+            </button>
+            <div style={{ "margin-top": "0.5rem" }}>{t().content}</div>
+          </div>
+        )}
+      </Show>
     </div>
   );
 };
