@@ -8,6 +8,8 @@ on:
       - "packages/**"
       - "!packages/**/*.md"
       - ".github/workflows/**"
+      - "!*.md"
+      - "!.github/instructions/**"
 
 permissions:
   id-token: write # Required for OIDC

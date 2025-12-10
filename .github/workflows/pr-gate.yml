@@ -8,7 +8,7 @@ on:
       - "packages/**"
       - "!packages/**/*.md"
       - ".github/workflows/**"
-      - ".github/instructions/**"
+      - "!*.md"
 
 permissions:
   contents: read
