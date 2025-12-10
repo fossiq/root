@@ -106,6 +106,15 @@ jobs:
             echo "   Using prebuilt WASM if available"
           fi
 
+      - name: Ensure tree-sitter WASM is available in node_modules
+        run: |
+          # Copy tree-sitter WASM to locations where tests expect it
+          mkdir -p packages/kql-to-duckdb/node_modules/web-tree-sitter
+          if [ -f node_modules/web-tree-sitter/tree-sitter.wasm ]; then
+            cp node_modules/web-tree-sitter/tree-sitter.wasm packages/kql-to-duckdb/node_modules/web-tree-sitter/
+            echo "✓ Copied tree-sitter.wasm to kql-to-duckdb node_modules"
+          fi
+
       - name: Build all packages first (in dependency order)
         run: |
           bun run --cwd packages/kql-ast build

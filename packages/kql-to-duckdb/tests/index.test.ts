@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { parseKql, initParser, kqlToDuckDB } from "../src/index";
 import { resolve } from "path";
+import { existsSync } from "fs";
 
 describe("KQL Parser Integration", () => {
   beforeAll(async () => {
@@ -9,10 +10,31 @@ describe("KQL Parser Integration", () => {
       import.meta.dir,
       "../../kql-parser/tree-sitter-kql.wasm"
     );
-    const treeSitterWasmPath = resolve(
-      import.meta.dir,
-      "../node_modules/web-tree-sitter/tree-sitter.wasm"
-    );
+
+    // Try multiple locations for tree-sitter WASM
+    let treeSitterWasmPath: string | undefined;
+    const possiblePaths = [
+      resolve(
+        import.meta.dir,
+        "../node_modules/web-tree-sitter/tree-sitter.wasm"
+      ),
+      resolve(
+        import.meta.dir,
+        "../../node_modules/web-tree-sitter/tree-sitter.wasm"
+      ),
+      resolve(
+        import.meta.dir,
+        "../../../node_modules/web-tree-sitter/tree-sitter.wasm"
+      ),
+    ];
+
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        treeSitterWasmPath = path;
+        break;
+      }
+    }
+
     await initParser(wasmPath, treeSitterWasmPath);
   });
 
