@@ -17,7 +17,7 @@ node -e "const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('package.j
 
 # Run tree-sitter generate
 echo "Generating parser..."
-bunx tree-sitter-cli generate
+bun x tree-sitter-cli generate
 
 # Restore "type": "module"
 echo "Restoring package.json..."

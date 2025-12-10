@@ -1,6 +1,5 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect } from "bun:test";
 import { isValid, getTokens } from "./_helpers";
-import { TokenType } from "@fossiq/kql-ast";
 
 describe("Comment parsing", () => {
   test("line comment after code", () => {
@@ -35,20 +34,20 @@ describe("Comment parsing", () => {
 describe("Comment token extraction", () => {
   test("comment tokens are identified", () => {
     const tokens = getTokens("Users // comment");
-    const comments = tokens.filter((t) => t.type === TokenType.Comment);
+    const comments = tokens.filter((t) => t.type === "comment");
     expect(comments.length).toBeGreaterThan(0);
   });
 
   test("comment content is preserved", () => {
     const tokens = getTokens("// my comment");
-    const comment = tokens.find((t) => t.type === TokenType.Comment);
+    const comment = tokens.find((t) => t.type === "comment");
     expect(comment?.value).toContain("// my comment");
   });
 
   test("comment position is accurate", () => {
     const query = "Users // comment";
     const tokens = getTokens(query);
-    const comment = tokens.find((t) => t.type === TokenType.Comment);
+    const comment = tokens.find((t) => t.type === "comment");
     expect(comment?.start).toBe(6);
     expect(comment?.end).toBe(query.length);
   });
@@ -59,7 +58,7 @@ describe("Comment token extraction", () => {
       | where age > 18 // comment 2
     `;
     const tokens = getTokens(query);
-    const comments = tokens.filter((t) => t.type === TokenType.Comment);
+    const comments = tokens.filter((t) => t.type === "comment");
     expect(comments.length).toBeGreaterThanOrEqual(2);
   });
 });

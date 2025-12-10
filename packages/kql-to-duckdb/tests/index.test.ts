@@ -1,15 +1,41 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { parseKql, initParser, kqlToDuckDB } from "../src/index";
 import { resolve } from "path";
+import { existsSync } from "fs";
 
 describe("KQL Parser Integration", () => {
   beforeAll(async () => {
-    // Resolve path to the WASM file in the monorepo
+    // Resolve path to the WASM file from node_modules
     const wasmPath = resolve(
       import.meta.dir,
       "../../kql-parser/tree-sitter-kql.wasm"
     );
-    await initParser(wasmPath);
+
+    // Try multiple locations for tree-sitter WASM
+    let treeSitterWasmPath: string | undefined;
+    const possiblePaths = [
+      resolve(
+        import.meta.dir,
+        "../node_modules/web-tree-sitter/tree-sitter.wasm"
+      ),
+      resolve(
+        import.meta.dir,
+        "../../node_modules/web-tree-sitter/tree-sitter.wasm"
+      ),
+      resolve(
+        import.meta.dir,
+        "../../../node_modules/web-tree-sitter/tree-sitter.wasm"
+      ),
+    ];
+
+    for (const path of possiblePaths) {
+      if (existsSync(path)) {
+        treeSitterWasmPath = path;
+        break;
+      }
+    }
+
+    await initParser(wasmPath, treeSitterWasmPath);
   });
 
   test("should parse a simple query", () => {

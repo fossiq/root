@@ -11,8 +11,22 @@ This document contains all instructions for AI agents working on the Fossiq code
 - **NEVER install global tools** (`brew install`, `npm install -g`, etc.) without explicit user approval
 - **NEVER start Docker containers** without explicit user approval
 - **NEVER modify system configuration** outside the project directory
-- **NEVER auto-commit** - always prompt user before committing changes
+- **⚠️ NEVER AUTO-COMMIT WITHOUT EXPLICIT USER APPROVAL ⚠️**
+  - EVERY SINGLE TIME you use `git commit`, you MUST FIRST ask the user for approval
+  - Use this exact pattern: "Should I commit these changes with message: [message]?"
+  - WAIT for explicit user response before running `git commit`
+  - The ONLY exception is if the user says at the START of the session "you can auto-commit from now on"
+  - If you forget to ask, that is a CRITICAL FAILURE
+  - NEVER assume approval. NEVER commit "just because the changes look good"
+  - Every instance of skipping this step is a serious violation
 - **Do not patch things** - always ask before proceeding and wait for explicit approval
+- **NEVER suppress, hide, or take action to eliminate issues** - EXTREMELY DISCOURAGED. Do not suppress warnings, ignore errors, or take any action whose sole purpose is to make issues disappear or go off visibility. Always ask the user what to do instead. Examples of violations:
+  - Suppressing build warnings without user approval
+  - Deleting error logs
+  - Modifying config to hide problems
+  - Wrapping errors in try-catch to silence them
+  - Any action taken "just to pass checks" or "just to make the tests pass"
+  - **If you catch yourself about to do this, STOP and ask the user first**
 
 ---
 

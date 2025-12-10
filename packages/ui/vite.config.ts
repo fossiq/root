@@ -18,7 +18,10 @@ export default defineConfig({
         __dirname,
         "../kql-to-duckdb/src/index.ts"
       ),
-      "@fossiq/kql-parser": path.resolve(__dirname, "../kql-parser/src/index.ts"),
+      "@fossiq/kql-parser": path.resolve(
+        __dirname,
+        "../kql-parser/src/index.ts"
+      ),
     },
   },
   server: {
@@ -36,6 +39,7 @@ export default defineConfig({
       "@fossiq/kql-parser",
       "@fossiq/kql-to-duckdb",
     ],
+    include: ["web-tree-sitter"],
   },
   build: {
     target: "es2023",

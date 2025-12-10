@@ -1,9 +1,17 @@
 {
   "name": "fossiq-monorepo",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ],
+    "catalog": {
+      "typescript": "^5.4.3",
+      "@types/node": "^20.0.0",
+      "@types/bun": "^1.3.4",
+      "web-tree-sitter": "^0.25.10"
+    }
+  },
   "scripts": {
     "dev": "bun --filter ./packages/app dev",
     "lint": "eslint packages --ext .ts,.tsx",

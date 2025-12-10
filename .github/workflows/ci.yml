@@ -8,7 +8,8 @@ on:
       - "packages/**"
       - "!packages/**/*.md"
       - ".github/workflows/**"
-  workflow_dispatch:
+      - "!*.md"
+      - "!.github/instructions/**"
 
 permissions:
   id-token: write # Required for OIDC
@@ -41,7 +42,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v1
         with:
-          bun-version: latest
+          bun-version: 1.3.4
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -83,7 +84,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v1
         with:
-          bun-version: latest
+          bun-version: 1.3.4
 
       - name: Cache Bun dependencies
         uses: actions/cache@v4
@@ -133,11 +134,16 @@ jobs:
             echo "   Using prebuilt WASM if available"
           fi
 
-      - name: Build all packages
-        run: ./.github/scripts/build-packages.sh
+      - name: Build all packages (in dependency order)
+        run: |
+          bun run --cwd packages/kql-ast build
+          bun run --cwd packages/kql-lezer build
+          bun run --cwd packages/kql-parser build
+          bun run --cwd packages/kql-to-duckdb build
+          bun run --cwd packages/ui build
 
       - name: Run tests with coverage
-        run: ./.github/scripts/test-packages.sh
+        run: bun run --filter "*" test --coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

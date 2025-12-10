@@ -16,39 +16,32 @@ export interface ASTNode {
 
 /**
  * Token types for syntax highlighting
+ * Used by syntax highlighters to apply appropriate styling to parsed tokens
  */
-export enum TokenType {
+export type TokenType =
   // Keywords
-  Keyword = "keyword",
-
+  | "keyword"
   // Literals
-  String = "string",
-  Number = "number",
-  Boolean = "boolean",
-
+  | "string"
+  | "number"
+  | "boolean"
   // Identifiers and names
-  Identifier = "identifier",
-  FunctionName = "functionName",
-  ColumnName = "columnName",
-  TableName = "tableName",
-
+  | "identifier"
+  | "functionName"
+  | "columnName"
+  | "tableName"
   // Operators
-  Operator = "operator",
-  ComparisonOperator = "comparisonOperator",
-  LogicalOperator = "logicalOperator",
-
+  | "operator"
+  | "comparisonOperator"
+  | "logicalOperator"
   // Delimiters
-  Punctuation = "punctuation",
-
+  | "punctuation"
   // Comments
-  Comment = "comment",
-
+  | "comment"
   // Whitespace
-  Whitespace = "whitespace",
-
+  | "whitespace"
   // Special
-  Invalid = "invalid",
-}
+  | "invalid";
 
 /**
  * Statement types
