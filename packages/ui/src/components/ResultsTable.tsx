@@ -35,7 +35,10 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
     return Object.keys(firstItem).map((key) => ({
       accessorKey: key,
       header: key,
-      cell: (info) => info.getValue(),
+      cell: (info) => {
+        const value = info.getValue();
+        return typeof value === "bigint" ? value.toString() : value;
+      },
     }));
   });
 
