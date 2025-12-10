@@ -1,5 +1,13 @@
 # @fossiq/kql-lezer
 
+## 0.2.1
+
+### Patch Changes
+
+- Fix test scripts to handle coverage flags properly
+- Add test:coverage script for coverage reporting
+- Switch test runner from Vitest to Bun for better monorepo integration
+
 ## 0.2.0
 
 ### Minor Changes

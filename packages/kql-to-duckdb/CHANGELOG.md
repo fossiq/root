@@ -1,5 +1,13 @@
 # @fossiq/kql-to-duckdb
 
+## 0.2.2
+
+### Patch Changes
+
+- Fix test scripts to handle coverage flags properly
+- Add test:coverage script for coverage reporting
+- Ensure tree-sitter WASM availability in test environment
+
 ## 0.2.1
 
 ### Patch Changes

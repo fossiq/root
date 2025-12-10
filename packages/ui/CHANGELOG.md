@@ -1,5 +1,12 @@
 # @fossiq/ui
 
+## 0.2.1
+
+### Patch Changes
+
+- Fix test scripts to handle coverage flags properly
+- Add test:coverage script for coverage reporting
+
 ## 0.2.0
 
 ### Minor Changes

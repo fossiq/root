@@ -1,5 +1,14 @@
 # @fossiq/kql-parser
 
+## 1.0.3
+
+### Patch Changes
+
+- Fix test scripts to handle coverage flags properly
+- Add test:coverage script for coverage reporting
+- Ensure tree-sitter WASM availability in test environment
+- Remove unnecessary WASM build step from CI workflow
+
 ## 1.0.2
 
 ### Patch Changes
