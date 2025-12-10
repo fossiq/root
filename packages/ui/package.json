@@ -41,8 +41,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": " echo \"No tests specified\" && exit 0 ",
-    "test:coverage": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\"",
+    "test:coverage": "echo \"No tests specified\""
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.0.0",
