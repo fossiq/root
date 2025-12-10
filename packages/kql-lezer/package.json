@@ -61,12 +61,11 @@
   "devDependencies": {
     "@lezer/generator": "^1.5.0",
     "@types/node": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "^1.0.0"
+    "typescript": "catalog:"
   },
   "scripts": {
     "build": "bun run build:grammar && tsc",
     "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && ./scripts/fix-parser-types.sh",
-    "test": "vitest"
+    "test": "bun test tests"
   }
 }
