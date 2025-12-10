@@ -1,6 +1,8 @@
 /* Modern minimal theme with glass effects */
 
-:root {
+:root,
+:root[data-theme="light"],
+:root.theme-light {
   /* Light theme colors */
   --bg-primary: #ffffff;
   --bg-secondary: #f9f9fb;
@@ -22,9 +24,18 @@
   --code-font: "Cascadia Code", "Fira Code", "Consolas", "Monaco", "Courier New",
     monospace;
   --code-font-size: 13px;
+
+  /* Override PicoCSS colors */
+  --pico-background-color: var(--bg-primary);
+  --pico-color: var(--text-primary);
+  --pico-muted-color: var(--text-secondary);
+  --pico-primary: var(--button-primary);
+  --pico-primary-hover: var(--button-hover);
+  --pico-border-color: var(--border-color);
 }
 
-/* Dark theme class-based override */
+/* Dark theme - use both class and data-attribute for compatibility */
+:root[data-theme="dark"],
 :root.theme-dark {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
@@ -42,28 +53,14 @@
   --accent-blue: #60a5fa;
   --glass-bg: rgba(30, 41, 59, 0.7);
   --glass-border: rgba(148, 163, 184, 0.1);
-}
 
-/* Fallback: media query for when no user preference is set */
-@media (prefers-color-scheme: dark) {
-  :root:not(.theme-light):not(.theme-dark) {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --border-color: #334155;
-    --header-bg: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    --header-text: #f1f5f9;
-    --header-border: #334155;
-    --sidebar-bg: #1e293b;
-    --sidebar-hover: #334155;
-    --button-primary: #3b82f6;
-    --button-hover: #2563eb;
-    --button-text: #ffffff;
-    --accent-blue: #60a5fa;
-    --glass-bg: rgba(30, 41, 59, 0.7);
-    --glass-border: rgba(148, 163, 184, 0.1);
-  }
+  /* Override PicoCSS colors for dark mode */
+  --pico-background-color: var(--bg-primary);
+  --pico-color: var(--text-primary);
+  --pico-muted-color: var(--text-secondary);
+  --pico-primary: var(--button-primary);
+  --pico-primary-hover: var(--button-hover);
+  --pico-border-color: var(--border-color);
 }
 
 * {
