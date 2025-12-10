@@ -68,6 +68,12 @@ This document contains all instructions for AI agents working on the Fossiq code
 
 ## HIGH: Development Workflow
 
+### Debugging GitHub Workflows
+
+- When asked to debug a GitHub workflow with a URL, **always use `gh` CLI** to fetch and analyze logs
+- Use `gh run view <run-id> --log` or `gh run view --job=<job-id> --log` to get logs
+- Do NOT use WebFetch for GitHub Actions pages
+
 ### Before Making Changes
 
 - **Always read files before editing** - understand existing code first
