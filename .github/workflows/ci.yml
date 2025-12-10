@@ -8,6 +8,7 @@ on:
       - "packages/**"
       - "!packages/**/*.md"
       - ".github/workflows/**"
+      - ".github/scripts/**"
       - "!*.md"
       - "!.github/instructions/**"
 
@@ -110,8 +111,7 @@ jobs:
         working-directory: packages/kql-parser
         run: |
           bunx tree-sitter-cli@latest build --wasm
-          echo "WASM built successfully"
-          ls -la tree-sitter-kql.wasm
+          echo "✓ WASM built successfully"
 
       - name: Upload WASM Artifact
         uses: actions/upload-artifact@v4
@@ -140,11 +140,18 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-x64-node-modules-${{ hashFiles('bun.lock') }}
 
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      # Download all binding artifacts
       - name: Download Cross-Platform Bindings
         uses: actions/download-artifact@v4
         with:
@@ -153,28 +160,18 @@ jobs:
           merge-multiple: false
 
       - name: Organize Bindings
-        run: |
-          cd packages/kql-parser/prebuilds
-          for dir in binding-*; do
-            target="${dir#binding-}"
-            mkdir -p "$target"
-            mv "$dir"/* "$target/"
-            rmdir "$dir"
-          done
-          echo "Organized prebuilds:"
-          ls -R
+        run: .github/scripts/organize-bindings.sh
 
-      # Download WASM artifact
       - name: Download WASM
         uses: actions/download-artifact@v4
         with:
           name: wasm
           path: packages/kql-parser
 
-      - name: Build all packages
+      - name: Build all packages (turbo)
         run: bun run build
 
-      - name: Run tests
+      - name: Run tests (turbo)
         run: bun run test
 
       - name: Upload coverage to Codecov
@@ -185,67 +182,24 @@ jobs:
           fail_ci_if_error: false
           verbose: true
 
-      - name: Check if version changed
-        id: version-check
-        run: |
-          LOCAL_VERSION=$(jq -r '.version' packages/kql-parser/package.json)
-          REMOTE_VERSION=$(npm view @fossiq/kql-parser version --registry=https://npm.pkg.github.com 2>/dev/null || echo "0.0.0")
-          echo "local=$LOCAL_VERSION, remote=$REMOTE_VERSION"
-          if [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Setup .npmrc for GitHub Packages
-        if: steps.version-check.outputs.changed == 'true'
         run: |
           echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
-      - name: Publish packages
-        if: steps.version-check.outputs.changed == 'true'
-        run: |
-          for pkg in kql-ast kql-lezer kql-parser kql-to-duckdb; do
-            echo "Publishing @fossiq/$pkg..."
-            cd packages/$pkg
-            if bun publish --ignore-scripts 2>&1 | tee /tmp/publish-output.txt; then
-              echo "✓ @fossiq/$pkg published successfully"
-            else
-              if grep -q "409 Conflict" /tmp/publish-output.txt; then
-                echo "⚠ @fossiq/$pkg already published (409 Conflict) - skipping"
-              else
-                echo "✗ @fossiq/$pkg publish failed"
-                cat /tmp/publish-output.txt
-                exit 1
-              fi
-            fi
-            cd ../..
-          done
+      - name: Publish affected packages (turbo --affected)
+        id: publish
+        run: .github/scripts/publish-packages.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger UI deployment
-        run: |
-          eval "$(ssh-agent -s)"
-          ssh-add - <<< "${{ secrets.DEPLOY_KEY_GITHUB_IO }}"
-          git clone git@github.com:fossiq/fossiq.github.io.git /tmp/github-io
-          cd /tmp/github-io
-          date > .last-deploy
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .last-deploy
-          git commit -m "chore: trigger deploy from fossiq/root"
-          git push
+        run: .github/scripts/trigger-ui-deploy.sh
+        env:
+          DEPLOY_KEY_GITHUB_IO: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
 
       - name: Create GitHub Release
-        if: steps.version-check.outputs.changed == 'true'
-        run: |
-          VERSION=$(jq -r '.version' packages/kql-parser/package.json)
-          gh release create "v$VERSION" \
-            --title "v$VERSION" \
-            --notes "Release v$VERSION - see individual package CHANGELOGs for details"
+        if: steps.publish.outputs.published == '1'
+        run: .github/scripts/create-release.sh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

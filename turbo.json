@@ -21,7 +21,8 @@
     },
     "ci:publish": {
       "dependsOn": ["build", "test"],
-      "outputs": []
+      "outputs": [],
+      "cache": false
     }
   }
 }
