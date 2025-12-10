@@ -1,5 +1,11 @@
 # @fossiq/kql-parser
 
+## 1.1.3
+
+### Patch Changes
+
+- CI: deploy key for UI deployment trigger
+
 ## 1.1.2
 
 ### Patch Changes
