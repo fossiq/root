@@ -12,7 +12,12 @@ for package in packages/*; do
     echo "Testing $package with coverage..."
     cd "$package"
     if grep -q '"test"' package.json; then
-      bun test --coverage --coverage-reporter=lcov
+      # Only run tests if test files exist
+      if [ -d "tests" ] || compgen -G "*.test.ts" > /dev/null || compgen -G "*.spec.ts" > /dev/null; then
+        bun test --coverage --coverage-reporter=lcov
+      else
+        echo "No test files found in $package, skipping"
+      fi
     fi
     cd ../..
   fi
