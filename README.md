@@ -1,116 +1,133 @@
 # Fossiq
 
-## For AI Agents
-
-Please refer to the detailed operating instructions in [.github/copilot-instructions.md](/.github/copilot-instructions.md).
-
 [![CI](https://github.com/fossiq/root/actions/workflows/ci.yml/badge.svg)](https://github.com/fossiq/root/actions/workflows/ci.yml)
 
-A monorepo containing KQL (Kusto Query Language) tooling and applications.
+A monorepo containing KQL (Kusto Query Language) tooling and applications. Query your CSV files using KQL syntax with an Azure Data Explorer-like interface.
 
 ## Packages
 
-### [@fossiq/kql-parser](./packages/kql-parser)
+| Package                                           | Description                                           | Status                                                                                                                |
+| ------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [@fossiq/kql-parser](./packages/kql-parser)       | Tree-sitter based KQL parser with typed AST           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser)       |
+| [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb) | KQL to DuckDB SQL translator                          | [![npm](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb) |
+| [@fossiq/kql-ast](./packages/kql-ast)             | Shared AST type definitions                           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-ast.svg)](https://www.npmjs.com/package/@fossiq/kql-ast)             |
+| [@fossiq/kql-lezer](./packages/kql-lezer)         | Lezer-based parser for CodeMirror syntax highlighting | [![npm](https://img.shields.io/npm/v/@fossiq/kql-lezer.svg)](https://www.npmjs.com/package/@fossiq/kql-lezer)         |
+| [@fossiq/ui](./packages/ui)                       | Web application (private)                             | -                                                                                                                     |
 
-A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter. Provides complete KQL grammar support with type-safe AST generation.
+### @fossiq/kql-parser
 
-[![npm version](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser)
+Tree-sitter based KQL parser providing:
 
-### [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb)
+- Complete KQL grammar (14 operators, all expression types)
+- Type-safe AST generation
+- 88 comprehensive tests
+- Cross-platform native bindings
 
-[![npm version](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb)
+### @fossiq/kql-to-duckdb
 
-A translator that converts KQL queries to DuckDB SQL. Supports 11 core operators and 35+ functions including joins, unions, datetime operations, and advanced string/math transformations.
+Translates KQL queries to DuckDB SQL:
 
-[![npm version](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb)
+- 11 core operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search)
+- All 8 KQL join types
+- 35+ functions (string, math, datetime, type conversion)
+- 113 integration tests
 
-### [@fossiq/app](./packages/app) (Private)
+### @fossiq/kql-lezer
 
-A web application for querying CSV files using KQL with an Azure Data Explorer-like interface.
+Lezer-based parser for editor integration:
+
+- Real-time syntax highlighting
+- CodeMirror 6 language support
+- No WASM required (pure JavaScript)
+- Incremental parsing
+
+### @fossiq/ui
+
+Web application for querying CSV files:
+
+- Azure Data Explorer-like interface
+- DuckDB WASM for in-browser SQL execution
+- File persistence across page reloads
+- Light/dark theme support
+
+## Quick Start
+
+```bash
+# Install dependencies
+bun install
+
+# Start the web app
+cd packages/ui && bun run dev
+```
 
 ## Development
 
-This is a Bun workspace monorepo. Install dependencies from the root:
+### Prerequisites
+
+- [Bun](https://bun.sh/) v1.0+
+
+### Commands
 
 ```bash
-bun install
+bun install          # Install all dependencies
+bun run build        # Build all packages
+bun run lint         # Lint all packages
+bun run lint:fix     # Auto-fix lint issues
+bun run changeset    # Create a changeset for versioning
 ```
 
-### Working with Packages
-
-Build all packages:
+### Package Development
 
 ```bash
+# Build specific package
 cd packages/kql-parser && bun run build
-cd packages/kql-to-duckdb && bun run build
-```
 
-Run tests:
-
-```bash
+# Run tests
 cd packages/kql-parser && bun run test
-cd packages/kql-to-duckdb && bun run test
+
+# Watch mode
+cd packages/kql-parser && bun run test:watch
 ```
-
-Start the app:
-
-```bash
-bun run dev
-```
-
-### Versioning and Publishing
-
-This monorepo uses [Changesets](https://github.com/changesets/changesets) for version management.
-
-**To release a new version:**
-
-1. Make your changes to a package
-2. Create a changeset:
-   ```bash
-   bun run changeset
-   ```
-3. Select the package(s) that changed and the version bump type (patch/minor/major)
-4. Commit the changeset with your changes
-5. Push to main - GitHub Actions will create a "Release: Version Packages" PR
-6. Review and merge the PR - packages will be automatically published to npm
-
-See [`.copilot/monorepo.md`](./.copilot/monorepo.md) for detailed versioning documentation.
-
-## Tech Stack
-
-- **Runtime**: Bun
-- **Language**: TypeScript
-- **Parser**: tree-sitter
-- **Frontend** (app): SolidJS, Vite, PicoCSS
-- **CI/CD**: GitHub Actions (build, test, coverage, publish)
-- **Package Manager**: Changesets
-- **Code Coverage**: Codecov
 
 ## Repository Structure
 
 ```
 .
 ├── packages/
-│   ├── kql-parser/          # KQL parser library (published to npm)
-│   ├── kql-to-duckdb/       # KQL to DuckDB translator (published to npm)
-│   └── app/                 # CSV query web app (private)
+│   ├── kql-parser/      # Tree-sitter KQL parser
+│   ├── kql-to-duckdb/   # KQL to SQL translator
+│   ├── kql-ast/         # Shared AST types
+│   ├── kql-lezer/       # Lezer parser for editors
+│   └── ui/              # Web application
 ├── .github/
-│   └── workflows/           # GitHub Actions workflows
-├── .changeset/              # Changesets configuration
-└── scripts/
-    └── publish-all.sh       # Publish script for npm packages
+│   ├── workflows/       # CI/CD workflows
+│   ├── scripts/         # Build scripts
+│   └── instructions/    # Development guides
+└── .changeset/          # Version management
 ```
 
-## CI/CD
+## Contributing
 
-The repository uses GitHub Actions for continuous integration:
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
 
-- **Build**: All packages are compiled on every push to `main`
-- **Test**: Tests run with coverage using `bun test --coverage`
-- **Coverage**: Coverage reports are uploaded to Codecov
-- **Publish**: Packages are automatically published to npm with provenance
+- Development workflow
+- Code style
+- Creating pull requests
+- Versioning with Changesets
 
-To set up Codecov integration, add the `CODECOV_TOKEN` secret to your repository settings.
+## For AI Agents
+
+See [AGENTS.md](./AGENTS.md) for detailed instructions on working with this codebase.
+
+## Tech Stack
+
+- **Runtime**: Bun
+- **Language**: TypeScript (ESM)
+- **Parsers**: Tree-sitter, Lezer
+- **Frontend**: SolidJS, Vite, PicoCSS, CodeMirror 6
+- **Database**: DuckDB WASM
+- **CI/CD**: GitHub Actions
+- **Versioning**: Changesets
 
 ## License
 

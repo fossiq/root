@@ -1,34 +1,15 @@
 # Copilot Instructions
 
-## Meta-Instructions
+All AI agent instructions have been consolidated into a single document.
 
-**After completing ANY feature:**
+**Read [AGENTS.md](../AGENTS.md) at the repository root for complete instructions.**
 
-1. Document the implementation process in [KQL Parser Status](instructions/kql-parser-status.md) (if relevant) or the appropriate instruction file.
-2. Update feature checklists (mark [x] for completed) in [KQL Parser Status](instructions/kql-parser-status.md).
-3. Add patterns/gotchas discovered to [KQL Parser Development Guide](instructions/kql-parser-dev.md) or [General Development Guidelines](instructions/meta.md).
+The detailed package-specific guides in `.github/instructions/` are still available for deep-dive reference:
 
-**Why:** AI agents have no memory between sessions. Without updates, knowledge is lost.
-
-**NEVER auto-commit** - always prompt user before committing changes.
-
-**Do not patch things. Always ask me before proceeding and wait for my explicit approval for anything.**
-
-## Project Overview
-
-Fossiq monorepo - KQL (Kusto Query Language) tooling with TypeScript and Bun.
-
-## Documentation Index
-
-Detailed instructions and documentation are split into the following files for better maintainability and readability by AI agents:
-
-- **[General Development Guidelines](instructions/meta.md)**
-  - Communication, Code Style, Architecture, Code Quality, File Organization, Workflow, Testing, Documentation.
-- **[Monorepo Management](instructions/monorepo.md)**
-  - Package Structure, Naming, Dependencies, Build Process, Adding Packages, Exports, ESLint, Versioning, GitHub Workflows.
-- **[KQL Parser Development Guide](instructions/kql-parser-dev.md)**
-  - Technical guide for `@fossiq/kql-parser`. Structure, Grammar, Builders, How to add operators, etc.
-- **[KQL Parser Status & Checklist](instructions/kql-parser-status.md)**
-  - Current state, Recent completions, Feature checklist, Publishing readiness.
-
-Please refer to these files for specific details.
+- `meta.md` - General development guidelines
+- `monorepo.md` - Monorepo management
+- `kql-parser-dev.md` / `kql-parser-status.md` - KQL parser details
+- `kql-to-duckdb-dev.md` / `kql-to-duckdb-status.md` - Translator details
+- `kql-lezer-dev.md` / `kql-lezer-status.md` - Lezer parser details
+- `kql-ast-dev.md` / `kql-ast-status.md` - AST types details
+- `ui-dev.md` / `ui-status.md` - UI application details
