@@ -16,6 +16,7 @@ export interface ASTNode {
 
 /**
  * Token types for syntax highlighting
+ * Used by syntax highlighters to apply appropriate styling to parsed tokens
  */
 export type TokenType =
   // Keywords
