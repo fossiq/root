@@ -20,6 +20,11 @@ This document contains all instructions for AI agents working on the Fossiq code
   - NEVER assume approval. NEVER commit "just because the changes look good"
   - Every instance of skipping this step is a serious violation
 - **Do not patch things** - always ask before proceeding and wait for explicit approval
+- **⚠️ ALWAYS FETCH AND PULL MAIN BEFORE CREATING A NEW BRANCH ⚠️**
+  - EVERY TIME you create a feature/fix branch, you MUST FIRST run: `git fetch origin && git pull origin main`
+  - This prevents conflicts from concurrent changes to main
+  - If you skip this step and conflicts arise during rebase, you will waste time resolving them
+  - This is a CRITICAL FAILURE if ignored
 - **NEVER suppress, hide, or take action to eliminate issues** - EXTREMELY DISCOURAGED. Do not suppress warnings, ignore errors, or take any action whose sole purpose is to make issues disappear or go off visibility. Always ask the user what to do instead. Examples of violations:
   - Suppressing build warnings without user approval
   - Deleting error logs
