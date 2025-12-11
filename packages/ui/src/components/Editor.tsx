@@ -3,11 +3,13 @@ import { basicSetup } from "codemirror";
 import { EditorView, keymap } from "@codemirror/view";
 import { Compartment } from "@codemirror/state";
 import { autocompletion } from "@codemirror/autocomplete";
+import { linter } from "@codemirror/lint";
 import { kql } from "@fossiq/kql-lezer";
 import { useTheme } from "../hooks/useTheme";
 import { useSchema } from "../contexts/SchemaContext";
 import { kqlLightTheme, kqlDarkTheme } from "../styles/editorTheme";
 import { createKqlCompletion } from "../utils/completion";
+import { createKqlLinter } from "../utils/linter";
 
 interface EditorProps {
   onRun?: () => void;
@@ -21,6 +23,7 @@ const Editor: Component<EditorProps> = (props) => {
   const { tables } = useSchema();
   const themeCompartment = new Compartment();
   const completionCompartment = new Compartment();
+  const linterCompartment = new Compartment();
 
   onMount(() => {
     if (!editorContainer) return;
@@ -38,9 +41,8 @@ const Editor: Component<EditorProps> = (props) => {
       extensions: [
         basicSetup,
         kql(),
-        themeCompartment.of(
-          theme() === "dark" ? kqlDarkTheme : kqlLightTheme
-        ),
+        linterCompartment.of(linter(createKqlLinter(tables()))),
+        themeCompartment.of(theme() === "dark" ? kqlDarkTheme : kqlLightTheme),
         completionCompartment.of(
           autocompletion({ override: [createKqlCompletion(tables())] })
         ),
@@ -69,6 +71,14 @@ const Editor: Component<EditorProps> = (props) => {
       view.dispatch({
         effects: completionCompartment.reconfigure(
           autocompletion({ override: [createKqlCompletion(tables())] })
+        ),
+      });
+    });
+
+    createEffect(() => {
+      view.dispatch({
+        effects: linterCompartment.reconfigure(
+          linter(createKqlLinter(tables()))
         ),
       });
     });

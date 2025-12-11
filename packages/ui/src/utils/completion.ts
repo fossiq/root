@@ -3,6 +3,7 @@ import {
   CompletionResult,
   snippet,
 } from "@codemirror/autocomplete";
+import { syntaxTree } from "@codemirror/language";
 import { Table } from "../contexts/SchemaContext";
 
 const kqlKeywords = [
@@ -148,10 +149,63 @@ const kqlKeywords = [
   { label: "desc", type: "keyword" },
 ];
 
+const aggregationFunctions = [
+  {
+    label: "count",
+    type: "function",
+    info: "Returns the count of records.",
+    apply: snippet("count()"),
+  },
+  {
+    label: "sum",
+    type: "function",
+    info: "Returns the sum of distinct values.",
+    apply: snippet("sum(${1:expr})"),
+  },
+  {
+    label: "avg",
+    type: "function",
+    info: "Returns the average of expr.",
+    apply: snippet("avg(${1:expr})"),
+  },
+  {
+    label: "min",
+    type: "function",
+    info: "Returns the minimum value.",
+    apply: snippet("min(${1:expr})"),
+  },
+  {
+    label: "max",
+    type: "function",
+    info: "Returns the maximum value.",
+    apply: snippet("max(${1:expr})"),
+  },
+  {
+    label: "dcount",
+    type: "function",
+    info: "Returns the distinct count.",
+    apply: snippet("dcount(${1:expr})"),
+  },
+];
+
 export function createKqlCompletion(tables: Table[]) {
   return (context: CompletionContext): CompletionResult | null => {
     const word = context.matchBefore(/\w*/);
     if (!word || (word.from === word.to && !context.explicit)) return null;
+
+    // Check if we are inside a summarize clause
+    const tree = syntaxTree(context.state);
+    let node = tree.resolveInner(context.pos, -1);
+    let isInsideSummarize = false;
+
+    while (node) {
+      if (node.name === "summarizeClause") {
+        isInsideSummarize = true;
+        break;
+      }
+      // Access parent via 'parent' property which exists on SyntaxNode (NodeProp wrapper)
+      node = node.parent!;
+    }
 
     const tableOptions = tables.map((t) => ({
       label: t.name,
@@ -198,14 +252,20 @@ export function createKqlCompletion(tables: Table[]) {
       new Map(aliases.map((a) => [a.label, a])).values()
     );
 
+    const options = [
+      ...kqlKeywords,
+      ...tableOptions,
+      ...uniqueColumnOptions,
+      ...uniqueAliases,
+    ];
+
+    if (isInsideSummarize) {
+      options.push(...aggregationFunctions);
+    }
+
     return {
       from: word.from,
-      options: [
-        ...kqlKeywords,
-        ...tableOptions,
-        ...uniqueColumnOptions,
-        ...uniqueAliases,
-      ],
+      options,
     };
   };
 }
