@@ -22,6 +22,10 @@ describe("Basic grammar", () => {
     expect(isValid("Users | 42 | Events")).toBe(true);
   });
 
+  test("bracketed identifier with spaces", () => {
+    expect(isValid("['Table Name'] | project ['Column Name']")).toBe(true);
+  });
+
   test("parser returns valid result", () => {
     const result = parse("Users");
     expect(result).toHaveProperty("errors");
