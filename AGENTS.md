@@ -71,6 +71,12 @@ This document contains all instructions for AI agents working on the Fossiq code
 ### GitHub Interactions
 
 - **Always use `gh` CLI** for all GitHub interactions (issues, PRs, workflows, logs, etc.).
+- **Include Disclaimer:** When creating issues or comments via `gh` CLI, **ALWAYS** include the disclaimer at the bottom:
+  ```markdown
+  ---
+
+  _This {issue|comment} was created by an AI agent on behalf of @<username>._
+  ```
 - Do not use direct API tools if `gh` CLI can perform the task.
 - To fetch workflow logs: `gh run view <run-id> --log` or `gh run view --job=<job-id> --log`
 - Do NOT use WebFetch for GitHub Actions pages
