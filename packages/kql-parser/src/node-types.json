@@ -121,7 +121,26 @@
       "required": true,
       "types": [
         {
+          "type": "between_value",
+          "named": true
+        },
+        {
           "type": "identifier",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "between_value",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "function_call",
           "named": true
         },
         {
