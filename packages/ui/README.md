@@ -4,7 +4,7 @@ A modern, browser-based UI for querying data using Kusto Query Language (KQL), b
 
 ## Screenshot
 
-![Fossiq UI - Query Editor and Results](./assets/Fossiq%20-%20KQL%20Query%20Explorer.jpeg)
+![Fossiq UI - Query Editor and Results](./assets/screenshot.png)
 
 _Fossiq UI showing the KQL editor, results table, and schema sidebar._
 
