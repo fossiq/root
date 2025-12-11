@@ -115,16 +115,17 @@ functionCall { functionName OpenParen argumentList? CloseParen }
 
 comparisonOperator {
   ComparisonOp |
-  kw<"contains"> | kw<"!contains"> |
+  kw<"contains"> | kwRenamed<"!contains", "NotContains"> |
   kw<"startswith"> | kw<"endswith"> |
-  kw<"has"> | kw<"!has"> |
-  kw<"in"> | kw<"!in">
+  kw<"has"> | kwRenamed<"!has", "NotHas"> |
+  kw<"in"> | kwRenamed<"!in", "NotIn">
 }
 
 literal {
   Number | String
 }
 
+kwRenamed<term, name> { @specialize[@name={name}]<Identifier, term> }
 kw<term> { @specialize[@name={term}]<Identifier, term> }
 
 @tokens {

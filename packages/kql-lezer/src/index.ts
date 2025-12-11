@@ -121,6 +121,9 @@ function getTokenType(nodeName: string): TokenType | null {
     case "kw_in":
     case "kw_notin":
     case "let":
+    case "NotContains":
+    case "NotHas":
+    case "NotIn":
       return "keyword";
     // Operators
     case "Pipe":
@@ -178,7 +181,7 @@ export const kqlLanguage = LRLanguage.define({
         "and or not": t.logicOperator,
         // String comparison operators (keyword-style)
         "contains startswith endswith has in": t.operatorKeyword,
-        "!contains !has !in": t.operatorKeyword,
+        "NotContains NotHas NotIn": t.operatorKeyword,
         // Pipe operator
         Pipe: t.punctuation,
         // Comparison operators
