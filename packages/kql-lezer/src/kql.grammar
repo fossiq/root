@@ -1,6 +1,8 @@
 @top Query { statement }
 
-statement { pipelineExpression }
+statement { pipelineExpression | letStatement statement? }
+
+letStatement { kw<"let"> Identifier Equals expression Semicolon }
 
 pipelineExpression { tableExpression (Pipe operator)* }
 
@@ -16,10 +18,13 @@ operator {
   topClause |
   distinctClause |
   summarizeClause |
+  joinClause |
   Identifier |
   Number |
   String
 }
+
+joinClause { kw<"join"> joinKind? tableExpression kw<"on"> expression }
 
 projectClause { kw<"project"> columnList }
 
@@ -27,7 +32,7 @@ extendClause { kw<"extend"> columnList }
 
 sortClause { kw<"sort"> kw<"by">? sortColumnList }
 
-sortColumnList { sortColumn ("," sortColumn)* }
+sortColumnList { sortColumn (Comma sortColumn)* }
 
 sortColumn { Identifier (kw<"asc"> | kw<"desc">)? }
 
@@ -39,24 +44,29 @@ topClause { kw<"top"> Number kw<"by">? Identifier (kw<"asc"> | kw<"desc">)? }
 
 distinctClause { kw<"distinct"> columnNameList }
 
-columnNameList { Identifier ("," Identifier)* }
+columnNameList { Identifier (Comma Identifier)* }
 
 summarizeClause { kw<"summarize"> aggregationList (kw<"by"> columnNameList)? }
 
-aggregationList { aggregation ("," aggregation)* }
+aggregationList { aggregation (Comma aggregation)* }
 
-aggregation { Identifier "=" aggregateFunction | aggregateFunction }
+aggregation { Identifier Equals aggregateFunction | aggregateFunction }
 
 aggregateFunction { functionName OpenParen argumentList? CloseParen }
 
 functionName { Identifier }
 
-argumentList { expression ("," expression)* }
+argumentList { expression (Comma expression)* }
 
-columnList { columnSpec ("," columnSpec)* }
+joinKind {
+  kw<"inner"> | kw<"leftouter"> | kw<"rightouter"> | kw<"fullouter"> |
+  kw<"leftanti"> | kw<"rightanti"> | kw<"leftsemi"> | kw<"rightsemi">
+}
+
+columnList { columnSpec (Comma columnSpec)* }
 
 columnSpec {
-  Identifier ("=" expression)?
+  Identifier (Equals expression)?
 }
 
 whereClause { kw<"where"> expression }
@@ -75,19 +85,33 @@ andExpression {
 
 notExpression {
   kw<"not"> notExpression |
-  primaryExpression
+  comparisonExpression
+}
+
+comparisonExpression {
+  sumExpression (comparisonOperator sumExpression)*
+}
+
+sumExpression {
+  termExpression ((Plus | Minus) termExpression)*
+}
+
+termExpression {
+  primaryExpression ((Star | Slash | Percent) primaryExpression)*
 }
 
 primaryExpression {
-  comparison |
+  functionCall |
   OpenParen expression CloseParen |
   literal |
-  Identifier
+  columnReference
 }
 
-comparison {
-  Identifier comparisonOperator value
+columnReference {
+  Identifier (OpenBracket expression CloseBracket)*
 }
+
+functionCall { functionName OpenParen argumentList? CloseParen }
 
 comparisonOperator {
   ComparisonOp |
@@ -95,10 +119,6 @@ comparisonOperator {
   kw<"startswith"> | kw<"endswith"> |
   kw<"has"> | kw<"!has"> |
   kw<"in"> | kw<"!in">
-}
-
-value {
-  literal | Identifier
 }
 
 literal {
@@ -111,14 +131,27 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
   Pipe { "|" }
   OpenParen { "(" }
   CloseParen { ")" }
+  OpenBracket { "[" }
+  CloseBracket { "]" }
   Comma { "," }
+  Semicolon { ";" }
+  Equals { "=" }
+
+  // Math operators
+  Plus { "+" }
+  Minus { "-" }
+  Star { "*" }
+  Slash { "/" }
+  Percent { "%" }
 
   Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }
-  Number { @digit+ }
-  String { '"' (!["\\\n] | "\\" _)* '"' }
+  Number { @digit+ ("." @digit+)? }
+  String { '"' (!["\\\n] | "\\" _)* '"' | "'" (!['\\\n] | "\\" _)* "'" }
   ComparisonOp { "==" | "!=" | ">=" | "<=" | ">" | "<" }
   LineComment { "//" ![\n]* }
   whitespace { $[ \t\n\r]+ }
+
+  @precedence { LineComment, Slash }
 }
 
 @skip { whitespace | LineComment }

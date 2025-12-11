@@ -164,25 +164,48 @@ export const kqlLanguage = LRLanguage.define({
   parser: parser.configure({
     props: [
       styleTags({
-        // Keywords - these are the specialized token names from kw<term>
-        "where project extend sort limit take top distinct summarize by asc desc and or not":
+        // Query operators (pipe operators) - distinct from regular keywords
+        "where project extend sort limit take top distinct summarize join":
           t.keyword,
+        // Let statement
+        let: t.definitionKeyword,
+        // Join kinds
+        "inner leftouter rightouter fullouter leftanti rightanti leftsemi rightsemi":
+          t.modifier,
+        // Sorting and grouping keywords
+        "by asc desc on": t.modifier,
+        // Logical operators
+        "and or not": t.logicOperator,
+        // String comparison operators (keyword-style)
         "contains startswith endswith has in": t.operatorKeyword,
-        // Operators
+        "!contains !has !in": t.operatorKeyword,
+        // Pipe operator
         Pipe: t.punctuation,
+        // Comparison operators
         ComparisonOp: t.compareOperator,
+        // Math operators
+        Plus: t.arithmeticOperator,
+        Minus: t.arithmeticOperator,
+        Star: t.arithmeticOperator,
+        Slash: t.arithmeticOperator,
+        Percent: t.arithmeticOperator,
+        // Assignment
+        Equals: t.definitionOperator,
         // Brackets and punctuation
         OpenParen: t.paren,
         CloseParen: t.paren,
+        OpenBracket: t.squareBracket,
+        CloseBracket: t.squareBracket,
         Comma: t.separator,
+        Semicolon: t.separator,
         // Literals
         Number: t.number,
         String: t.string,
         // Comments
         LineComment: t.lineComment,
-        // Function names: Identifier inside functionName node
+        // Function names in function calls
         "functionName/Identifier": t.function(t.variableName),
-        // Table name (first identifier in query)
+        // Table name (first identifier in query, also in join)
         "tableExpression/Identifier": t.typeName,
         // Column names in various contexts
         "columnSpec/Identifier": t.propertyName,
@@ -190,6 +213,10 @@ export const kqlLanguage = LRLanguage.define({
         "columnNameList/Identifier": t.propertyName,
         // Identifiers in aggregation (e.g., "x = count()")
         "aggregation/Identifier": t.propertyName,
+        // Comparison left-hand side (column reference)
+        "comparison/Identifier": t.propertyName,
+        // Let statement variable name
+        "letStatement/Identifier": t.definition(t.variableName),
         // Default identifiers (variables in expressions)
         Identifier: t.variableName,
       }),

@@ -2,103 +2,201 @@ import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
 import { EditorView } from "@codemirror/view";
 
-// GitHub Primer design system colors
-// Source: https://cdn.jsdelivr.net/npm/@primer/primitives@latest/dist/js/colors/
+// KQL syntax highlighting colors inspired by Monaco Kusto and GitHub Primer
+// Designed for clear visual distinction between different token types
 const colors = {
   light: {
-    // Syntax highlighting
-    keyword: "#cf222e", // pl-k - red
-    number: "#0550ae", // pl-c1 - blue
-    string: "#0a3069", // pl-s - dark blue
-    comment: "#6e7781", // pl-c - gray
-    function: "#8250df", // pl-en - purple
-    type: "#953800", // pl-v - orange/brown (table names)
-    property: "#0550ae", // pl-c1 - blue (column names)
-    punctuation: "#1F2328", // fg.default
-    operator: "#0550ae", // pl-c1 - blue
-    bracket: "#0550ae", // pl-c1 - blue (parentheses)
+    // Query operators (where, project, etc.) - bold blue like Monaco
+    queryOperator: "#0000FF",
+    // Definition keywords (let) - blue
+    definitionKeyword: "#0000FF",
+    // Modifiers (by, asc, desc, join kinds) - blue
+    modifier: "#0550ae",
+    // Logical operators (and, or, not) - dark gray
+    logicOperator: "#1F2328",
+    // String operators (contains, has, etc.) - orange-red like Monaco
+    operatorKeyword: "#CE3600",
+    // Comparison and math operators - orange-red
+    operator: "#CE3600",
+    // Numbers - dark blue
+    number: "#0550ae",
+    // Strings - firebrick red like Monaco
+    string: "#B22222",
+    // Comments - muted gray
+    comment: "#6e7781",
+    // Functions - purple for distinction
+    function: "#8250df",
+    // Table names - dark orchid/purple like Monaco
+    table: "#9932CC",
+    // Column/property names - teal for distinction from tables
+    column: "#0550ae",
+    // Variables - default foreground
+    variable: "#1F2328",
+    // Defined variables (in let statements) - bold
+    definition: "#1F2328",
+    // Punctuation - subtle gray
+    punctuation: "#656d76",
+    // Brackets - blue
+    bracket: "#0550ae",
     // Editor chrome
-    fg: "#1F2328", // fg.default
-    fgMuted: "#656d76", // fg.muted
-    canvasDefault: "#ffffff", // canvas.default
-    canvasSubtle: "#f6f8fa", // canvas.subtle
-    borderDefault: "#d0d7de", // border.default
-    accentFg: "#0969da", // accent.fg
+    fg: "#1F2328",
+    fgMuted: "#656d76",
+    canvasDefault: "#ffffff",
+    canvasSubtle: "#f6f8fa",
+    borderDefault: "#d0d7de",
+    accentFg: "#0969da",
   },
   dark: {
-    // Syntax highlighting
-    keyword: "#ff7b72", // pl-k - red
-    number: "#79c0ff", // pl-c1 - blue
-    string: "#a5d6ff", // pl-s - light blue
-    comment: "#8b949e", // pl-c - gray
-    function: "#d2a8ff", // pl-en - purple
-    type: "#ffa657", // pl-v - orange (table names)
-    property: "#79c0ff", // pl-c1 - blue (column names)
-    punctuation: "#e6edf3", // fg.default
-    operator: "#79c0ff", // pl-c1 - blue
-    bracket: "#79c0ff", // pl-c1 - blue (parentheses)
+    // Query operators (where, project, etc.) - sky blue like Monaco dark
+    queryOperator: "#569CD6",
+    // Definition keywords (let) - sky blue
+    definitionKeyword: "#569CD6",
+    // Modifiers (by, asc, desc, join kinds) - lighter blue
+    modifier: "#9CDCFE",
+    // Logical operators (and, or, not) - light foreground
+    logicOperator: "#e6edf3",
+    // String operators (contains, has, etc.) - medium turquoise like Monaco
+    operatorKeyword: "#4EC9B0",
+    // Comparison and math operators - turquoise
+    operator: "#4EC9B0",
+    // Numbers - light blue
+    number: "#B5CEA8",
+    // Strings - pale chestnut/salmon like Monaco
+    string: "#CE9178",
+    // Comments - muted gray
+    comment: "#6A9955",
+    // Functions - light purple
+    function: "#DCDCAA",
+    // Table names - soft gold like Monaco dark
+    table: "#D7BA7D",
+    // Column/property names - light blue
+    column: "#9CDCFE",
+    // Variables - default foreground
+    variable: "#e6edf3",
+    // Defined variables (in let statements) - light blue
+    definition: "#9CDCFE",
+    // Punctuation - muted
+    punctuation: "#808080",
+    // Brackets - light blue
+    bracket: "#569CD6",
     // Editor chrome
-    fg: "#e6edf3", // fg.default
-    fgMuted: "#7d8590", // fg.muted
-    canvasDefault: "#0d1117", // canvas.default
-    canvasSubtle: "#161b22", // canvas.subtle
-    borderDefault: "#30363d", // border.default
-    accentFg: "#2f81f7", // accent.fg
+    fg: "#e6edf3",
+    fgMuted: "#7d8590",
+    canvasDefault: "#0d1117",
+    canvasSubtle: "#161b22",
+    borderDefault: "#30363d",
+    accentFg: "#2f81f7",
   },
 };
 
 export const kqlLightHighlightStyle = HighlightStyle.define([
-  // Keywords: bold red - stands out distinctly
-  { tag: t.keyword, color: colors.light.keyword, fontWeight: "bold" },
-  { tag: t.operatorKeyword, color: colors.light.keyword, fontWeight: "bold" },
-  // Operators and numbers: blue
-  { tag: t.operator, color: colors.light.operator },
+  // Query operators (where, project, etc.): bold blue
+  { tag: t.keyword, color: colors.light.queryOperator, fontWeight: "bold" },
+  // Definition keywords (let): blue
+  {
+    tag: t.definitionKeyword,
+    color: colors.light.definitionKeyword,
+    fontWeight: "bold",
+  },
+  // Modifiers (by, asc, desc): blue
+  { tag: t.modifier, color: colors.light.modifier },
+  // Logical operators (and, or, not): dark gray
+  {
+    tag: t.logicOperator,
+    color: colors.light.logicOperator,
+    fontWeight: "bold",
+  },
+  // String operators (contains, has): orange-red
+  {
+    tag: t.operatorKeyword,
+    color: colors.light.operatorKeyword,
+    fontWeight: "bold",
+  },
+  // Comparison/Math operators: orange-red
   { tag: t.compareOperator, color: colors.light.operator },
+  { tag: t.arithmeticOperator, color: colors.light.operator },
+  { tag: t.operator, color: colors.light.operator },
+  { tag: t.definitionOperator, color: colors.light.operator },
+  // Numbers: dark blue
   { tag: t.number, color: colors.light.number },
-  // Strings: dark blue
+  // Strings: firebrick red
   { tag: t.string, color: colors.light.string },
-  // Comments: muted gray, italic
+  // Comments: muted gray
   { tag: t.comment, color: colors.light.comment, fontStyle: "italic" },
-  // Functions: purple - distinct from keywords
+  // Functions: purple
   { tag: t.function(t.variableName), color: colors.light.function },
-  // Table names: orange
-  { tag: t.typeName, color: colors.light.type },
-  // Column/property names: blue
-  { tag: t.propertyName, color: colors.light.property },
-  // Variables/identifiers: default foreground (not colored) - distinct from keywords
-  { tag: t.variableName, color: colors.light.fg },
-  // Punctuation
+  // Table names: dark orchid/purple
+  { tag: t.typeName, color: colors.light.table },
+  // Column/property names: teal
+  { tag: t.propertyName, color: colors.light.column },
+  // Variables/identifiers: default foreground
+  { tag: t.variableName, color: colors.light.variable },
+  // Defined variables: bold
+  {
+    tag: t.definition(t.variableName),
+    color: colors.light.definition,
+    fontWeight: "bold",
+  },
+  // Punctuation and brackets
   { tag: t.punctuation, color: colors.light.punctuation },
   { tag: t.separator, color: colors.light.punctuation },
-  // Brackets: colored
   { tag: t.paren, color: colors.light.bracket },
+  { tag: t.squareBracket, color: colors.light.bracket },
 ]);
 
 export const kqlDarkHighlightStyle = HighlightStyle.define([
-  // Keywords: bold red - stands out distinctly
-  { tag: t.keyword, color: colors.dark.keyword, fontWeight: "bold" },
-  { tag: t.operatorKeyword, color: colors.dark.keyword, fontWeight: "bold" },
-  // Operators and numbers: blue
-  { tag: t.operator, color: colors.dark.operator },
+  // Query operators (where, project, etc.): sky blue
+  { tag: t.keyword, color: colors.dark.queryOperator, fontWeight: "bold" },
+  // Definition keywords (let): sky blue
+  {
+    tag: t.definitionKeyword,
+    color: colors.dark.definitionKeyword,
+    fontWeight: "bold",
+  },
+  // Modifiers (by, asc, desc): lighter blue
+  { tag: t.modifier, color: colors.dark.modifier },
+  // Logical operators (and, or, not): light foreground
+  {
+    tag: t.logicOperator,
+    color: colors.dark.logicOperator,
+    fontWeight: "bold",
+  },
+  // String operators (contains, has): medium turquoise
+  {
+    tag: t.operatorKeyword,
+    color: colors.dark.operatorKeyword,
+    fontWeight: "bold",
+  },
+  // Comparison/Math operators: turquoise
   { tag: t.compareOperator, color: colors.dark.operator },
+  { tag: t.arithmeticOperator, color: colors.dark.operator },
+  { tag: t.operator, color: colors.dark.operator },
+  { tag: t.definitionOperator, color: colors.dark.operator },
+  // Numbers: light blue
   { tag: t.number, color: colors.dark.number },
-  // Strings: light blue
+  // Strings: pale chestnut/salmon
   { tag: t.string, color: colors.dark.string },
-  // Comments: muted gray, italic
+  // Comments: muted gray
   { tag: t.comment, color: colors.dark.comment, fontStyle: "italic" },
-  // Functions: purple - distinct from keywords
+  // Functions: light purple
   { tag: t.function(t.variableName), color: colors.dark.function },
-  // Table names: orange
-  { tag: t.typeName, color: colors.dark.type },
-  // Column/property names: blue
-  { tag: t.propertyName, color: colors.dark.property },
-  // Variables/identifiers: default foreground (not colored) - distinct from keywords
-  { tag: t.variableName, color: colors.dark.fg },
-  // Punctuation
+  // Table names: soft gold
+  { tag: t.typeName, color: colors.dark.table },
+  // Column/property names: light blue
+  { tag: t.propertyName, color: colors.dark.column },
+  // Variables/identifiers: default foreground
+  { tag: t.variableName, color: colors.dark.variable },
+  // Defined variables: light blue
+  {
+    tag: t.definition(t.variableName),
+    color: colors.dark.definition,
+    fontWeight: "bold",
+  },
+  // Punctuation and brackets
   { tag: t.punctuation, color: colors.dark.punctuation },
   { tag: t.separator, color: colors.dark.punctuation },
-  // Brackets: colored
   { tag: t.paren, color: colors.dark.bracket },
+  { tag: t.squareBracket, color: colors.dark.bracket },
 ]);
 
 export const kqlLightTheme = [
