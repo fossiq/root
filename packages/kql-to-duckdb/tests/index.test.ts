@@ -222,6 +222,16 @@ describe("KQL Parser Integration", () => {
       expect(sql).toContain("ORDER BY Double DESC");
     });
 
+    test("should translate sort with multiple columns and varying directions (repro issue #17)", () => {
+      const kql = `
+    widget_externals
+    | summarize widgets=count() by packageName, packageVersion
+    | where widgets > 10
+    | sort by widgets asc, packageName desc
+    `;
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("ORDER BY widgets ASC, packageName DESC");
+    });
     test("should translate distinct all columns", () => {
       const kql = "Table | distinct";
       const sql = kqlToDuckDB(kql);
