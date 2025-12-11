@@ -225,6 +225,19 @@ Tests are organized by feature (operators, expressions, comments, etc.) and vali
 
 See [status.md](../../.github/instructions/kql-parser-status.md) for detailed feature checklist.
 
+## TODO (per implementation guide)
+
+- Statements: support `set` commands, let function/view definitions, semicolon/whitespace rules between lets and queries.
+- Operators: add `find`, `sample`, project variants (away/keep/rename/reorder), `top-nested`, `union withsource`, `make-series`, `mv-apply`, `evaluate` plugins, `render`, `materialize`/`toscalar`, join `innerunique` and hints, `search kind`, `distinct` wildcards.
+- Expressions: unary `not`, case-sensitive string ops (`contains_cs`, `has_cs`), `in~`, regex flags, `!between`, comparisons beyond identifier-vs-literal, subqueries.
+- Tokens/literals: quoted identifiers, full string forms (verbatim/backtick/obfuscated), combined timespans, datetime literals, identifier rules for `__`/`$`, richer escapes.
+- Functions/types: map built-in function categories, type aliases/conversions, aggregation function coverage.
+- Special constructs: fuller `mv-expand` (kind/itemindex/parallel), richer `parse` pattern typing, time-series fill behavior.
+
+## Will not support
+
+- Source-modifying commands (update/alter/drop/rename columns or tables, in-place writes); scope is read/query-only parsing and translation.
+
 ## License
 
 MIT
