@@ -30,14 +30,18 @@ describe("Basic grammar", () => {
 });
 
 describe("Future grammar features", () => {
-  test("TODO: pipe operators", () => {
+  test("pipe operators with where", () => {
     // Once expanded grammar supports it
-    // expect(isValid("Users | where age > 18")).toBe(true);
+    expect(isValid("Users | where age > 18")).toBe(true);
   });
 
-  test("TODO: complex queries", () => {
+  test("complex chained query", () => {
     // Once expanded grammar supports it
-    // expect(isValid("Events | where severity == 'error' | project timestamp, message | sort timestamp")).toBe(true);
+    expect(
+      isValid(
+        "Events | where severity == 'error' | project timestamp, message | sort timestamp"
+      )
+    ).toBe(true);
   });
 });
 
