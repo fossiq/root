@@ -1,6 +1,6 @@
 # @fossiq/ui
 
-A modern, browser-based UI for querying data using Kusto Query Language (KQL), built with SolidJS and DuckDB WASM.
+A modern, browser-based UI for querying your local data using Kusto Query Language (KQL), built with SolidJS and DuckDB WASM.
 
 ## Screenshot
 
