@@ -3,8 +3,8 @@
  * Main entry point for the tree-sitter grammar configuration
  */
 
-import type { GrammarConfig, RuleBuilder, Rule } from './types.js';
-import * as rules from './rules.js';
+import type { GrammarConfig, RuleBuilder, Rule } from "./types.js";
+import * as rules from "./rules.js";
 
 /**
  * Creates the grammar configuration object for tree-sitter
@@ -13,16 +13,13 @@ export function createGrammar(): GrammarConfig {
   const $ = createRuleBuilder();
 
   return {
-    name: 'kql',
+    name: "kql",
     extras: [
-      { type: 'PATTERN', value: '\\s' } as Rule,
-      { type: 'SYMBOL', name: 'line_comment' } as Rule,
-      { type: 'SYMBOL', name: 'block_comment' } as Rule,
+      { type: "PATTERN", value: "\\s" } as Rule,
+      { type: "SYMBOL", name: "line_comment" } as Rule,
+      { type: "SYMBOL", name: "block_comment" } as Rule,
     ],
-    conflicts: [
-      ['distinct_clause'],
-      ['parse_pattern']
-    ],
+    conflicts: [["distinct_clause"], ["parse_pattern"]],
     rules: {
       source_file: rules.sourceFile($),
       _statement: rules._statement($),
@@ -71,6 +68,7 @@ export function createGrammar(): GrammarConfig {
       string_expression: rules.stringExpression($),
       in_expression: rules.inExpression($),
       between_expression: rules.betweenExpression($),
+      between_value: rules.betweenValue($),
       literal_list: rules.literalList($),
       literal: rules.literal($),
       string_literal: rules.stringLiteral($),
@@ -101,13 +99,13 @@ function createRuleBuilder(): RuleBuilder {
   return new Proxy({} as RuleBuilder, {
     get(_target, prop: string) {
       return {
-        type: 'SYMBOL',
+        type: "SYMBOL",
         name: prop,
       };
     },
   });
 }
 
-export * from './types.js';
-export * from './helpers.js';
-export * from './rules.js';
+export * from "./types.js";
+export * from "./helpers.js";
+export * from "./rules.js";

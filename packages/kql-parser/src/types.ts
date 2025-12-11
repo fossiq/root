@@ -266,8 +266,8 @@ export interface InExpression {
 export interface BetweenExpression {
   type: "between_expression";
   left: Identifier;
-  min: Literal;
-  max: Literal;
+  min: Expression;
+  max: Expression;
 }
 
 export interface FunctionCall {

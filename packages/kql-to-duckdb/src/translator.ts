@@ -7,6 +7,7 @@ import type {
   ComparisonExpression,
   ArithmeticExpression,
   StringExpression,
+  BetweenExpression,
   WhereClause,
   ProjectClause,
   TakeClause,
@@ -241,9 +242,9 @@ function translateUnion(operator: UnionClause, sourceTable: string): string {
 
 function translateTimespanLiteral(expr: TimespanLiteral): string {
   const value = expr.value;
-  // KQL timespan format: "1d", "2h", "30m", "45s"
+  // KQL timespan format: "1y", "1d", "2h", "30m", "45s"
   // Convert to DuckDB interval format
-  const match = value.match(/^(\d+)([dhms])$/);
+  const match = value.match(/^(\d+)([ydhms])$/);
   if (!match) {
     return `INTERVAL '${value}'`;
   }
@@ -251,6 +252,7 @@ function translateTimespanLiteral(expr: TimespanLiteral): string {
   const amount = match[1];
   const unit = match[2];
   const unitMap: Record<string, string> = {
+    y: "year",
     d: "day",
     h: "hour",
     m: "minute",
@@ -280,6 +282,8 @@ function translateExpression(expr: Expression): string {
       return translateArithmeticExpression(expr);
     case "string_expression":
       return translateStringExpression(expr);
+    case "between_expression":
+      return translateBetweenExpression(expr);
     case "function_call":
       return translateFunctionCall(expr);
     case "identifier": {
@@ -352,6 +356,13 @@ function translateStringExpression(expr: StringExpression): string {
   }
 
   return `${column} LIKE ${value}`;
+}
+
+function translateBetweenExpression(expr: BetweenExpression): string {
+  const column = expr.left.name;
+  const min = translateExpression(expr.min);
+  const max = translateExpression(expr.max);
+  return `${column} BETWEEN ${min} AND ${max}`;
 }
 
 function translateFunctionCall(expr: FunctionCall): string {

@@ -1532,7 +1532,7 @@
           },
           {
             "type": "SYMBOL",
-            "name": "literal"
+            "name": "between_value"
           },
           {
             "type": "STRING",
@@ -1540,7 +1540,7 @@
           },
           {
             "type": "SYMBOL",
-            "name": "literal"
+            "name": "between_value"
           },
           {
             "type": "STRING",
@@ -1548,6 +1548,19 @@
           }
         ]
       }
+    },
+    "between_value": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "literal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "function_call"
+        }
+      ]
     },
     "literal_list": {
       "type": "SEQ",

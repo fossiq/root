@@ -20,6 +20,11 @@ This document contains all instructions for AI agents working on the Fossiq code
   - NEVER assume approval. NEVER commit "just because the changes look good"
   - Every instance of skipping this step is a serious violation
 - **Do not patch things** - always ask before proceeding and wait for explicit approval
+- **⚠️ ALWAYS FETCH AND PULL MAIN BEFORE CREATING A NEW BRANCH ⚠️**
+  - EVERY TIME you create a feature/fix branch, you MUST FIRST run: `git fetch origin && git pull origin main`
+  - This prevents conflicts from concurrent changes to main
+  - If you skip this step and conflicts arise during rebase, you will waste time resolving them
+  - This is a CRITICAL FAILURE if ignored
 - **NEVER suppress, hide, or take action to eliminate issues** - EXTREMELY DISCOURAGED. Do not suppress warnings, ignore errors, or take any action whose sole purpose is to make issues disappear or go off visibility. Always ask the user what to do instead. Examples of violations:
   - Suppressing build warnings without user approval
   - Deleting error logs
@@ -63,6 +68,46 @@ This document contains all instructions for AI agents working on the Fossiq code
 - Clear package boundaries
 - Separate concerns (grammar, types, builders, etc.)
 - Don't add features until requested
+
+---
+
+## HIGH: Debugging Context & Efficiency
+
+When providing context for debugging sessions or issue fixes, include these details to minimize exploratory operations:
+
+### Pre-Session Context to Provide
+
+- **Current file paths and structure** - If you know which files are involved, specify exact paths (e.g., `packages/kql-parser/src/grammar/rules.ts`)
+- **Git status** - If changes are already staged/committed, mention the branch name and commit SHAs
+- **Test results** - Provide test output (pass/fail counts) so we don't re-run unchanged tests
+- **Error messages** - Full error output, not summaries (includes stack traces, line numbers, variable states)
+- **Dependencies between changes** - If fix A requires fix B first, say so explicitly
+- **File relationships** - Which files import/depend on each other (especially in monorepos)
+- **Build artifacts status** - If generated files (grammar.js, parser.c) are stale or up-to-date
+
+### What NOT to Make Us Discover
+
+- Repository structure (provide explicit paths)
+- Available git branches (list them)
+- Which tests exist (mention test counts and file locations)
+- Package dependencies and versions (share package.json extracts)
+- Label availability (list valid labels if creating issues)
+- Build order or command sequences (specify exact build steps needed)
+
+### Example Good Context
+
+```
+I'm working on the between operator in kql-parser.
+- Changes needed in: packages/kql-parser/src/grammar/rules.ts (line 261-263)
+- Also affects: packages/kql-to-duckdb/src/translator.ts
+- Tests to verify: packages/kql-parser/bun.test.ts (88 tests), packages/kql-to-duckdb/tests/index.test.ts (114 tests)
+- Current branch: main, no uncommitted changes
+- Valid labels for issues: enhancement, agent, ui (not kql-parser)
+```
+
+### Why This Matters
+
+Each exploratory operation (`git status`, `list_directory`, `grep`, `gh label list`) consumes tokens and time. Pre-provided context lets me jump straight to implementing fixes instead of discovering file structures, test counts, or available options.
 
 ---
 
@@ -139,6 +184,61 @@ This document contains all instructions for AI agents working on the Fossiq code
 
 ### @fossiq/kql-parser (Tree-sitter KQL Parser)
 
+**Status:** 88 tests passing, production-ready. All major KQL features implemented.
+
+**Recent Fix Example: Between Operator with Function Calls (Issue #22)**
+
+When implementing support for function calls (like `ago()`, `now()`) in `between` expressions:
+
+1. **Grammar Changes** (`src/grammar/rules.ts`):
+
+   - Replace `betweenExpression` to use `between_value` instead of just `literal`:
+     ```typescript
+     export const betweenExpression: RuleFunction = ($) =>
+       prec.left(
+         2,
+         seq(
+           $.identifier,
+           "between",
+           "(",
+           $.between_value,
+           "..",
+           $.between_value,
+           ")"
+         )
+       );
+     ```
+   - Add new `betweenValue` rule:
+     ```typescript
+     export const betweenValue: RuleFunction = ($) =>
+       choice($.literal, $.function_call);
+     ```
+
+2. **Register New Rule** (`src/grammar/index.ts`):
+
+   - Add: `between_value: rules.betweenValue($)`
+
+3. **Type Updates** (`src/types.ts`):
+
+   - Add `BetweenExpression` interface with properties: `left: Identifier`, `min: Expression`, `max: Expression`
+   - Export from `src/index.ts`
+
+4. **Builder Updates** (`src/builders/expressions.ts`):
+
+   - Add builder to construct `BetweenExpression` from AST nodes
+   - Handle both literal and function_call value types
+
+5. **Regenerate Parser Artifacts**:
+
+   - Run: `bun run compile-grammar` → generates grammar.js
+   - Run: `bun x tree-sitter-cli generate` → regenerates parser.c, types.ts, grammar.json, node-types.json
+   - Commit all generated files (they're normally in .gitignore but must be tracked for WASM builds)
+
+6. **Test Verification**:
+   - All 88 parser tests pass
+   - Existing between expression tests verify backward compatibility
+   - No breaking changes to expression parsing
+
 **Structure:**
 
 ```
@@ -176,8 +276,6 @@ Edit src/grammar/rules.ts
 - Lists with separators: Skip `,` nodes when iterating
 - Assignment detection: Check for `=` in children
 
-**Status:** 88 tests passing, production-ready. All major KQL features implemented.
-
 ---
 
 ### @fossiq/kql-to-duckdb (KQL to SQL Translator)
@@ -211,11 +309,68 @@ SELECT * FROM cte_1
 2. Implement handler function
 3. Add tests in `tests/index.test.ts`
 
-**Supported:** 11 operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search), 8 join types, 35+ functions
+**Adding a New Expression Type:**
+
+1. Import the type from `@fossiq/kql-parser`
+2. Add case in `translateExpression` switch statement
+3. Implement dedicated `translate<TypeName>` function
+4. Recursively call `translateExpression()` for sub-expressions
+5. Return SQL string representation
+
+**Supported:** 11 operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search), 8 join types, 35+ functions, expressions (binary, comparison, arithmetic, string, between, function calls)
 
 **Not Supported:** `parse` operator (dynamic schema incompatible with SQL)
 
-**Status:** 113 tests passing, production-ready.
+**Status:** 114 tests passing, production-ready.
+
+**Recent Fix Example: Between Operator with Function Calls (Issue #22)**
+
+When adding `between` expression translation with dynamic time ranges:
+
+1. **Import Type** (`src/translator.ts`):
+
+   - Add `BetweenExpression` to imports from `@fossiq/kql-parser`
+
+2. **Add Expression Case** (`translateExpression` function):
+
+   ```typescript
+   case "between_expression":
+     return translateBetweenExpression(expr);
+   ```
+
+3. **Implement Translator Function**:
+
+   ```typescript
+   function translateBetweenExpression(expr: BetweenExpression): string {
+     const column = expr.left.name;
+     const min = translateExpression(expr.min);
+     const max = translateExpression(expr.max);
+     return `${column} BETWEEN ${min} AND ${max}`;
+   }
+   ```
+
+4. **Handle Dependent Types**:
+
+   - For `ago()` function: already handled in `translateFunctionCall()` → `NOW() - INTERVAL`
+   - For timespan literals: extend `translateTimespanLiteral()` to support new units
+     - Add `y` (year) to regex: `/^(\d+)([ydhms])$/`
+     - Add to unitMap: `y: "year"`
+
+5. **Test Verification**:
+
+   - All 114 translator tests pass
+   - Verify between expressions translate correctly:
+     - Literals: `EventTime between ('2024-01-01' .. '2024-12-31')` → `EventTime BETWEEN '2024-01-01' AND '2024-12-31'`
+     - Dynamic: `EventTime between (ago(7d) .. now())` → `EventTime BETWEEN NOW() - INTERVAL '7 day' AND NOW()`
+
+**Key Pattern:**
+
+When a grammar change introduces a new expression type, the translator needs:
+
+1. Type import
+2. Case in switch (call `translateExpression()` recursively on sub-expressions)
+3. Dedicated function (returns SQL string)
+4. Support for any new functions/literals used in the expression
 
 ---
 
@@ -378,7 +533,19 @@ When creating issues via `gh` CLI:
     - **Body:** Full description + Analysis + [Standard Disclaimer](#github-interactions).
     - **Labels:** `bug`, `agent`.
 3.  **Confirm:** Report the issue URL and ask: "Should I proceed with fixing this?"
-4.  **Execute (if confirmed):**
-    - Create branch `fix/issue-<id>`.
-    - Implement fix.
-    - Open PR with `gh pr create`.
+
+---
+
+### #issue-pr
+
+**Trigger:** User says `#issue-pr` after a fix has been implemented.
+
+**Protocol:**
+
+1.  **Create Branch:** `git checkout -b fix/issue-<id>` (use the issue number from the current context).
+2.  **Commit:** Ask for commit approval per [CRITICAL rules](#critical-system--safety-rules), then commit the fix.
+3.  **Push:** `git push -u origin fix/issue-<id>`.
+4.  **Open PR:** Use `gh pr create` with:
+    - **Title:** Reference the issue (e.g., "Fix #<id>: <concise description>").
+    - **Body:** Summary of changes + "Closes #<id>" + [Standard Disclaimer](#github-interactions).
+    - **Labels:** Appropriate labels (e.g., `bug`, `agent`).
