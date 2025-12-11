@@ -71,12 +71,23 @@ This document contains all instructions for AI agents working on the Fossiq code
 ### GitHub Interactions
 
 - **Always use `gh` CLI** for all GitHub interactions (issues, PRs, workflows, logs, etc.).
-- **Include Disclaimer:** When creating issues or comments via `gh` CLI, **ALWAYS** include the disclaimer at the bottom:
-  ```markdown
-  ---
+- **⚠️ MANDATORY DISCLAIMER ON ALL GITHUB CONTENT ⚠️**
 
-  _This {issue|comment} was created by an AI agent on behalf of @<username>._
-  ```
+  - **THIS IS A CRITICAL RULE - VIOLATIONS ARE SERIOUS FAILURES**
+  - When creating issues, PRs, or comments via `gh` CLI, you **MUST ALWAYS** include the disclaimer at the bottom
+  - **NEVER forget this step. NEVER skip it. Check EVERY time before submitting.**
+  - First, get the username: `gh api user -q .login`
+  - Then include this exact format at the end of the body:
+
+    ```markdown
+    ---
+
+    _This {issue|PR|comment} was created by an AI agent on behalf of @<username>._
+    ```
+
+  - If you forget to add the disclaimer, that is a **CRITICAL FAILURE** equivalent to auto-committing without approval
+  - **Before running `gh issue create`, `gh pr create`, or `gh issue comment`: STOP and verify the disclaimer is included**
+
 - Do not use direct API tools if `gh` CLI can perform the task.
 - To fetch workflow logs: `gh run view <run-id> --log` or `gh run view --job=<job-id> --log`
 - Do NOT use WebFetch for GitHub Actions pages
@@ -333,12 +344,7 @@ GitHub Actions handles automated releases when changesets are merged to `main`.
 When creating issues via `gh` CLI:
 
 - **Always add the `agent` label** to indicate it was created by an AI agent
-- **Get the current username** first: `gh api user -q .login`
-- **Include a disclaimer** at the end of the issue body:
-  ```
-  ---
-  *This issue was created by an AI agent on behalf of @<username>.*
-  ```
+- **⚠️ MANDATORY: Include the disclaimer** (see [GitHub Interactions](#github-interactions) - this is a CRITICAL rule)
 - Use appropriate package labels (e.g., `ui`, `bug`, `enhancement`)
 - Use clear title prefixes: `[ui]`, `[ci]`, `[kql-parser]`, etc.
 
@@ -365,13 +371,14 @@ When creating issues via `gh` CLI:
 **Trigger:** User starts prompt with `#issue`.
 
 **Protocol:**
+
 1.  **Analyze:** Perform preliminary analysis of the reported bug based on the description.
 2.  **Create Issue:** Use `gh` CLI to create an issue.
-    -   **Title:** Concise summary derived from description.
-    -   **Body:** Full description + Analysis + [Standard Disclaimer](#github-interactions).
-    -   **Labels:** `bug`, `agent`.
+    - **Title:** Concise summary derived from description.
+    - **Body:** Full description + Analysis + [Standard Disclaimer](#github-interactions).
+    - **Labels:** `bug`, `agent`.
 3.  **Confirm:** Report the issue URL and ask: "Should I proceed with fixing this?"
 4.  **Execute (if confirmed):**
-    -   Create branch `fix/issue-<id>`.
-    -   Implement fix.
-    -   Open PR with `gh pr create`.
+    - Create branch `fix/issue-<id>`.
+    - Implement fix.
+    - Open PR with `gh pr create`.
