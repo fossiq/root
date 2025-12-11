@@ -1,0 +1,297 @@
+name: Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      is_pr:
+        description: "Whether this is a PR workflow"
+        required: true
+        type: boolean
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+      DEPLOY_KEY_GITHUB_IO:
+        required: false
+
+jobs:
+  # Check which files have changed to optimize builds
+  changes:
+    name: Check Changes
+    runs-on: ubuntu-latest
+    outputs:
+      parser: ${{ steps.filter.outputs.parser }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            parser:
+              - 'packages/kql-parser/**'
+              - 'packages/kql-ast/**'
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.4
+          no-cache: true
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint all packages
+        run: bun run lint
+
+  # Cross-platform binding build matrix
+  build_bindings:
+    name: Build Binding ${{ matrix.os }} - ${{ matrix.arch }}
+    needs: changes
+    # Run if not a PR OR if parser changed. (PRs only skip if parser untouched)
+    if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: ubuntu-24.04-arm
+            platform: linux
+            arch: arm64
+          - os: windows-latest
+            platform: win32
+            arch: x64
+          - os: macos-latest
+            platform: darwin
+            arch: arm64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.4
+          no-cache: true
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ matrix.arch }}-node-modules-${{ hashFiles('bun.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache tree-sitter binding
+        id: cache-binding
+        uses: actions/cache@v4
+        with:
+          path: packages/kql-parser/prebuilds/${{ matrix.platform }}-${{ matrix.arch }}/tree-sitter-kql.node
+          key: binding-${{ matrix.platform }}-${{ matrix.arch }}-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/binding.gyp') }}
+
+      - name: Build Binding
+        if: steps.cache-binding.outputs.cache-hit != 'true'
+        working-directory: packages/kql-parser
+        run: bun scripts/build-binding.ts
+
+      - name: Upload Binding Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binding-${{ matrix.platform }}-${{ matrix.arch }}
+          path: packages/kql-parser/prebuilds/${{ matrix.platform }}-${{ matrix.arch }}/tree-sitter-kql.node
+          if-no-files-found: error
+
+  # WASM build using WASI SDK (no Docker needed)
+  build_wasm:
+    name: Build WASM
+    needs: changes
+    # Run if not a PR OR if parser changed
+    if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.4
+          no-cache: true
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-x64-node-modules-${{ hashFiles('bun.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache WASM build
+        id: cache-wasm
+        uses: actions/cache@v4
+        with:
+          path: packages/kql-parser/tree-sitter-kql.wasm
+          key: wasm-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/grammar.js') }}
+
+      - name: Build WASM (uses WASI SDK, auto-downloads)
+        if: steps.cache-wasm.outputs.cache-hit != 'true'
+        working-directory: packages/kql-parser
+        run: |
+          bunx tree-sitter-cli@latest build --wasm
+          echo "✓ WASM built successfully"
+
+      - name: Upload WASM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm
+          path: packages/kql-parser/tree-sitter-kql.wasm
+          if-no-files-found: error
+
+  validate:
+    name: Validate & Publish
+    needs: [changes, build_bindings, build_wasm, lint]
+    # Always run unless dependencies failed (skipped is ok)
+    if: always() && needs.changes.result == 'success' && needs.lint.result == 'success' && (needs.build_bindings.result == 'success' || needs.build_bindings.result == 'skipped') && (needs.build_wasm.result == 'success' || needs.build_wasm.result == 'skipped')
+    runs-on: ubuntu-latest
+    env:
+      PARSER_CHANGED: ${{ needs.changes.outputs.parser }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: 1.3.4
+          no-cache: true
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-x64-node-modules-${{ hashFiles('bun.lock') }}
+
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      # Logic for Artifacts: Download if built, Restore from Cache if skipped
+
+      # 1. Bindings
+      - name: Download Cross-Platform Bindings
+        if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          path: packages/kql-parser/prebuilds
+          pattern: binding-*
+          merge-multiple: false
+
+      - name: Organize Bindings
+        if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
+        run: .github/scripts/organize-bindings.sh
+
+      # Note: For PRs with no parser change, we skip downloading bindings.
+      # Local tests on Linux will either build local binding or use what's available.
+
+      # 2. WASM
+      - name: Download WASM
+        if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm
+          path: packages/kql-parser
+
+      - name: Restore WASM from Cache (if build skipped)
+        if: inputs.is_pr == true && env.PARSER_CHANGED != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: packages/kql-parser/tree-sitter-kql.wasm
+          key: wasm-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/grammar.js') }}
+          fail-on-cache-miss: false
+
+      # Build & Test
+      - name: Build all packages (turbo)
+        run: bun run build
+
+      - name: Run tests (turbo)
+        run: bun run test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./packages/*/coverage/lcov.info
+          fail_ci_if_error: false
+          verbose: true
+
+      # PR Specific Checks
+      - name: Check Changesets
+        if: inputs.is_pr == true
+        run: |
+          # Check if any packages were modified
+          git diff origin/main...HEAD --name-only | grep -E "^packages/[^/]+/src/" && HAS_CHANGES=true || HAS_CHANGES=false
+
+          if [ "$HAS_CHANGES" = true ]; then
+            # If packages changed, require a changeset
+            if [ -z "$(ls .changeset/*.md 2>/dev/null | grep -v README)" ]; then
+              echo "❌ Package changes detected but no changeset found."
+              echo ""
+              echo "Please create a changeset by running:"
+              echo "  bun run changeset"
+              echo ""
+              echo "Then commit the generated .changeset/*.md file with your changes."
+              exit 1
+            fi
+          fi
+          echo "✓ Changeset check passed"
+
+      # Publish & Release (Only on Main)
+      - name: Setup .npmrc for GitHub Packages
+        if: inputs.is_pr == false
+        run: |
+          echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
+      - name: Publish affected packages (turbo --affected)
+        if: inputs.is_pr == false
+        id: publish
+        run: .github/scripts/publish-packages.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger UI deployment
+        if: inputs.is_pr == false
+        run: .github/scripts/trigger-ui-deploy.sh
+        env:
+          DEPLOY_KEY_GITHUB_IO: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
+
+      - name: Create GitHub Release
+        if: inputs.is_pr == false && steps.publish.outputs.published == '1'
+        run: .github/scripts/create-release.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
