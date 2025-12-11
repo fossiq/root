@@ -179,6 +179,61 @@ Each exploratory operation (`git status`, `list_directory`, `grep`, `gh label li
 
 ### @fossiq/kql-parser (Tree-sitter KQL Parser)
 
+**Status:** 88 tests passing, production-ready. All major KQL features implemented.
+
+**Recent Fix Example: Between Operator with Function Calls (Issue #22)**
+
+When implementing support for function calls (like `ago()`, `now()`) in `between` expressions:
+
+1. **Grammar Changes** (`src/grammar/rules.ts`):
+
+   - Replace `betweenExpression` to use `between_value` instead of just `literal`:
+     ```typescript
+     export const betweenExpression: RuleFunction = ($) =>
+       prec.left(
+         2,
+         seq(
+           $.identifier,
+           "between",
+           "(",
+           $.between_value,
+           "..",
+           $.between_value,
+           ")"
+         )
+       );
+     ```
+   - Add new `betweenValue` rule:
+     ```typescript
+     export const betweenValue: RuleFunction = ($) =>
+       choice($.literal, $.function_call);
+     ```
+
+2. **Register New Rule** (`src/grammar/index.ts`):
+
+   - Add: `between_value: rules.betweenValue($)`
+
+3. **Type Updates** (`src/types.ts`):
+
+   - Add `BetweenExpression` interface with properties: `left: Identifier`, `min: Expression`, `max: Expression`
+   - Export from `src/index.ts`
+
+4. **Builder Updates** (`src/builders/expressions.ts`):
+
+   - Add builder to construct `BetweenExpression` from AST nodes
+   - Handle both literal and function_call value types
+
+5. **Regenerate Parser Artifacts**:
+
+   - Run: `bun run compile-grammar` → generates grammar.js
+   - Run: `bun x tree-sitter-cli generate` → regenerates parser.c, types.ts, grammar.json, node-types.json
+   - Commit all generated files (they're normally in .gitignore but must be tracked for WASM builds)
+
+6. **Test Verification**:
+   - All 88 parser tests pass
+   - Existing between expression tests verify backward compatibility
+   - No breaking changes to expression parsing
+
 **Structure:**
 
 ```
@@ -216,8 +271,6 @@ Edit src/grammar/rules.ts
 - Lists with separators: Skip `,` nodes when iterating
 - Assignment detection: Check for `=` in children
 
-**Status:** 88 tests passing, production-ready. All major KQL features implemented.
-
 ---
 
 ### @fossiq/kql-to-duckdb (KQL to SQL Translator)
@@ -251,11 +304,68 @@ SELECT * FROM cte_1
 2. Implement handler function
 3. Add tests in `tests/index.test.ts`
 
-**Supported:** 11 operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search), 8 join types, 35+ functions
+**Adding a New Expression Type:**
+
+1. Import the type from `@fossiq/kql-parser`
+2. Add case in `translateExpression` switch statement
+3. Implement dedicated `translate<TypeName>` function
+4. Recursively call `translateExpression()` for sub-expressions
+5. Return SQL string representation
+
+**Supported:** 11 operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search), 8 join types, 35+ functions, expressions (binary, comparison, arithmetic, string, between, function calls)
 
 **Not Supported:** `parse` operator (dynamic schema incompatible with SQL)
 
-**Status:** 113 tests passing, production-ready.
+**Status:** 114 tests passing, production-ready.
+
+**Recent Fix Example: Between Operator with Function Calls (Issue #22)**
+
+When adding `between` expression translation with dynamic time ranges:
+
+1. **Import Type** (`src/translator.ts`):
+
+   - Add `BetweenExpression` to imports from `@fossiq/kql-parser`
+
+2. **Add Expression Case** (`translateExpression` function):
+
+   ```typescript
+   case "between_expression":
+     return translateBetweenExpression(expr);
+   ```
+
+3. **Implement Translator Function**:
+
+   ```typescript
+   function translateBetweenExpression(expr: BetweenExpression): string {
+     const column = expr.left.name;
+     const min = translateExpression(expr.min);
+     const max = translateExpression(expr.max);
+     return `${column} BETWEEN ${min} AND ${max}`;
+   }
+   ```
+
+4. **Handle Dependent Types**:
+
+   - For `ago()` function: already handled in `translateFunctionCall()` → `NOW() - INTERVAL`
+   - For timespan literals: extend `translateTimespanLiteral()` to support new units
+     - Add `y` (year) to regex: `/^(\d+)([ydhms])$/`
+     - Add to unitMap: `y: "year"`
+
+5. **Test Verification**:
+
+   - All 114 translator tests pass
+   - Verify between expressions translate correctly:
+     - Literals: `EventTime between ('2024-01-01' .. '2024-12-31')` → `EventTime BETWEEN '2024-01-01' AND '2024-12-31'`
+     - Dynamic: `EventTime between (ago(7d) .. now())` → `EventTime BETWEEN NOW() - INTERVAL '7 day' AND NOW()`
+
+**Key Pattern:**
+
+When a grammar change introduces a new expression type, the translator needs:
+
+1. Type import
+2. Case in switch (call `translateExpression()` recursively on sub-expressions)
+3. Dedicated function (returns SQL string)
+4. Support for any new functions/literals used in the expression
 
 ---
 
