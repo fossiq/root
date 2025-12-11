@@ -355,3 +355,23 @@ When creating issues via `gh` CLI:
 | Test package     | `cd packages/<pkg> && bun run test` |
 | Create changeset | `bun run changeset`                 |
 | Start UI dev     | `cd packages/ui && bun run dev`     |
+
+---
+
+## Agent Shortcuts
+
+### #issue <description>
+
+**Trigger:** User starts prompt with `#issue`.
+
+**Protocol:**
+1.  **Analyze:** Perform preliminary analysis of the reported bug based on the description.
+2.  **Create Issue:** Use `gh` CLI to create an issue.
+    -   **Title:** Concise summary derived from description.
+    -   **Body:** Full description + Analysis + [Standard Disclaimer](#github-interactions).
+    -   **Labels:** `bug`, `agent`.
+3.  **Confirm:** Report the issue URL and ask: "Should I proceed with fixing this?"
+4.  **Execute (if confirmed):**
+    -   Create branch `fix/issue-<id>`.
+    -   Implement fix.
+    -   Open PR with `gh pr create`.
