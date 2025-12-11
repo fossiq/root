@@ -12,8 +12,6 @@ on:
 
 permissions:
   contents: read
-  checks: write
-  id-token: read
 
 jobs:
   pr-gate:
