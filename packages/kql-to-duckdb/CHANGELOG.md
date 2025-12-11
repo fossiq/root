@@ -1,5 +1,11 @@
 # @fossiq/kql-to-duckdb
 
+## 1.1.4
+
+### Patch Changes
+
+- @fossiq/kql-parser@1.1.4
+
 ## 1.1.3
 
 ### Patch Changes

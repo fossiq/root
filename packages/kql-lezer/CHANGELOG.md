@@ -1,5 +1,13 @@
 # @fossiq/kql-lezer
 
+## 1.1.4
+
+### Patch Changes
+
+- feat(kql-lezer): overhaul syntax highlighting with better token types
+  feat(ui): add semantic validation, error visualization and context-aware autocomplete
+  - @fossiq/kql-ast@1.1.4
+
 ## 1.1.3
 
 ### Patch Changes
