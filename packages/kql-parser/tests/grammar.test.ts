@@ -21,4 +21,9 @@ describe('Basic grammar', () => {
     const result = await parseWithTreeSitter('Users | where age > 18 | project name | take 10');
     expect(result.success).toBe(true);
   });
+
+  test('bracketed identifier with spaces', async () => {
+    const result = await parseWithTreeSitter("['Table Name'] | project ['Column Name']");
+    expect(result.success).toBe(true);
+  });
 });

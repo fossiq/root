@@ -292,10 +292,11 @@ export const nullLiteral: RuleFunction = (_$) => ({
   value: 'null',
 });
 
-export const identifier: RuleFunction = (_$) => ({
-  type: 'PATTERN',
-  value: '[a-zA-Z_][a-zA-Z0-9_]*',
-});
+export const identifier: RuleFunction = ($) =>
+  choice(
+    /[a-zA-Z_][a-zA-Z0-9_]*/,
+    prec(1, seq('[', $.string_literal, ']'))
+  );
 
 export const qualifiedIdentifier: RuleFunction = ($) =>
   seq($.identifier, '.', $.identifier);
