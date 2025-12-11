@@ -66,6 +66,46 @@ This document contains all instructions for AI agents working on the Fossiq code
 
 ---
 
+## HIGH: Debugging Context & Efficiency
+
+When providing context for debugging sessions or issue fixes, include these details to minimize exploratory operations:
+
+### Pre-Session Context to Provide
+
+- **Current file paths and structure** - If you know which files are involved, specify exact paths (e.g., `packages/kql-parser/src/grammar/rules.ts`)
+- **Git status** - If changes are already staged/committed, mention the branch name and commit SHAs
+- **Test results** - Provide test output (pass/fail counts) so we don't re-run unchanged tests
+- **Error messages** - Full error output, not summaries (includes stack traces, line numbers, variable states)
+- **Dependencies between changes** - If fix A requires fix B first, say so explicitly
+- **File relationships** - Which files import/depend on each other (especially in monorepos)
+- **Build artifacts status** - If generated files (grammar.js, parser.c) are stale or up-to-date
+
+### What NOT to Make Us Discover
+
+- Repository structure (provide explicit paths)
+- Available git branches (list them)
+- Which tests exist (mention test counts and file locations)
+- Package dependencies and versions (share package.json extracts)
+- Label availability (list valid labels if creating issues)
+- Build order or command sequences (specify exact build steps needed)
+
+### Example Good Context
+
+```
+I'm working on the between operator in kql-parser.
+- Changes needed in: packages/kql-parser/src/grammar/rules.ts (line 261-263)
+- Also affects: packages/kql-to-duckdb/src/translator.ts
+- Tests to verify: packages/kql-parser/bun.test.ts (88 tests), packages/kql-to-duckdb/tests/index.test.ts (114 tests)
+- Current branch: main, no uncommitted changes
+- Valid labels for issues: enhancement, agent, ui (not kql-parser)
+```
+
+### Why This Matters
+
+Each exploratory operation (`git status`, `list_directory`, `grep`, `gh label list`) consumes tokens and time. Pre-provided context lets me jump straight to implementing fixes instead of discovering file structures, test counts, or available options.
+
+---
+
 ## HIGH: Development Workflow
 
 ### GitHub Interactions
@@ -378,7 +418,19 @@ When creating issues via `gh` CLI:
     - **Body:** Full description + Analysis + [Standard Disclaimer](#github-interactions).
     - **Labels:** `bug`, `agent`.
 3.  **Confirm:** Report the issue URL and ask: "Should I proceed with fixing this?"
-4.  **Execute (if confirmed):**
-    - Create branch `fix/issue-<id>`.
-    - Implement fix.
-    - Open PR with `gh pr create`.
+
+---
+
+### #issue-pr
+
+**Trigger:** User says `#issue-pr` after a fix has been implemented.
+
+**Protocol:**
+
+1.  **Create Branch:** `git checkout -b fix/issue-<id>` (use the issue number from the current context).
+2.  **Commit:** Ask for commit approval per [CRITICAL rules](#critical-system--safety-rules), then commit the fix.
+3.  **Push:** `git push -u origin fix/issue-<id>`.
+4.  **Open PR:** Use `gh pr create` with:
+    - **Title:** Reference the issue (e.g., "Fix #<id>: <concise description>").
+    - **Body:** Summary of changes + "Closes #<id>" + [Standard Disclaimer](#github-interactions).
+    - **Labels:** Appropriate labels (e.g., `bug`, `agent`).
