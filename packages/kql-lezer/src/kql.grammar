@@ -21,7 +21,7 @@ operator {
   projectReorderClause |
   extendClause |
   sortClause |
-  limitClause | 
+  limitClause |
   takeClause |
   topClause |
   distinctClause |
@@ -36,10 +36,10 @@ joinClause { kw<"join"> joinKind? tableExpression kw<"on"> expression }
 
 projectClause { kw<"project"> columnList }
 
-projectAwayClause  { (kw<"project-away"> | kw<"projectaway">) columnList }
-projectKeepClause  { (kw<"project-keep"> | kw<"projectkeep">) columnList }
-projectRenameClause { (kw<"project-rename"> | kw<"projectrename">) columnList } 
-projectReorderClause { (kw<"project-reorder"> | kw<"projectreorder">) columnList }
+projectAwayClause  { (ProjectAway | kw<"projectaway">) columnList }
+projectKeepClause  { (ProjectKeep | kw<"projectkeep">) columnList }
+projectRenameClause { (ProjectRename | kw<"projectrename">) columnList }
+projectReorderClause { (ProjectReorder | kw<"projectreorder">) columnList }
 
 extendClause { kw<"extend"> columnList }
 
@@ -151,6 +151,12 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
   Semicolon { ";" }
   Equals { "=" }
 
+  // Project operators
+  ProjectAway { "project-away" }
+  ProjectKeep { "project-keep" }
+  ProjectRename { "project-rename" }
+  ProjectReorder { "project-reorder" }
+
   // Math operators
   Plus { "+" }
   Minus { "-" }
@@ -166,7 +172,15 @@ kw<term> { @specialize[@name={term}]<Identifier, term> }
 ]* }
   whitespace { $[ \t\n\r]+ }
 
-  @precedence { LineComment, Slash }
+  @precedence {
+    LineComment,
+    Slash,
+    ProjectAway,
+    ProjectKeep,
+    ProjectRename,
+    ProjectReorder,
+    Identifier
+  }
 }
 
 @skip { whitespace | LineComment }

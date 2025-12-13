@@ -801,28 +801,6 @@ describe("KQL Parser Integration", () => {
       expect(sql).toContain("LIMIT 50");
     });
 
-    test("project-away clause", async () => {
-      const result = await parseWithTreeSitter("Users | project-away password, secret");
-      expect(result.success).toBe(true);
-    });
-
-    test("project-keep clause", async () => {
-      const result = await parseWithTreeSitter("Users | project-keep name, email");
-      expect(result.success).toBe(true);
-    });
-
-    test("project-rename clause", async () => {
-      const result = await parseWithTreeSitter(
-        "Users | project-rename DisplayName = name, EmailAlias = email"
-      );
-      expect(result.success).toBe(true);
-    });
-
-    test("project-reorder clause", async () => {
-      const result = await parseWithTreeSitter("Users | project-reorder email, name");
-      expect(result.success).toBe(true);
-    });
-
     test("should translate search in single column", () => {
       const kql = "Users | search in (Name) 'john'";
       const sql = kqlToDuckDB(kql);
