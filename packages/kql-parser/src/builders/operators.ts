@@ -1,4 +1,4 @@
-import type { SyntaxNode } from 'tree-sitter';
+import type { SyntaxNode } from "tree-sitter";
 import type {
   WhereClause,
   ProjectClause,
@@ -27,29 +27,49 @@ import type {
   Identifier,
   ASTNode,
   NumberLiteral,
-} from '../types.js';
-import { buildIdentifier, buildNumberLiteral, buildStringLiteral } from './literals.js';
+  ProjectReorderClause,
+  ProjectRenameClause,
+  ProjectAwayClause,
+  ProjectKeepClause,
+} from "../types.js";
+import {
+  buildIdentifier,
+  buildNumberLiteral,
+  buildStringLiteral,
+} from "./literals.js";
 
-export function buildWhereClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): WhereClause {
-  const expr = node.children.find(c => c.type !== 'where');
+export function buildWhereClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): WhereClause {
+  const expr = node.children.find((c) => c.type !== "where");
   if (!expr) {
-    throw new Error('Where clause missing expression');
+    throw new Error("Where clause missing expression");
   }
   return {
-    type: 'where_clause',
+    type: "where_clause",
     expression: buildAST(expr) as Expression,
   };
 }
 
-function buildColumnExpressions(columnList: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ColumnExpression[] {
+function buildColumnExpressions(
+  columnList: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ColumnExpression[] {
   const columns: ColumnExpression[] = [];
   for (let i = 0; i < columnList.childCount; i++) {
     const child = columnList.child(i);
-    if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
-      const colExpr = child.type === 'column_expression' ? child.child(0) : child;
+    if (
+      child &&
+      (child.type === "column_expression" ||
+        child.type === "identifier" ||
+        child.type === "column_assignment")
+    ) {
+      const colExpr =
+        child.type === "column_expression" ? child.child(0) : child;
       if (colExpr) {
         const ast = buildAST(colExpr);
-        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+        if (ast.type === "identifier" || ast.type === "column_assignment") {
           columns.push(ast);
         }
       }
@@ -58,58 +78,69 @@ function buildColumnExpressions(columnList: SyntaxNode, buildAST: (node: SyntaxN
   return columns;
 }
 
-export function buildProjectClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildProjectClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ProjectClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
-    throw new Error('Project clause missing column list');
+    throw new Error("Project clause missing column list");
   }
   return {
-    type: 'project_clause',
-    columns: buildColumnExpressions(columnList, buildAST)
+    type: "project_clause",
+    columns: buildColumnExpressions(columnList, buildAST),
   };
 
   return {
-    type: 'project_clause',
+    type: "project_clause",
     columns,
   };
 }
 
-export function buildExtendClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ExtendClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildExtendClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ExtendClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
-    throw new Error('Extend clause missing column list');
+    throw new Error("Extend clause missing column list");
   }
 
   return {
-    type: 'extend_clause',
+    type: "extend_clause",
     columns: buildColumnExpressions(columnList, buildAST),
   };
 }
 
-export function buildSummarizeClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): SummarizeClause {
-  const aggregationList = node.children.find(c => c.type === 'aggregation_list');
+export function buildSummarizeClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): SummarizeClause {
+  const aggregationList = node.children.find(
+    (c) => c.type === "aggregation_list"
+  );
   if (!aggregationList) {
-    throw new Error('Summarize clause missing aggregation list');
+    throw new Error("Summarize clause missing aggregation list");
   }
 
   const aggregations: AggregationExpression[] = [];
   for (let i = 0; i < aggregationList.childCount; i++) {
     const child = aggregationList.child(i);
-    if (child && child.type === 'aggregation_expression') {
+    if (child && child.type === "aggregation_expression") {
       aggregations.push(buildAggregationExpression(child, buildAST));
     }
   }
 
-  const byIndex = node.children.findIndex(c => c.text === 'by');
+  const byIndex = node.children.findIndex((c) => c.text === "by");
   let byExpressions: Expression[] | undefined;
 
   if (byIndex !== -1) {
     const expressionList = node.children[byIndex + 1];
-    if (expressionList && expressionList.type === 'expression_list') {
+    if (expressionList && expressionList.type === "expression_list") {
       byExpressions = [];
       for (let i = 0; i < expressionList.childCount; i++) {
         const child = expressionList.child(i);
-        if (child && child.type !== ',') {
+        if (child && child.type !== ",") {
           byExpressions.push(buildAST(child) as Expression);
         }
       }
@@ -117,26 +148,29 @@ export function buildSummarizeClause(node: SyntaxNode, buildAST: (node: SyntaxNo
   }
 
   return {
-    type: 'summarize_clause',
+    type: "summarize_clause",
     aggregations,
     by: byExpressions,
   };
 }
 
-export function buildAggregationExpression(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): AggregationExpression {
+export function buildAggregationExpression(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): AggregationExpression {
   // Check if it's a named aggregation (identifier = expression)
-  const hasAssignment = node.children.some(c => c.text === '=');
+  const hasAssignment = node.children.some((c) => c.text === "=");
 
   if (hasAssignment) {
     const name = node.child(0);
     const value = node.child(2);
 
     if (!name || !value) {
-      throw new Error('Aggregation expression missing name or value');
+      throw new Error("Aggregation expression missing name or value");
     }
 
     return {
-      type: 'aggregation_expression',
+      type: "aggregation_expression",
       name: buildIdentifier(name),
       aggregation: buildAST(value) as Expression,
     };
@@ -145,11 +179,11 @@ export function buildAggregationExpression(node: SyntaxNode, buildAST: (node: Sy
   // Unnamed aggregation - just an expression
   const expr = node.child(0);
   if (!expr) {
-    throw new Error('Aggregation expression missing expression');
+    throw new Error("Aggregation expression missing expression");
   }
 
   return {
-    type: 'aggregation_expression',
+    type: "aggregation_expression",
     aggregation: buildAST(expr) as Expression,
   };
 }
@@ -157,33 +191,35 @@ export function buildAggregationExpression(node: SyntaxNode, buildAST: (node: Sy
 export function buildJoinClause(node: SyntaxNode): JoinClause {
   // Find join kind (optional)
   let kind: JoinKind | undefined;
-  const kindNode = node.children.find(c => c.type === 'join_kind');
+  const kindNode = node.children.find((c) => c.type === "join_kind");
   if (kindNode) {
     kind = kindNode.text as JoinKind;
   }
 
   // Find right table
-  const tableNode = node.children.find(c => c.type === 'table_name');
+  const tableNode = node.children.find((c) => c.type === "table_name");
   if (!tableNode) {
-    throw new Error('Join clause missing right table');
+    throw new Error("Join clause missing right table");
   }
 
   // Find join conditions
-  const conditionsNode = node.children.find(c => c.type === 'join_conditions');
+  const conditionsNode = node.children.find(
+    (c) => c.type === "join_conditions"
+  );
   if (!conditionsNode) {
-    throw new Error('Join clause missing conditions');
+    throw new Error("Join clause missing conditions");
   }
 
   const conditions: JoinCondition[] = [];
   for (let i = 0; i < conditionsNode.childCount; i++) {
     const child = conditionsNode.child(i);
-    if (child && child.type === 'join_condition') {
+    if (child && child.type === "join_condition") {
       conditions.push(buildJoinCondition(child));
     }
   }
 
   return {
-    type: 'join_clause',
+    type: "join_clause",
     kind,
     rightTable: buildIdentifier(tableNode),
     conditions,
@@ -192,10 +228,10 @@ export function buildJoinClause(node: SyntaxNode): JoinClause {
 
 export function buildJoinCondition(node: SyntaxNode): JoinCondition {
   // Handle simple column name case (just identifier)
-  if (node.childCount === 1 && node.child(0)?.type === 'identifier') {
+  if (node.childCount === 1 && node.child(0)?.type === "identifier") {
     const id = buildIdentifier(node.child(0)!);
     return {
-      type: 'join_condition',
+      type: "join_condition",
       left: id,
       right: id,
     };
@@ -208,7 +244,7 @@ export function buildJoinCondition(node: SyntaxNode): JoinCondition {
   // Find identifiers around the == operator
   for (let i = 0; i < node.childCount; i++) {
     const child = node.child(i);
-    if (child && child.type === 'identifier') {
+    if (child && child.type === "identifier") {
       if (!leftId) {
         leftId = child;
       } else if (!rightId) {
@@ -219,26 +255,29 @@ export function buildJoinCondition(node: SyntaxNode): JoinCondition {
   }
 
   if (!leftId || !rightId) {
-    throw new Error('Join condition missing identifiers');
+    throw new Error("Join condition missing identifiers");
   }
 
   return {
-    type: 'join_condition',
+    type: "join_condition",
     left: buildIdentifier(leftId),
     right: buildIdentifier(rightId),
   };
 }
 
-export function buildColumnAssignment(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ColumnAssignment {
+export function buildColumnAssignment(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ColumnAssignment {
   const name = node.child(0);
   const value = node.child(2);
 
   if (!name || !value) {
-    throw new Error('Column assignment missing name or value');
+    throw new Error("Column assignment missing name or value");
   }
 
   return {
-    type: 'column_assignment',
+    type: "column_assignment",
     name: buildIdentifier(name),
     value: buildAST(value) as Expression,
   };
@@ -247,86 +286,99 @@ export function buildColumnAssignment(node: SyntaxNode, buildAST: (node: SyntaxN
 export function buildUnionClause(node: SyntaxNode): UnionClause {
   // Find union kind (optional)
   let kind: UnionKind | undefined;
-  const kindNode = node.children.find(c => c.type === 'union_kind');
+  const kindNode = node.children.find((c) => c.type === "union_kind");
   if (kindNode) {
     kind = kindNode.text as UnionKind;
   }
 
   // Find isfuzzy (optional)
   let isfuzzy: boolean | undefined;
-  const isfuzzyIndex = node.children.findIndex(c => c.text === 'isfuzzy');
+  const isfuzzyIndex = node.children.findIndex((c) => c.text === "isfuzzy");
   if (isfuzzyIndex !== -1) {
     const boolValue = node.children[isfuzzyIndex + 2]; // skip '='
-    if (boolValue && (boolValue.text === 'true' || boolValue.text === 'false')) {
-      isfuzzy = boolValue.text === 'true';
+    if (
+      boolValue &&
+      (boolValue.text === "true" || boolValue.text === "false")
+    ) {
+      isfuzzy = boolValue.text === "true";
     }
   }
 
   // Find table list
-  const tableListNode = node.children.find(c => c.type === 'table_list');
+  const tableListNode = node.children.find((c) => c.type === "table_list");
   if (!tableListNode) {
-    throw new Error('Union clause missing table list');
+    throw new Error("Union clause missing table list");
   }
 
   const tables: Identifier[] = [];
   for (let i = 0; i < tableListNode.childCount; i++) {
     const child = tableListNode.child(i);
-    if (child && child.type === 'table_name') {
+    if (child && child.type === "table_name") {
       tables.push(buildIdentifier(child));
     }
   }
 
   return {
-    type: 'union_clause',
+    type: "union_clause",
     kind,
     isfuzzy,
     tables,
   };
 }
 
-export function buildParseClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ParseClause {
+export function buildParseClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ParseClause {
   // Find parse kind (optional)
   let kind: ParseKind | undefined;
-  const kindNode = node.children.find(c => c.type === 'parse_kind');
+  const kindNode = node.children.find((c) => c.type === "parse_kind");
   if (kindNode) {
     kind = kindNode.text as ParseKind;
   }
 
   // Find source expression
-  const sourceNode = node.children.find(c => c.type === 'expression' || c.type === 'identifier');
+  const sourceNode = node.children.find(
+    (c) => c.type === "expression" || c.type === "identifier"
+  );
   if (!sourceNode) {
-    throw new Error('Parse clause missing source expression');
+    throw new Error("Parse clause missing source expression");
   }
 
   // Find pattern string
-  const patternNode = node.children.find(c => c.type === 'string_literal');
+  const patternNode = node.children.find((c) => c.type === "string_literal");
   if (!patternNode) {
-    throw new Error('Parse clause missing pattern');
+    throw new Error("Parse clause missing pattern");
   }
 
   return {
-    type: 'parse_clause',
+    type: "parse_clause",
     kind,
     source: buildAST(sourceNode) as Expression,
     pattern: buildStringLiteral(patternNode),
   };
 }
 
-export function buildMvExpandClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): MvExpandClause {
+export function buildMvExpandClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): MvExpandClause {
   // Find column expression to expand
-  const columnNode = node.children.find(c => c.type === 'expression' || c.type === 'identifier');
+  const columnNode = node.children.find(
+    (c) => c.type === "expression" || c.type === "identifier"
+  );
   if (!columnNode) {
-    throw new Error('MV-expand clause missing column expression');
+    throw new Error("MV-expand clause missing column expression");
   }
 
   // Find 'to typeof' clause (optional)
   let toIdentifier: Identifier | undefined;
-  const toIndex = node.children.findIndex(c => c.text === 'to');
+  const toIndex = node.children.findIndex((c) => c.text === "to");
   if (toIndex !== -1) {
     // Look for identifier after 'typeof' and '('
     for (let i = toIndex + 1; i < node.children.length; i++) {
       const child = node.children[i];
-      if (child && child.type === 'identifier') {
+      if (child && child.type === "identifier") {
         toIdentifier = buildIdentifier(child);
         break;
       }
@@ -335,16 +387,16 @@ export function buildMvExpandClause(node: SyntaxNode, buildAST: (node: SyntaxNod
 
   // Find limit (optional)
   let limit: NumberLiteral | undefined = undefined;
-  const limitIndex = node.children.findIndex(c => c.text === 'limit');
+  const limitIndex = node.children.findIndex((c) => c.text === "limit");
   if (limitIndex !== -1) {
     const limitNode = node.children[limitIndex + 1];
-    if (limitNode && limitNode.type === 'number_literal') {
+    if (limitNode && limitNode.type === "number_literal") {
       limit = buildNumberLiteral(limitNode);
     }
   }
 
   return {
-    type: 'mv_expand_clause',
+    type: "mv_expand_clause",
     column: buildAST(columnNode) as Expression,
     to: toIdentifier,
     limit,
@@ -352,79 +404,90 @@ export function buildMvExpandClause(node: SyntaxNode, buildAST: (node: SyntaxNod
 }
 
 export function buildTakeClause(node: SyntaxNode): TakeClause {
-  const count = node.children.find(c => c.type === 'number_literal');
+  const count = node.children.find((c) => c.type === "number_literal");
   if (!count) {
-    throw new Error('Take clause missing count');
+    throw new Error("Take clause missing count");
   }
   return {
-    type: 'take_clause',
+    type: "take_clause",
     count: buildNumberLiteral(count),
   };
 }
 
 export function buildLimitClause(node: SyntaxNode): LimitClause {
-  const count = node.children.find(c => c.type === 'number_literal');
+  const count = node.children.find((c) => c.type === "number_literal");
   if (!count) {
-    throw new Error('Limit clause missing count');
+    throw new Error("Limit clause missing count");
   }
   return {
-    type: 'limit_clause',
+    type: "limit_clause",
     count: buildNumberLiteral(count),
   };
 }
 
 export function buildSortClause(node: SyntaxNode): SortClause {
-  const sortList = node.children.find(c => c.type === 'sort_expression_list');
+  const sortList = node.children.find((c) => c.type === "sort_expression_list");
   if (!sortList) {
-    throw new Error('Sort clause missing expression list');
+    throw new Error("Sort clause missing expression list");
   }
 
   const expressions: SortExpression[] = [];
   for (let i = 0; i < sortList.childCount; i++) {
     const child = sortList.child(i);
-    if (child && child.type === 'sort_expression') {
+    if (child && child.type === "sort_expression") {
       expressions.push(buildSortExpression(child));
     }
   }
 
   return {
-    type: 'sort_clause',
+    type: "sort_clause",
     expressions,
   };
 }
 
 export function buildSortExpression(node: SyntaxNode): SortExpression {
-  const column = node.children.find(c => c.type === 'identifier');
+  const column = node.children.find((c) => c.type === "identifier");
   if (!column) {
-    throw new Error('Sort expression missing column identifier');
+    throw new Error("Sort expression missing column identifier");
   }
 
-  const direction = node.children.find(c => c.text === 'asc' || c.text === 'desc');
+  const direction = node.children.find(
+    (c) => c.text === "asc" || c.text === "desc"
+  );
 
   return {
-    type: 'sort_expression',
+    type: "sort_expression",
     column: buildIdentifier(column),
-    direction: direction?.text as 'asc' | 'desc' | undefined,
+    direction: direction?.text as "asc" | "desc" | undefined,
   };
 }
 
-export function buildDistinctClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): DistinctClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildDistinctClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): DistinctClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
 
   if (!columnList) {
     return {
-      type: 'distinct_clause',
+      type: "distinct_clause",
     };
   }
 
   const columns: ColumnExpression[] = [];
   for (let i = 0; i < columnList.childCount; i++) {
     const child = columnList.child(i);
-    if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
-      const colExpr = child.type === 'column_expression' ? child.child(0) : child;
+    if (
+      child &&
+      (child.type === "column_expression" ||
+        child.type === "identifier" ||
+        child.type === "column_assignment")
+    ) {
+      const colExpr =
+        child.type === "column_expression" ? child.child(0) : child;
       if (colExpr) {
         const ast = buildAST(colExpr);
-        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+        if (ast.type === "identifier" || ast.type === "column_assignment") {
           columns.push(ast);
         }
       }
@@ -432,108 +495,126 @@ export function buildDistinctClause(node: SyntaxNode, buildAST: (node: SyntaxNod
   }
 
   return {
-    type: 'distinct_clause',
+    type: "distinct_clause",
     columns,
   };
 }
 
 export function buildCountClause(_node: SyntaxNode): CountClause {
   return {
-    type: 'count_clause',
+    type: "count_clause",
   };
 }
 
 export function buildTopClause(node: SyntaxNode): TopClause {
-  const count = node.children.find(c => c.type === 'number_literal');
+  const count = node.children.find((c) => c.type === "number_literal");
   if (!count) {
-    throw new Error('Top clause missing count');
+    throw new Error("Top clause missing count");
   }
 
-  const byIndex = node.children.findIndex(c => c.text === 'by');
+  const byIndex = node.children.findIndex((c) => c.text === "by");
   if (byIndex !== -1) {
     const column = node.children[byIndex + 1];
     const direction = node.children[byIndex + 2];
 
-    if (column && column.type === 'identifier') {
+    if (column && column.type === "identifier") {
       return {
-        type: 'top_clause',
+        type: "top_clause",
         count: buildNumberLiteral(count),
         by: {
           column: buildIdentifier(column),
-          direction: (direction?.text === 'asc' || direction?.text === 'desc') ? direction.text : undefined,
+          direction:
+            direction?.text === "asc" || direction?.text === "desc"
+              ? direction.text
+              : undefined,
         },
       };
     }
   }
 
   return {
-    type: 'top_clause',
+    type: "top_clause",
     count: buildNumberLiteral(count),
   };
 }
 
-export function buildProjectAwayClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectAwayClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildProjectAwayClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ProjectAwayClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
-    throw new Error('Project-away clause missing column list');
+    throw new Error("Project-away clause missing column list");
   }
   return {
-    type: 'project_away_clause',
-    columns: buildColumnExpressions(columnList, buildAST)
+    type: "project_away_clause",
+    columns: buildColumnExpressions(columnList, buildAST),
   };
 }
 
-export function buildProjectKeepClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectKeepClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildProjectKeepClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ProjectKeepClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
-    throw new Error('Project-keep clause missing column list');
+    throw new Error("Project-keep clause missing column list");
   }
   return {
-    type: 'project_keep_clause',
-    columns: buildColumnExpressions(columnList, buildAST)
+    type: "project_keep_clause",
+    columns: buildColumnExpressions(columnList, buildAST),
   };
 }
 
-export function buildProjectRenameClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectRenameClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildProjectRenameClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ProjectRenameClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
-    throw new Error('Project-rename clause missing column list');
+    throw new Error("Project-rename clause missing column list");
   }
 
   const columns = buildColumnExpressions(columnList, buildAST);
   for (const col of columns) {
-    if (col.type !== 'column_assignment') {
-      throw new Error('project-rename requires new = old assignments');
+    if (col.type !== "column_assignment") {
+      throw new Error("project-rename requires new = old assignments");
     }
   }
 
   return {
-    type: 'project_rename_clause',
-    columns: columns as ColumnAssignment[]
+    type: "project_rename_clause",
+    columns: columns as ColumnAssignment[],
   };
 }
 
-export function buildProjectReorderClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectReorderClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
+export function buildProjectReorderClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): ProjectReorderClause {
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
-    throw new Error('Project-reorder clause missing column list');
+    throw new Error("Project-reorder clause missing column list");
   }
   return {
-    type: 'project_reorder_clause',
-    columns: buildColumnExpressions(columnList, buildAST)
+    type: "project_reorder_clause",
+    columns: buildColumnExpressions(columnList, buildAST),
   };
 }
 
-export function buildSearchClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): SearchClause {
-  const stringLiteral = node.children.find(c => c.type === 'string_literal');
+export function buildSearchClause(
+  node: SyntaxNode,
+  buildAST: (node: SyntaxNode) => ASTNode
+): SearchClause {
+  const stringLiteral = node.children.find((c) => c.type === "string_literal");
   if (!stringLiteral) {
-    throw new Error('Search clause missing search term');
+    throw new Error("Search clause missing search term");
   }
 
-  const columnList = node.children.find(c => c.type === 'column_list');
+  const columnList = node.children.find((c) => c.type === "column_list");
   if (!columnList) {
     return {
-      type: 'search_clause',
+      type: "search_clause",
       term: buildStringLiteral(stringLiteral),
     };
   }
@@ -541,11 +622,17 @@ export function buildSearchClause(node: SyntaxNode, buildAST: (node: SyntaxNode)
   const columns: ColumnExpression[] = [];
   for (let i = 0; i < columnList.childCount; i++) {
     const child = columnList.child(i);
-    if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
-      const colExpr = child.type === 'column_expression' ? child.child(0) : child;
+    if (
+      child &&
+      (child.type === "column_expression" ||
+        child.type === "identifier" ||
+        child.type === "column_assignment")
+    ) {
+      const colExpr =
+        child.type === "column_expression" ? child.child(0) : child;
       if (colExpr) {
         const ast = buildAST(colExpr);
-        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
+        if (ast.type === "identifier" || ast.type === "column_assignment") {
           columns.push(ast);
         }
       }
@@ -553,7 +640,7 @@ export function buildSearchClause(node: SyntaxNode, buildAST: (node: SyntaxNode)
   }
 
   return {
-    type: 'search_clause',
+    type: "search_clause",
     columns,
     term: buildStringLiteral(stringLiteral),
   };
