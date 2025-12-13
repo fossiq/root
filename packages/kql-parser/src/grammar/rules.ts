@@ -23,6 +23,10 @@ export const operator: RuleFunction = ($) =>
   choice(
     $.where_clause,
     $.project_clause,
+    $.project_away_clause,
+    $.project_keep_clause, 
+    $.project_rename_clause,
+    $.project_reorder_clause,
     $.extend_clause,
     $.summarize_clause,
     $.join_clause,
@@ -38,6 +42,18 @@ export const operator: RuleFunction = ($) =>
     $.top_clause,
     $.search_clause
   );
+
+export const projectAwayClause: RuleFunction = ($) =>
+  seq(choice("project-away", "projectaway"), $.column_list);
+
+export const projectKeepClause: RuleFunction = ($) =>
+  seq(choice("project-keep", "projectkeep"), $.column_list);  
+
+export const projectRenameClause: RuleFunction = ($) =>
+  seq(choice("project-rename", "projectrename"), $.column_list);
+
+export const projectReorderClause: RuleFunction = ($) =>
+  seq(choice("project-reorder", "projectreorder"), $.column_list);
 
 export const tableName: RuleFunction = ($) => $.identifier;
 
