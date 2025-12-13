@@ -28,7 +28,7 @@ console.log(sql);
 | ---------------------- | ------ | ----------------------------------------------------------------------------------------- |
 | Basic table selection  | ✓      | `Table`                                                                                   |
 | where clause           | ✓      | Filtering with comparisons and binary operators                                           |
-| project clause         | ✓      | Column selection and renaming                                                             |
+| project / project-away / project-keep / project-rename / project-reorder | ✓ | Column operations via DuckDB's SELECT, SELECT * EXCLUDE, SELECT * REPLACE, and reordering patterns |
 | extend clause          | ✓      | Computed columns                                                                          |
 | summarize clause       | ✓      | Aggregations with GROUP BY                                                                |
 | sort/order by          | ✓      | Multi-column with asc/desc                                                                |
@@ -51,12 +51,8 @@ console.log(sql);
 
 | Feature            | Status | Notes                                                  |
 | ------------------ | ------ | ------------------------------------------------------ |
-| DateTime functions | ✗      | now(), ago(), etc. - require runtime context           |
-| let statements     | ✗      | Variable definitions - would require AST preprocessing |
 | Subqueries         | ✗      | Nested SELECT in FROM - complex scope handling         |
-| mv_expand          | ✗      | Multi-value expansion - array unpacking                |
 | parse operator     | ✗      | Complex - see limitations below                        |
-| search operator    | ✗      | Full-text search - not in scope                        |
 
 ### Why parse operator is unsupported
 
@@ -70,6 +66,15 @@ The KQL `parse` operator extracts structured data from strings using regex or si
 Workaround: Pre-process data with application logic or use DuckDB's `regexp_extract()` for simple cases.
 
 ## Examples
+
+### Project Operator Family
+```kql
+Users | project-rename DisplayName = Name | project-away Password
+```
+Becomes:
+```sql
+SELECT * REPLACE (Name AS DisplayName) EXCLUDE (Password) FROM Users
+```
 
 ### Filtering and Projection
 

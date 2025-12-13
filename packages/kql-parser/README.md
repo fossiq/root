@@ -6,7 +6,7 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 
 ## Features
 
-- ✅ **Complete KQL grammar** - Supports all major KQL operators and expressions
+- ✅ **Core KQL grammar subset** - 15+ operators including project-away/keep/rename/reorder, mv-expand, parse, search, join, union
 - ✅ **Type-safe AST** - Fully typed Abstract Syntax Tree with discriminated unions
 - ✅ **88 tests** - Comprehensive test coverage for real-world queries
 - ✅ **Tree-sitter based** - Fast, incremental parsing with excellent error recovery
@@ -221,14 +221,14 @@ Tests are organized by feature (operators, expressions, comments, etc.) and vali
 
 ## Status
 
-**98% feature complete** - The parser handles the vast majority of real-world KQL queries.
+**Core tabular/query subset complete** - The parser implements essential KQL operators including project-away/keep/rename/reorder, mv-expand, parse, search, join, and union. Advanced operators from the implementation guide (find, sample, make-series, evaluate, range, etc.) remain pending.
 
 See [status.md](../../.github/instructions/kql-parser-status.md) for detailed feature checklist.
 
 ## TODO (per implementation guide)
 
 - Statements: support `set` commands, let function/view definitions, semicolon/whitespace rules between lets and queries.
-- Operators: add `find`, `sample`, project variants (away/keep/rename/reorder), `top-nested`, `union withsource`, `make-series`, `mv-apply`, `evaluate` plugins, `render`, `materialize`/`toscalar`, join `innerunique` and hints, `search kind`, `distinct` wildcards.
+- Operators: add `find`, `sample`, `top-nested`, `union withsource`, `make-series`, `mv-apply`, `evaluate` plugins, `render`, `materialize`/`toscalar`, join `innerunique` and hints, `search kind`, `distinct` wildcards.
 - Expressions: unary `not`, case-sensitive string ops (`contains_cs`, `has_cs`), `in~`, regex flags, `!between`, comparisons beyond identifier-vs-literal, subqueries.
 - Tokens/literals: quoted identifiers, full string forms (verbatim/backtick/obfuscated), combined timespans, datetime literals, identifier rules for `__`/`$`, richer escapes.
 - Functions/types: map built-in function categories, type aliases/conversions, aggregation function coverage.
