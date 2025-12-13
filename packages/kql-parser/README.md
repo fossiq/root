@@ -249,3 +249,4 @@ This package was developed with the assistance of AI models including Claude (An
 ## Contributing
 
 Contributions welcome! Please see the development guide at `.github/instructions/kql-parser-dev.md` for details on adding new features.
+ 
