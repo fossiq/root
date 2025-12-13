@@ -73,7 +73,7 @@ cd "$PARSER_DIR"
 echo "   Compiling grammar, generating parser, and building TypeScript..."
 bun run generate
 bun run build:binding || true
-bunx tsc
+bun x tsc
 
 echo "   Running tests..."
 bun run test
