@@ -27,6 +27,10 @@ import {
 import {
   buildWhereClause,
   buildProjectClause,
+  buildProjectAwayClause,
+  buildProjectKeepClause,
+  buildProjectRenameClause,
+  buildProjectReorderClause,
   buildExtendClause,
   buildSummarizeClause,
   buildAggregationExpression,
@@ -75,6 +79,14 @@ export function buildAST(node: SyntaxNode): ASTNode {
       return buildWhereClause(node, buildAST);
     case "project_clause":
       return buildProjectClause(node, buildAST);
+    case "project_away_clause":
+      return buildProjectAwayClause(node, buildAST);
+    case "project_keep_clause":
+      return buildProjectKeepClause(node, buildAST);
+    case "project_rename_clause":
+      return buildProjectRenameClause(node, buildAST);
+    case "project_reorder_clause":
+      return buildProjectReorderClause(node, buildAST);
     case "extend_clause":
       return buildExtendClause(node, buildAST);
     case "summarize_clause":
