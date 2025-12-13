@@ -666,7 +666,23 @@
           "named": true
         },
         {
+          "type": "project_away_clause",
+          "named": true
+        },
+        {
           "type": "project_clause",
+          "named": true
+        },
+        {
+          "type": "project_keep_clause",
+          "named": true
+        },
+        {
+          "type": "project_rename_clause",
+          "named": true
+        },
+        {
+          "type": "project_reorder_clause",
           "named": true
         },
         {
@@ -797,7 +813,67 @@
     }
   },
   {
+    "type": "project_away_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "column_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "project_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "column_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "project_keep_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "column_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "project_rename_clause",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "column_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "project_reorder_clause",
     "named": true,
     "fields": {},
     "children": {
@@ -1358,6 +1434,38 @@
   },
   {
     "type": "project",
+    "named": false
+  },
+  {
+    "type": "project-away",
+    "named": false
+  },
+  {
+    "type": "project-keep",
+    "named": false
+  },
+  {
+    "type": "project-rename",
+    "named": false
+  },
+  {
+    "type": "project-reorder",
+    "named": false
+  },
+  {
+    "type": "projectaway",
+    "named": false
+  },
+  {
+    "type": "projectkeep",
+    "named": false
+  },
+  {
+    "type": "projectrename",
+    "named": false
+  },
+  {
+    "type": "projectreorder",
     "named": false
   },
   {
