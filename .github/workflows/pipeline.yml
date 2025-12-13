@@ -277,7 +277,7 @@ jobs:
           echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
-      - name: Publish affected packages (turbo --affected)
+      - name: Publish packages
         if: inputs.is_pr == false
         id: publish
         run: .github/scripts/publish-packages.sh

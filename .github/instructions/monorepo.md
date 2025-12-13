@@ -122,6 +122,15 @@ Create files one at a time, getting approval between steps:
 
 ## Versioning and Releases
 
+### Single Version Strategy
+
+The monorepo uses a **"Single Version for All"** strategy:
+
+- All publishable packages (`packages/*` excluding `ui`) are synchronized to the same version.
+- When _any_ package changes, _all_ packages receive a version bump.
+- This simplifies dependency management and ensures compatibility across the monorepo.
+- The `ci:publish` script (`.github/scripts/publish-packages.sh`) is configured to attempt publishing **all** packages, not just affected ones, ensuring consistency.
+
 ### Changesets
 
 The monorepo uses [@changesets/cli](https://github.com/changesets/changesets) for version management and changelog generation.
@@ -150,7 +159,7 @@ When changesets are merged to `main`:
 
 - GitHub Actions detects changesets
 - Creates/updates a "Release: Version Packages" PR that:
-  - Bumps package versions
+  - Bumps package versions (all packages synced)
   - Updates CHANGELOGs
   - Removes consumed changesets
 - Merge the release PR to publish to npm automatically
@@ -165,7 +174,7 @@ bun run release  # Publish to npm
 
 **Configuration:**
 
-- `.changeset/config.json` - Changesets configuration
+- `.changeset/config.json` - Changesets configuration (configured for `fixed` mode)
 - `access: "public"` - All packages are public on npm
 - `baseBranch: "main"` - Base branch for version PRs
 
