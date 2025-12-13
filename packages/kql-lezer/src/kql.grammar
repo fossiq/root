@@ -15,9 +15,13 @@ bracketedIdentifier { OpenBracket String CloseBracket }
 operator {
   whereClause |
   projectClause |
+  projectAwayClause |
+  projectKeepClause |
+  projectRenameClause |
+  projectReorderClause |
   extendClause |
   sortClause |
-  limitClause |
+  limitClause | 
   takeClause |
   topClause |
   distinctClause |
@@ -31,6 +35,11 @@ operator {
 joinClause { kw<"join"> joinKind? tableExpression kw<"on"> expression }
 
 projectClause { kw<"project"> columnList }
+
+projectAwayClause  { (kw<"project-away"> | kw<"projectaway">) columnList }
+projectKeepClause  { (kw<"project-keep"> | kw<"projectkeep">) columnList }
+projectRenameClause { (kw<"project-rename"> | kw<"projectrename">) columnList } 
+projectReorderClause { (kw<"project-reorder"> | kw<"projectreorder">) columnList }
 
 extendClause { kw<"extend"> columnList }
 

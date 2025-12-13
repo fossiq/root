@@ -168,7 +168,7 @@ export const kqlLanguage = LRLanguage.define({
     props: [
       styleTags({
         // Query operators (pipe operators) - distinct from regular keywords
-        "where project extend sort limit take top distinct summarize join":
+        "where project projectndash;away projectndash;keep projectndash;rename projectndash;reorder extend sort limit take top distinct summarize join":
           t.keyword,
         // Let statement
         let: t.definitionKeyword,
