@@ -1890,3 +1890,53 @@ Events
 // ############################################################################
 // END OF TEST SUITE
 // ############################################################################
+# Test cases for KQL parser
+
+# Basic operators
+Table | where Col > 10
+Table | project Col1, Col2 
+Table | extend NewCol = Col * 2
+Table | summarize count() by Category
+Table | sort by Value desc
+Table | take 5
+Table | limit 100
+Table | top 10 by Score
+Table | distinct Field1, Field2
+Table | count
+
+# Joins
+FactTable | join kind=inner DimTable on Key
+Events | join kind=leftouter Users on $left.userId == $right.id
+Orders | join Products on $left.product_id == $right.id and Orders.category == Products.category
+
+# Unions
+Table1 | union Table2
+TableA | union kind=outer TableB, TableC
+
+# Miscellaneous 
+Users | where age > 18 and country == "US"
+Sales | summarize total = sum(Amount) by Year, Month
+Logs | parse kind=simple message with "error=" errorCode:int
+Metrics | mv-expand Values to typeof(double)
+Exceptions | search in (Message) "timeout"
+
+# Edge cases 
+TableWith|PipeInName | where Field == "value|with|pipe"
+TableWith[Spaces] | project ["Column Name"]
+[Table.With.Dots] | extend ["Weird.Col.Name"] = 1
+
+# Timespans and datetimes
+Events | where Timestamp > ago(7d)
+Requests | where Duration > timespan(5s)
+
+# Advanced features
+let Threshold = 100;
+Table | where Value > Threshold
+
+let ActiveUsers = Users | where IsActive;
+ActiveUsers | summarize count() by Country
+
+let Multiply = (x:long, y:long) { x * y };
+Table | extend Result = Multiply(Value, Threshold)
+
+Telem* | union Cluster*.Heartbeat | where heartbeatTime > ago(1h)
