@@ -145,10 +145,10 @@
 
 - [ ] `find` - Search across tables
 - [ ] `sample` - Random sampling
-- [ ] `project-away` - Exclude columns
-- [ ] `project-keep` - Keep only specified columns
-- [ ] `project-rename` - Rename columns
-- [ ] `project-reorder` - Reorder columns
+- [x] `project-away` - Exclude columns
+- [x] `project-keep` - Keep only specified columns
+- [x] `project-rename` - Rename columns
+- [x] `project-reorder` - Reorder columns
 - [ ] `mv-apply` - Apply subqueries to expanded arrays
 - [ ] `make-series` - Time series generation
 - [ ] `evaluate` - Plugin operations (bag_unpack, pivot, etc.)

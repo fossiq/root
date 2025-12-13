@@ -59,7 +59,7 @@ async function parseKqlWeb(query: string) {
 
 ## Supported Features
 
-**Query Operators:** `where`, `project`, `extend`, `summarize`, `join` (all kinds), `union`, `parse`, `mv-expand`, `sort`/`order by`, `take`/`limit`, `top`, `distinct`, `count`, `search`
+**Query Operators:** `where`, `project`, `project-away`, `project-keep`, `project-rename`, `project-reorder`, `extend`, `summarize`, `join` (all kinds), `union`, `parse`, `mv-expand`, `sort`/`order by`, `take`/`limit`, `top`, `distinct`, `count`, `search`
 
 **Expressions:** Binary (`and`, `or`), comparison (`==`, `!=`, `>`, `<`, `>=`, `<=`), arithmetic (`+`, `-`, `*`, `/`, `%`), string (`contains`, `startswith`, `endswith`, `matches`, `has`), `in`, `between`, conditionals (`iff`, `case`), type casting, function calls, parenthesized expressions
 

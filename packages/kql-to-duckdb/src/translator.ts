@@ -32,6 +32,15 @@ import type {
   TimespanLiteral,
 } from "@fossiq/kql-parser";
 
+function getIdentifierColumns(operatorName: string, columns: ColumnExpression[]): string[] {
+  return columns.map((col) => {
+    if (col.type !== "identifier") {
+      throw new Error(`${operatorName} currently supports only identifier columns`);
+    }
+    return col.name;
+  });
+}
+
 // Store let statement values for variable substitution
 const variableMap = new Map<string, Expression>();
 
@@ -113,6 +122,14 @@ function translatePipe(operator: Operator, inputRelation: string): string {
       return translateMvExpand(operator, inputRelation);
     case "search_clause":
       return translateSearch(operator, inputRelation);
+    case "project_away_clause":
+      return translateProjectAway(operator, inputRelation);
+    case "project_keep_clause":
+      return translateProjectKeep(operator, inputRelation);
+    case "project_rename_clause":
+      return translateProjectRename(operator, inputRelation);
+    case "project_reorder_clause":
+      return translateProjectReorder(operator, inputRelation);
     default:
       throw new Error(`Unsupported operator: ${operator.type}`);
   }
@@ -494,6 +511,38 @@ function translateMvExpand(
   }
 
   return sql;
+}
+
+function translateProjectAway(operator: ProjectAwayClause, input: string): string {
+  const columns = getIdentifierColumns("project-away", operator.columns);
+  return `SELECT * EXCLUDE (${columns.join(", ")}) FROM ${input}`;
+}
+
+function translateProjectKeep(operator: ProjectKeepClause, input: string): string {
+  const columns = operator.columns.map(translateColumnExpression);
+  return `SELECT ${columns.join(", ")} FROM ${input}`;
+}
+
+function translateProjectRename(
+  operator: ProjectRenameClause,
+  input: string
+): string {
+  const replacements = operator.columns.map((assignment) => {
+    if (assignment.value.type !== "identifier") {
+      throw new Error("project-rename currently supports identifier = identifier pairs");
+    }
+    return `${assignment.value.name} AS ${assignment.name.name}`;
+  });
+  return `SELECT * REPLACE (${replacements.join(", ")}) FROM ${input}`;
+}
+
+function translateProjectReorder(
+  operator: ProjectReorderClause,
+  input: string
+): string {
+  const columns = getIdentifierColumns("project-reorder", operator.columns);
+  const ordered = columns.join(", ");
+  return `SELECT ${ordered}, * EXCLUDE (${ordered}) FROM ${input}`;
 }
 
 function translateSearch(

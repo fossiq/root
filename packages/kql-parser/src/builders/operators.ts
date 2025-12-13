@@ -80,23 +80,9 @@ export function buildExtendClause(node: SyntaxNode, buildAST: (node: SyntaxNode)
     throw new Error('Extend clause missing column list');
   }
 
-  const columns: ColumnExpression[] = [];
-  for (let i = 0; i < columnList.childCount; i++) {
-    const child = columnList.child(i);
-    if (child && (child.type === 'column_expression' || child.type === 'identifier' || child.type === 'column_assignment')) {
-      const colExpr = child.type === 'column_expression' ? child.child(0) : child;
-      if (colExpr) {
-        const ast = buildAST(colExpr);
-        if (ast.type === 'identifier' || ast.type === 'column_assignment') {
-          columns.push(ast);
-        }
-      }
-    }
-  }
-
   return {
     type: 'extend_clause',
-    columns,
+    columns: buildColumnExpressions(columnList, buildAST),
   };
 }
 
@@ -483,6 +469,58 @@ export function buildTopClause(node: SyntaxNode): TopClause {
   return {
     type: 'top_clause',
     count: buildNumberLiteral(count),
+  };
+}
+
+export function buildProjectAwayClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectAwayClause {
+  const columnList = node.children.find(c => c.type === 'column_list');
+  if (!columnList) {
+    throw new Error('Project-away clause missing column list');
+  }
+  return {
+    type: 'project_away_clause',
+    columns: buildColumnExpressions(columnList, buildAST)
+  };
+}
+
+export function buildProjectKeepClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectKeepClause {
+  const columnList = node.children.find(c => c.type === 'column_list');
+  if (!columnList) {
+    throw new Error('Project-keep clause missing column list');
+  }
+  return {
+    type: 'project_keep_clause',
+    columns: buildColumnExpressions(columnList, buildAST)
+  };
+}
+
+export function buildProjectRenameClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectRenameClause {
+  const columnList = node.children.find(c => c.type === 'column_list');
+  if (!columnList) {
+    throw new Error('Project-rename clause missing column list');
+  }
+
+  const columns = buildColumnExpressions(columnList, buildAST);
+  for (const col of columns) {
+    if (col.type !== 'column_assignment') {
+      throw new Error('project-rename requires new = old assignments');
+    }
+  }
+
+  return {
+    type: 'project_rename_clause',
+    columns: columns as ColumnAssignment[]
+  };
+}
+
+export function buildProjectReorderClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectReorderClause {
+  const columnList = node.children.find(c => c.type === 'column_list');
+  if (!columnList) {
+    throw new Error('Project-reorder clause missing column list');
+  }
+  return {
+    type: 'project_reorder_clause',
+    columns: buildColumnExpressions(columnList, buildAST)
   };
 }
 

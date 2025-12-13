@@ -801,6 +801,28 @@ describe("KQL Parser Integration", () => {
       expect(sql).toContain("LIMIT 50");
     });
 
+    test("project-away clause", async () => {
+      const result = await parseWithTreeSitter("Users | project-away password, secret");
+      expect(result.success).toBe(true);
+    });
+
+    test("project-keep clause", async () => {
+      const result = await parseWithTreeSitter("Users | project-keep name, email");
+      expect(result.success).toBe(true);
+    });
+
+    test("project-rename clause", async () => {
+      const result = await parseWithTreeSitter(
+        "Users | project-rename DisplayName = name, EmailAlias = email"
+      );
+      expect(result.success).toBe(true);
+    });
+
+    test("project-reorder clause", async () => {
+      const result = await parseWithTreeSitter("Users | project-reorder email, name");
+      expect(result.success).toBe(true);
+    });
+
     test("should translate search in single column", () => {
       const kql = "Users | search in (Name) 'john'";
       const sql = kqlToDuckDB(kql);
@@ -847,6 +869,30 @@ describe("KQL Parser Integration", () => {
       expect(likeCount).toBeGreaterThanOrEqual(3);
       const orCount = (sql.match(/OR/g) || []).length;
       expect(orCount).toBeGreaterThanOrEqual(2);
+    });
+
+    test("should translate project-away clause", () => {
+      const kql = "Table | project-away Secret, Password";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("EXCLUDE (Secret, Password)");
+    });
+
+    test("should translate project-keep clause", () => {
+      const kql = "Table | project-keep Name, Email";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SELECT Name, Email FROM");
+    });
+
+    test("should translate project-rename clause", () => {
+      const kql = "Table | project-rename DisplayName = Name";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("REPLACE (Name AS DisplayName)");
+    });
+
+    test("should translate project-reorder clause", () => {
+      const kql = "Table | project-reorder Name, Email";
+      const sql = kqlToDuckDB(kql);
+      expect(sql).toContain("SELECT Name, Email, * EXCLUDE (Name, Email)");
     });
   });
 });
