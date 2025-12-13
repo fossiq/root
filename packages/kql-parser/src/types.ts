@@ -55,7 +55,7 @@ export interface PipeExpression {
 export type Operator =
   | WhereClause
   | ProjectClause
-  | ProjectAwayClause 
+  | ProjectAwayClause
   | ProjectKeepClause
   | ProjectRenameClause
   | ProjectReorderClause
@@ -79,18 +79,19 @@ export interface ProjectAwayClause {
 }
 
 export interface ProjectKeepClause {
-  type: "project_keep_clause"; 
+  type: "project_keep_clause";
   columns: ColumnExpression[];
 }
 
 export interface ProjectReorderClause {
   type: "project_reorder_clause";
   columns: ColumnExpression[];
-}  
-  
+}
+
 export interface ProjectRenameClause {
   type: "project_rename_clause";
   columns: ColumnAssignment[]; // Must be assignment form (new = old)
+}
 
 export interface WhereClause {
   type: "where_clause";

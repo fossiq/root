@@ -89,6 +89,22 @@
         },
         {
           "type": "SYMBOL",
+          "name": "project_away_clause"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "project_keep_clause"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "project_rename_clause"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "project_reorder_clause"
+        },
+        {
+          "type": "SYMBOL",
           "name": "extend_clause"
         },
         {
@@ -172,6 +188,94 @@
         {
           "type": "STRING",
           "value": "project"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "column_list"
+        }
+      ]
+    },
+    "project_away_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "project-away"
+            },
+            {
+              "type": "STRING",
+              "value": "projectaway"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "column_list"
+        }
+      ]
+    },
+    "project_keep_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "project-keep"
+            },
+            {
+              "type": "STRING",
+              "value": "projectkeep"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "column_list"
+        }
+      ]
+    },
+    "project_rename_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "project-rename"
+            },
+            {
+              "type": "STRING",
+              "value": "projectrename"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "column_list"
+        }
+      ]
+    },
+    "project_reorder_clause": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "project-reorder"
+            },
+            {
+              "type": "STRING",
+              "value": "projectreorder"
+            }
+          ]
         },
         {
           "type": "SYMBOL",
