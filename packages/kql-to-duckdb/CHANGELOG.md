@@ -1,5 +1,20 @@
 # @fossiq/kql-to-duckdb
 
+## 1.2.0
+
+### Patch Changes
+
+- 68972fa: chore: single version publish for all
+- 7835e44: feat: improved kql feature completion in the parsers.
+- 2d72f16: chore: version bump for CI
+- Updated dependencies [49dc3c6]
+- Updated dependencies [68972fa]
+- Updated dependencies [7835e44]
+- Updated dependencies [2d72f16]
+- Updated dependencies [2d72f16]
+- Updated dependencies [1cc2e1e]
+  - @fossiq/kql-parser@1.2.0
+
 ## 1.1.4
 
 ### Patch Changes

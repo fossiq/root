@@ -1,5 +1,21 @@
 # @fossiq/kql-parser
 
+## 1.2.0
+
+### Minor Changes
+
+- 49dc3c6: Support bracketed identifiers with spaces
+
+  Added support for KQL bracketed identifier syntax like `['Table Name']` and `['Column Name']`. This enables parsing queries that reference tables or columns containing spaces.
+
+### Patch Changes
+
+- 68972fa: chore: single version publish for all
+- 7835e44: feat: improved kql feature completion in the parsers.
+- 2d72f16: chore: version bump for CI
+- 2d72f16: Trigger another release to verify workflow.
+- 1cc2e1e: Trigger release workflow to test single version strategy.
+
 ## 1.1.4
 
 ## 1.1.3
