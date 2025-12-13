@@ -1,5 +1,13 @@
 # @fossiq/kql-ast
 
+## 1.2.0
+
+### Patch Changes
+
+- 68972fa: chore: single version publish for all
+- 7835e44: feat: improved kql feature completion in the parsers.
+- 2d72f16: chore: version bump for CI
+
 ## 1.1.4
 
 ## 1.1.3

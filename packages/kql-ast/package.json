@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-ast",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "description": "Shared KQL AST type definitions for multiple parser implementations",
   "type": "module",
   "main": "dist/index.js",
