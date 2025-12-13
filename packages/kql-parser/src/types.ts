@@ -91,6 +91,12 @@ export interface ProjectRenameClause {
 export interface ProjectReorderClause {
   type: "project_reorder_clause";
   columns: ColumnExpression[];
+}
+
+// ProjectRenameClause must use ColumnAssignment[] since it requires explicit new=old mappings
+export interface ProjectRenameClause {
+  type: "project_rename_clause";
+  columns: ColumnAssignment[];
 
 export interface WhereClause {
   type: "where_clause";

@@ -41,12 +41,7 @@ export function buildWhereClause(node: SyntaxNode, buildAST: (node: SyntaxNode) 
   };
 }
 
-export function buildProjectClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectClause {
-  const columnList = node.children.find(c => c.type === 'column_list');
-  if (!columnList) {
-    throw new Error('Project clause missing column list');
-  }
-
+function buildColumnExpressions(columnList: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ColumnExpression[] {
   const columns: ColumnExpression[] = [];
   for (let i = 0; i < columnList.childCount; i++) {
     const child = columnList.child(i);
@@ -60,6 +55,18 @@ export function buildProjectClause(node: SyntaxNode, buildAST: (node: SyntaxNode
       }
     }
   }
+  return columns;
+}
+
+export function buildProjectClause(node: SyntaxNode, buildAST: (node: SyntaxNode) => ASTNode): ProjectClause {
+  const columnList = node.children.find(c => c.type === 'column_list');
+  if (!columnList) {
+    throw new Error('Project clause missing column list');
+  }
+  return {
+    type: 'project_clause',
+    columns: buildColumnExpressions(columnList, buildAST)
+  };
 
   return {
     type: 'project_clause',
