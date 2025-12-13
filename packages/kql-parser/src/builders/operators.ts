@@ -90,11 +90,6 @@ export function buildProjectClause(
     type: "project_clause",
     columns: buildColumnExpressions(columnList, buildAST),
   };
-
-  return {
-    type: "project_clause",
-    columns,
-  };
 }
 
 export function buildExtendClause(
