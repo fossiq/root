@@ -1,11 +1,6 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { parseKql, initParser, kqlToDuckDB, translate } from "../src/index";
-import type {
-  SourceFile,
-  QueryStatement,
-  Identifier,
-  ColumnAssignment,
-} from "@fossiq/kql-parser";
+import type { SourceFile } from "@fossiq/kql-parser";
 import { resolve } from "path";
 import { existsSync } from "fs";
 
