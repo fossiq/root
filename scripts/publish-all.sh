@@ -59,20 +59,17 @@ read -p "Enter your NPM one-time password (or press Enter to skip): " OTP
 
 echo "📤 Publishing @fossiq/kql-parser to NPM..."
 if [ -z "$OTP" ]; then
-    npm publish --registry https://registry.npmjs.org/ --access public --ignore-scripts
+    npm publish "$TMP_DIR/$PARSER_TGZ" --registry https://registry.npmjs.org/ --access public --ignore-scripts
 else
-    npm publish --registry https://registry.npmjs.org/ --access public --ignore-scripts --otp="$OTP"
+    npm publish "$TMP_DIR/$PARSER_TGZ" --registry https://registry.npmjs.org/ --access public --ignore-scripts --otp="$OTP"
 fi
 
-cd ../..
-
-# Publish kql-to-duckdb
-
+echo ""
 echo "📤 Publishing @fossiq/kql-to-duckdb to NPM..."
 if [ -z "$OTP" ]; then
-    npm publish --registry https://registry.npmjs.org/ --access public
+    npm publish "$TMP_DIR/$DUCKDB_TGZ" --registry https://registry.npmjs.org/ --access public
 else
-    npm publish --registry https://registry.npmjs.org/ --access public --otp="$OTP"
+    npm publish "$TMP_DIR/$DUCKDB_TGZ" --registry https://registry.npmjs.org/ --access public --otp="$OTP"
 fi
 
 cd ../..
