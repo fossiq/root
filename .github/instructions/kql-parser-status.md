@@ -3,10 +3,11 @@
 ## Current State
 
 - **Tests:** 88 passing E2E grammar validation tests
-- **Grammar:** Compiles without conflicts
+- **Grammar:** Compiles without conflicts  
 - **Runtime:** tree-sitter + TypeScript
 - **Package:** `@fossiq/kql-parser` ready for publish
-- **Literals:** Full datetime and timespan support added
+- **Literals:** Basic datetime and timespan support via functions
+- **Scope:** Core tabular/query features (14 operators) implemented; advanced operators from the KQL implementation guide (find, sample, project-*, mv-apply, make-series, evaluate, range, etc.) are not yet supported
 
 ## Test Structure
 
@@ -122,8 +123,10 @@
 
 ### Operators
 
+**Supported:**
+
 - [x] `where` - Filter rows
-- [x] `project` - Select columns
+- [x] `project` - Select columns  
 - [x] `extend` - Add computed columns
 - [x] `summarize` - Aggregate with grouping
 - [x] `sort` / `order by` - Sort results
@@ -136,9 +139,24 @@
 - [x] `union` - Combine tables
 - [x] `parse` - Extract from strings with column names
 - [x] `mv-expand` - Expand multi-value
-- [x] `let` - Variable declarations
+- [x] `let` - Basic variable declarations
+
+**Pending:**
+
+- [ ] `find` - Search across tables
+- [ ] `sample` - Random sampling
+- [ ] `project-away` - Exclude columns
+- [ ] `project-keep` - Keep only specified columns
+- [ ] `project-rename` - Rename columns
+- [ ] `project-reorder` - Reorder columns
+- [ ] `mv-apply` - Apply subqueries to expanded arrays
+- [ ] `make-series` - Time series generation
+- [ ] `evaluate` - Plugin operations (bag_unpack, pivot, etc.)
+- [ ] `range` - Number sequence generation
 
 ### Expressions
+
+**Supported:**
 
 - [x] Binary (`and`, `or`)
 - [x] Comparison (`==`, `!=`, `>`, `<`, `>=`, `<=`)
@@ -151,15 +169,30 @@
 - [x] Conditional (`iff`, `case`)
 - [x] Type casting (`::` and `to type()`)
 
+**Pending:**
+
+- [ ] Case-sensitive string variants (`contains_cs`, `startswith_cs`, etc.)
+- [ ] Negated operators (`!between`, `!contains`, etc.)
+- [ ] Case-insensitive `in` (`in~`)
+
 ### Literals
 
-- [x] String (`"..."`, `'...'`)
+**Supported:**
+
+- [x] Basic strings (`"..."`, `'...'`)
 - [x] Number (int, float)
 - [x] Boolean (`true`, `false`)
 - [x] Null (`null`)
-- [x] TimeSpan (`1d`, `2h`, `30m`, `500ms`)
+- [x] TimeSpan via functions (`timespan()`)
 - [x] Array (`[1, 2, 3]`, nested, empty)
 - [x] Dynamic/JSON objects (`dynamic()`)
+
+**Pending:**
+
+- [ ] Verbatim strings (`@"..."`, `@'...'`)
+- [ ] Multi-line strings (triple backticks)
+- [ ] Obfuscated strings (`h"..."`)
+- [ ] Timespan shorthand combinations (`1d2h30m`)
 
 ### Advanced
 
@@ -170,27 +203,51 @@
 - [x] Timespan literals (1d, 2h, 30m, 500ms)
 - [ ] Subqueries (complex, optional)
 
+## Known Gaps vs Implementation Guide
+
+The parser intentionally targets the subset consumed by `@fossiq/kql-to-duckdb`, while the KQL implementation guide represents a broader superset. Key gaps include:
+
+**Operators:**
+- Advanced project variants (`project-away`, `project-keep`, `project-rename`, `project-reorder`)
+- Sampling (`find`, `sample`)
+- Time series (`make-series`)
+- Plugin operations (`evaluate`)
+- Array operations (`mv-apply`, `range`)
+
+**Expressions:**
+- Case-sensitive string variants (`contains_cs`, `startswith_cs`, etc.)
+- Negated operators (`!between`, `!contains`)
+- Case-insensitive `in` (`in~`)
+
+**Literals:**
+- Verbatim strings (`@"..."`, `@'...'`)
+- Multi-line strings (triple backticks)
+- Obfuscated strings (`h"..."`)
+- Timespan shorthand combinations (`1d2h30m`)
+
+**Advanced Features:**
+- `materialize()` caching
+- `toscalar()` conversion
+- Tabular `let` functions
+- Strict whitespace enforcement for `let`/`set`
+
 ## Summary
 
-**Core functionality: ~100% complete!**
+**Core tabular functionality complete!**
 
-All major KQL features are fully implemented:
+The parser implements the essential KQL operators needed for query transformation:
 
-- All 14 query operators (where, project, extend, summarize, join, union, parse, mv-expand, sort, take, limit, distinct, count, top, search)
-- All expression types (binary, comparison, arithmetic, string, in, between, conditional)
-- Let statements and function named arguments
-- All literal types including arrays, timespans, dynamic, datetime
+- 14 core operators (where, project, extend, summarize, join, union, parse, mv-expand, sort, take, limit, distinct, count, top, search)
+- Basic expressions (binary, comparison, arithmetic, string, in, between, conditional)
+- Simple let statements and function calls
+- Basic literals (strings, numbers, arrays, dynamic objects)
 - Column prefixes and type casting
 - Comments (line and block)
-- Parse patterns with column extraction and wildcards
-- Datetime and timespan literals with ISO 8601 support
-- 88 comprehensive tests covering real-world KQL queries
+- Parse patterns with column extraction
+- Datetime/timespan via functions
+- 88 comprehensive tests covering real-world queries
 
-**Optional remaining items:**
-
-- Subqueries (complex, rarely used)
-
-**The parser is production-ready!** It handles all real-world KQL queries including temporal operations.
+**The parser is production-ready for its intended scope!** It handles all queries needed by `@fossiq/kql-to-duckdb` while maintaining a clear path for future expansion to support the full KQL surface area.
 
 ## Publishing Readiness
 
