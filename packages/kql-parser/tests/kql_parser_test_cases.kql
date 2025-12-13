@@ -1,0 +1,1892 @@
+// ============================================================================
+// KQL PARSER TEST SUITE
+// Comprehensive test cases for validating KQL parser implementations
+// ============================================================================
+
+// ############################################################################
+// SECTION 1: QUERY STRUCTURE
+// ############################################################################
+
+// --- 1.1 Basic Pipe-Based Data Flow ---
+// TEST: Simple single operator
+StormEvents | take 10
+
+// TEST: Multiple operators chained
+StormEvents | where State == "TEXAS" | project EventType, DamageProperty | take 5
+
+// TEST: Long operator chain
+StormEvents | where StartTime > ago(30d) | extend Duration = EndTime - StartTime | summarize count() by EventType | sort by count_ desc | take 10
+
+// --- 1.2 Statement Types ---
+// TEST: Tabular expression statement only
+Events | count
+
+// TEST: Let statement with tabular expression
+let threshold = 100;
+Events | where Value > threshold
+
+// TEST: Multiple let statements (no blank lines between)
+let start = datetime(2024-01-01);
+let end = datetime(2024-12-31);
+let minValue = 50;
+Events | where Timestamp between (start .. end) | where Value > minValue
+
+// TEST: Set statement
+set notruncation;
+LargeTable | take 1000000
+
+
+// ############################################################################
+// SECTION 2: TOKEN TYPES AND IDENTIFIERS
+// ############################################################################
+
+// --- 2.1 Standard Identifiers ---
+// TEST: Simple identifier
+TableName | project ColumnName
+
+// TEST: Identifier with underscores
+my_table_name | project column_with_underscores
+
+// TEST: Identifier with numbers
+Table1 | project Column2, Value3
+
+// TEST: Unicode identifiers
+Événements | project Città, 日付
+
+// --- 2.2 Quoted Identifiers ---
+// TEST: Bracket-quoted identifier with spaces
+['Table With Spaces'] | project ['Column With Spaces']
+
+// TEST: Bracket-quoted identifier with special chars
+["Table-Name"] | project ["Column.Name"]
+
+// TEST: Bracket-quoted keyword as identifier
+Events | project ['where'], ['project'], ['let']
+
+// TEST: Double-quote quoted identifier
+Events | project ["reserved-name"]
+
+// --- 2.3 Keywords as Contextual ---
+// TEST: Reserved words used as column names (quoted)
+T | project ['and'], ['or'], ['not'], ['where'], ['by']
+
+
+// ############################################################################
+// SECTION 3: LITERAL SYNTAX
+// ############################################################################
+
+// --- 3.1 String Literals ---
+// TEST: Double-quoted string
+T | where Name == "John Doe"
+
+// TEST: Single-quoted string
+T | where Name == 'Jane Doe'
+
+// TEST: String with escape sequences
+T | where Path == "C:\\Users\\Name\\file.txt"
+
+// TEST: String with newline escape
+T | where Message == "Line1\nLine2\tTabbed"
+
+// TEST: String with unicode escape
+T | where Symbol == "\u00A9 Copyright"
+
+// TEST: String with quote escape (double quote)
+T | where Quote == "He said \"Hello\""
+
+// TEST: String with quote escape (single quote)
+T | where Quote == 'It\'s working'
+
+// TEST: Verbatim string (double quote)
+T | where Path == @"C:\Users\Name\file.txt"
+
+// TEST: Verbatim string (single quote)
+T | where Path == @'C:\No\Escapes\Here'
+
+// TEST: Multi-line string with triple backticks
+T | where Description == ```This is a
+multi-line string
+with no escapes needed```
+
+// TEST: Obfuscated string
+T | where Secret == h"sensitive-data"
+
+// TEST: Obfuscated verbatim string
+T | where Secret == h@"C:\secret\path"
+
+// --- 3.2 Numeric Literals ---
+// TEST: Integer literals
+T | where Count == 123
+
+// TEST: Negative integer
+T | where Temperature == -40
+
+// TEST: Zero
+T | where Value == 0
+
+// TEST: Real/double literal
+T | where Price == 3.14
+
+// TEST: Negative real
+T | where Offset == -0.001
+
+// TEST: Scientific notation
+T | where LargeValue == 1.5e10
+
+// TEST: Negative scientific notation
+T | where SmallValue == -2.5e-8
+
+// TEST: Explicit int() cast
+T | where Value == int(123)
+
+// TEST: Explicit long() cast
+T | where BigValue == long(9223372036854775807)
+
+// TEST: Explicit real() cast
+T | where Precise == real(123)
+
+// --- 3.3 DateTime Literals ---
+// TEST: Full datetime with timezone
+T | where Timestamp == datetime(2024-01-15T10:30:00.1234567Z)
+
+// TEST: Datetime without time
+T | where Date == datetime(2024-01-15)
+
+// TEST: Datetime with time no milliseconds
+T | where Timestamp == datetime(2024-06-15T14:30:00)
+
+// TEST: Datetime with milliseconds
+T | where Timestamp == datetime(2024-01-15T10:30:00.123)
+
+// --- 3.4 Timespan Literals ---
+// TEST: Function-style timespan
+T | where Duration == timespan(2.02:03:04)
+
+// TEST: Timespan days shorthand
+T | where Duration > 1d
+
+// TEST: Timespan hours shorthand
+T | where Duration < 2h
+
+// TEST: Timespan minutes shorthand
+T | where Duration == 30m
+
+// TEST: Timespan seconds shorthand
+T | where Duration == 45s
+
+// TEST: Timespan milliseconds shorthand
+T | where Duration == 100ms
+
+// TEST: Combined timespan shorthand
+T | where Duration == 1d2h30m45s
+
+// TEST: Timespan with tick unit
+T | where Duration == 1tick
+
+// TEST: Timespan with microsecond unit
+T | where Duration == 1000microsecond
+
+// --- 3.5 Boolean Literals ---
+// TEST: True literal
+T | where IsActive == true
+
+// TEST: False literal
+T | where IsDeleted == false
+
+// TEST: Bool function
+T | where Flag == bool(1)
+
+// --- 3.6 GUID Literals ---
+// TEST: GUID literal
+T | where Id == guid(74be27de-1e4e-49d9-b579-fe0b331d3642)
+
+// --- 3.7 Null Literal ---
+// TEST: Dynamic null
+T | where OptionalField == dynamic(null)
+
+// --- 3.8 Dynamic Literals ---
+// TEST: Dynamic array
+T | extend Tags = dynamic([1, 2, 3, "four"])
+
+// TEST: Dynamic object
+T | extend Properties = dynamic({"key": "value", "count": 42})
+
+// TEST: Nested dynamic
+T | extend Complex = dynamic({"arr": [1,2,3], "obj": {"nested": true}})
+
+
+// ############################################################################
+// SECTION 4: OPERATOR PRECEDENCE
+// ############################################################################
+
+// --- 4.1 Unary Operators ---
+// TEST: Unary not
+T | where not(IsDeleted)
+
+// TEST: Unary minus
+T | extend NegativeValue = -Value
+
+// --- 4.2 Multiplicative Operators ---
+// TEST: Multiplication
+T | extend Product = A * B
+
+// TEST: Division
+T | extend Quotient = A / B
+
+// TEST: Modulo
+T | extend Remainder = A % B
+
+// --- 4.3 Additive Operators ---
+// TEST: Addition
+T | extend Sum = A + B
+
+// TEST: Subtraction
+T | extend Difference = A - B
+
+// --- 4.4 Comparison Operators ---
+// TEST: Equality
+T | where Value == 100
+
+// TEST: Inequality
+T | where Value != 0
+
+// TEST: Less than
+T | where Value < 50
+
+// TEST: Greater than
+T | where Value > 50
+
+// TEST: Less than or equal
+T | where Value <= 100
+
+// TEST: Greater than or equal
+T | where Value >= 0
+
+// --- 4.5 Logical Operators ---
+// TEST: Logical AND
+T | where A > 10 and B < 20
+
+// TEST: Logical OR
+T | where Status == "Active" or Status == "Pending"
+
+// TEST: Combined logical with precedence
+T | where A > 10 and B < 20 or C == 0
+
+// --- 4.6 Precedence with Parentheses ---
+// TEST: Parentheses override precedence
+T | where (A > 10 or B < 20) and C == 0
+
+// TEST: Complex expression with all operators
+T | extend Result = (A + B) * C / (D - E) % F
+
+
+// ############################################################################
+// SECTION 5: TABULAR OPERATORS - FILTERING AND SELECTION
+// ############################################################################
+
+// --- 5.1 where Operator ---
+// TEST: Simple where
+StormEvents | where State == "TEXAS"
+
+// TEST: where with multiple conditions
+StormEvents | where State == "TEXAS" and DamageProperty > 1000
+
+// TEST: where with function call
+StormEvents | where strlen(EventType) > 10
+
+// --- 5.2 search Operator ---
+// TEST: Basic search
+search "error"
+
+// TEST: Search in specific tables
+search in (Events, Logs) "exception"
+
+// TEST: Case-sensitive search
+search kind=cs "Error"
+
+// TEST: Search with column filter
+search * has "failure" | project $table, Message
+
+// --- 5.3 find Operator ---
+// TEST: Basic find
+find in (Events, Logs) where Level == "Error"
+
+// TEST: Find with source column
+find withsource=SourceTable in (Events, Logs) where Severity > 3
+
+// TEST: Find with project
+find in (T*) where Value > 100 project Source, Value
+
+// --- 5.4 take/limit Operator ---
+// TEST: take
+StormEvents | take 10
+
+// TEST: limit (alias)
+StormEvents | limit 10
+
+// --- 5.5 sample Operator ---
+// TEST: Random sample
+StormEvents | sample 100
+
+// --- 5.6 distinct Operator ---
+// TEST: Single column distinct
+StormEvents | distinct State
+
+// TEST: Multi-column distinct
+StormEvents | distinct State, EventType
+
+
+// ############################################################################
+// SECTION 6: TABULAR OPERATORS - PROJECTION
+// ############################################################################
+
+// --- 6.1 project Operator ---
+// TEST: Simple project
+StormEvents | project State, EventType
+
+// TEST: Project with rename
+StormEvents | project Location = State, Type = EventType
+
+// TEST: Project with computed column
+StormEvents | project State, TotalDamage = DamageProperty + DamageCrops
+
+// TEST: Project with function
+StormEvents | project State, EventUpper = toupper(EventType)
+
+// --- 6.2 project-away Operator ---
+// TEST: Remove specific columns
+StormEvents | project-away _ResourceId, _SubscriptionId
+
+// TEST: Remove columns by pattern (wildcard)
+StormEvents | project-away Damage*
+
+// TEST: Remove multiple patterns
+StormEvents | project-away _*, *Id, Damage*
+
+// --- 6.3 project-keep Operator ---
+// TEST: Keep specific columns
+StormEvents | project-keep State, EventType, StartTime
+
+// TEST: Keep with pattern
+StormEvents | project-keep State, Damage*
+
+// --- 6.4 project-rename Operator ---
+// TEST: Rename columns
+StormEvents | project-rename Location = State, Type = EventType
+
+// TEST: Multiple renames
+StormEvents | project-rename A = ColumnA, B = ColumnB, C = ColumnC
+
+// --- 6.5 project-reorder Operator ---
+// TEST: Reorder columns
+StormEvents | project-reorder EventType, State, StartTime
+
+// TEST: Reorder with gredy pattern
+StormEvents | project-reorder Start*, *, End*
+
+// --- 6.6 extend Operator ---
+// TEST: Add single computed column
+StormEvents | extend TotalDamage = DamageProperty + DamageCrops
+
+// TEST: Add multiple columns
+StormEvents | extend Year = getyear(StartTime), Month = getmonth(StartTime)
+
+// TEST: Extend with conditional
+StormEvents | extend Severity = iff(DamageProperty > 10000, "High", "Low")
+
+
+// ############################################################################
+// SECTION 7: TABULAR OPERATORS - AGGREGATION
+// ############################################################################
+
+// --- 7.1 summarize Operator ---
+// TEST: Simple count
+StormEvents | summarize count()
+
+// TEST: Count with grouping
+StormEvents | summarize count() by State
+
+// TEST: Multiple aggregations
+StormEvents | summarize EventCount = count(), TotalDamage = sum(DamageProperty) by State
+
+// TEST: Multiple grouping columns
+StormEvents | summarize count() by State, EventType
+
+// TEST: Grouping with expression
+StormEvents | summarize count() by bin(StartTime, 1d)
+
+// TEST: Named result column
+StormEvents | summarize EventCount = count() by Location = State
+
+// --- 7.2 Aggregation Functions ---
+// TEST: count()
+T | summarize count()
+
+// TEST: countif()
+T | summarize countif(Value > 100)
+
+// TEST: dcount() - approximate distinct count
+T | summarize dcount(UserId)
+
+// TEST: dcount with accuracy
+T | summarize dcount(UserId, 4)
+
+// TEST: sum()
+T | summarize sum(Amount)
+
+// TEST: sumif()
+T | summarize sumif(Amount, IsValid == true)
+
+// TEST: avg()
+T | summarize avg(Value)
+
+// TEST: avgif()
+T | summarize avgif(Value, Value > 0)
+
+// TEST: min()
+T | summarize min(Timestamp)
+
+// TEST: max()
+T | summarize max(Timestamp)
+
+// TEST: percentile()
+T | summarize percentile(Duration, 95)
+
+// TEST: percentiles() - multiple
+T | summarize percentiles(Duration, 50, 90, 95, 99)
+
+// TEST: stdev()
+T | summarize stdev(Value)
+
+// TEST: variance()
+T | summarize variance(Value)
+
+// TEST: arg_max()
+T | summarize arg_max(Timestamp, *)
+
+// TEST: arg_max with specific columns
+T | summarize arg_max(Value, Name, Category)
+
+// TEST: arg_min()
+T | summarize arg_min(Timestamp, *)
+
+// TEST: make_list()
+T | summarize make_list(Name) by Category
+
+// TEST: make_list with limit
+T | summarize make_list(Name, 100) by Category
+
+// TEST: make_set()
+T | summarize make_set(Tag) by Category
+
+// TEST: make_set with limit
+T | summarize make_set(Tag, 50) by Category
+
+// TEST: make_bag()
+T | summarize make_bag(Properties) by Id
+
+// TEST: any()
+T | summarize any(Name) by Category
+
+// TEST: take_any()
+T | summarize take_any(Name, Value) by Category
+
+
+// ############################################################################
+// SECTION 8: TABULAR OPERATORS - JOIN
+// ############################################################################
+
+// --- 8.1 Join Kinds ---
+// TEST: Default join (innerunique)
+Table1 | join Table2 on Key
+
+// TEST: Explicit innerunique
+Table1 | join kind=innerunique Table2 on Key
+
+// TEST: Inner join
+Table1 | join kind=inner Table2 on Key
+
+// TEST: Left outer join
+Table1 | join kind=leftouter Table2 on Key
+
+// TEST: Right outer join
+Table1 | join kind=rightouter Table2 on Key
+
+// TEST: Full outer join
+Table1 | join kind=fullouter Table2 on Key
+
+// TEST: Left semi join
+Table1 | join kind=leftsemi Table2 on Key
+
+// TEST: Right semi join
+Table1 | join kind=rightsemi Table2 on Key
+
+// TEST: Left anti join
+Table1 | join kind=leftanti Table2 on Key
+
+// TEST: Right anti join
+Table1 | join kind=rightanti Table2 on Key
+
+// --- 8.2 Join Conditions ---
+// TEST: Simple on condition
+Table1 | join Table2 on CommonColumn
+
+// TEST: Multiple on columns
+Table1 | join Table2 on Key1, Key2
+
+// TEST: Explicit left/right condition
+Table1 | join Table2 on $left.LeftKey == $right.RightKey
+
+// TEST: Complex join condition
+Table1 | join Table2 on $left.Key1 == $right.Key1 and $left.Key2 == $right.Key2
+
+// --- 8.3 Join with Subquery ---
+// TEST: Join with inline table expression
+Table1 | join (Table2 | where IsActive == true) on Key
+
+// TEST: Join with aggregated subquery
+Orders | join (Customers | summarize TotalOrders = count() by CustomerId) on CustomerId
+
+// --- 8.4 Join Hints ---
+// TEST: Broadcast hint
+Table1 | join hint.strategy=broadcast Table2 on Key
+
+// TEST: Shuffle hint
+Table1 | join hint.strategy=shuffle Table2 on Key
+
+
+// ############################################################################
+// SECTION 9: TABULAR OPERATORS - SORTING AND LIMITING
+// ############################################################################
+
+// --- 9.1 sort by / order by Operator ---
+// TEST: Simple sort descending (default)
+StormEvents | sort by DamageProperty
+
+// TEST: Explicit descending
+StormEvents | sort by DamageProperty desc
+
+// TEST: Ascending sort
+StormEvents | sort by StartTime asc
+
+// TEST: Multiple sort columns
+StormEvents | sort by State asc, DamageProperty desc
+
+// TEST: Sort with nulls handling
+StormEvents | sort by Value asc nulls first
+
+// TEST: Sort nulls last
+StormEvents | sort by Value desc nulls last
+
+// TEST: order by (alias)
+StormEvents | order by DamageProperty desc
+
+// --- 9.2 top Operator ---
+// TEST: Simple top
+StormEvents | top 10 by DamageProperty
+
+// TEST: Top with ascending
+StormEvents | top 10 by StartTime asc
+
+// TEST: Top with multiple sort columns
+StormEvents | top 10 by State asc, DamageProperty desc
+
+// --- 9.3 top-nested Operator ---
+// TEST: Single level top-nested
+StormEvents | top-nested 3 of State by sum(DamageProperty)
+
+// TEST: Multi-level top-nested
+StormEvents | top-nested 3 of State by sum(DamageProperty), top-nested 2 of EventType by count()
+
+
+// ############################################################################
+// SECTION 10: TABULAR OPERATORS - UNION
+// ############################################################################
+
+// --- 10.1 union Operator ---
+// TEST: Simple union
+union Table1, Table2
+
+// TEST: Union with pipe
+Table1 | union Table2
+
+// TEST: Multiple table union
+union Table1, Table2, Table3, Table4
+
+// TEST: Union outer (default)
+union kind=outer Table1, Table2
+
+// TEST: Union inner
+union kind=inner Table1, Table2
+
+// TEST: Union with source column
+union withsource=SourceTable Table1, Table2
+
+// TEST: Union with isfuzzy
+union isfuzzy=true Table1, Table2, MayNotExist
+
+
+// ############################################################################
+// SECTION 11: SCALAR OPERATORS - STRING
+// ############################################################################
+
+// --- 11.1 Equality Operators ---
+// TEST: Case-sensitive equality
+T | where Name == "John"
+
+// TEST: Case-insensitive equality
+T | where Name =~ "john"
+
+// TEST: Case-sensitive inequality
+T | where Name != "John"
+
+// TEST: Case-insensitive inequality
+T | where Name !~ "john"
+
+// --- 11.2 Contains Operators ---
+// TEST: contains (case-insensitive)
+T | where Message contains "error"
+
+// TEST: contains_cs (case-sensitive)
+T | where Message contains_cs "Error"
+
+// TEST: notcontains
+T | where Message notcontains "success"
+
+// TEST: notcontains_cs
+T | where Message notcontains_cs "Success"
+
+// --- 11.3 Has Operators (Term/Word Match) ---
+// TEST: has (case-insensitive)
+T | where Message has "error"
+
+// TEST: has_cs (case-sensitive)
+T | where Message has_cs "Error"
+
+// TEST: hasprefix
+T | where Message hasprefix "ERR"
+
+// TEST: hasprefix_cs
+T | where Message hasprefix_cs "ERR"
+
+// TEST: hassuffix
+T | where Message hassuffix "failed"
+
+// TEST: hassuffix_cs
+T | where Message hassuffix_cs "Failed"
+
+// TEST: nothas
+T | where Message !has "error"
+
+// --- 11.4 StartsWith/EndsWith Operators ---
+// TEST: startswith (case-insensitive)
+T | where Name startswith "john"
+
+// TEST: startswith_cs (case-sensitive)
+T | where Name startswith_cs "John"
+
+// TEST: endswith (case-insensitive)
+T | where Email endswith "@company.com"
+
+// TEST: endswith_cs (case-sensitive)
+T | where Email endswith_cs "@Company.com"
+
+// TEST: notstartswith
+T | where Name !startswith "test"
+
+// TEST: notendswith
+T | where Name !endswith "temp"
+
+// --- 11.5 Regex Operators ---
+// TEST: matches regex
+T | where Message matches regex @"\d{3}-\d{4}"
+
+// TEST: matches regex with flags
+T | where Message matches regex "(?i)error"
+
+// --- 11.6 In Operators ---
+// TEST: in (case-sensitive)
+T | where State in ("CA", "NY", "TX")
+
+// TEST: in~ (case-insensitive)
+T | where State in~ ("ca", "ny", "tx")
+
+// TEST: !in (not in)
+T | where State !in ("CA", "NY")
+
+// TEST: !in~ (not in, case-insensitive)
+T | where State !in~ ("ca", "ny")
+
+// TEST: in with subquery
+T | where UserId in (ActiveUsers | project UserId)
+
+
+// ############################################################################
+// SECTION 12: SCALAR OPERATORS - BETWEEN
+// ############################################################################
+
+// --- 12.1 between Operator ---
+// TEST: Integer between
+T | where Value between (10 .. 100)
+
+// TEST: Datetime between
+T | where Timestamp between (datetime(2024-01-01) .. datetime(2024-12-31))
+
+// TEST: Timespan between
+T | where Duration between (1h .. 2h)
+
+// TEST: Not between
+T | where Value !between (10 .. 100)
+
+
+// ############################################################################
+// SECTION 13: CONDITIONAL EXPRESSIONS
+// ############################################################################
+
+// --- 13.1 iff Function ---
+// TEST: Simple iff
+T | extend Status = iff(Value > 100, "High", "Low")
+
+// TEST: Nested iff
+T | extend Grade = iff(Score >= 90, "A", iff(Score >= 80, "B", "C"))
+
+// --- 13.2 case Expression ---
+// TEST: Multiple case conditions
+T | extend Grade = case(
+    Score >= 90, "A",
+    Score >= 80, "B",
+    Score >= 70, "C",
+    Score >= 60, "D",
+    "F"
+)
+
+// TEST: Case with complex conditions
+T | extend Category = case(
+    Value > 1000 and Type == "Premium", "High Value Premium",
+    Value > 1000, "High Value",
+    Type == "Premium", "Premium",
+    "Standard"
+)
+
+// --- 13.3 iif Function (alias for iff) ---
+// TEST: iif
+T | extend Result = iif(Condition, "Yes", "No")
+
+// --- 13.4 coalesce Function ---
+// TEST: coalesce
+T | extend Value = coalesce(PrimaryValue, SecondaryValue, DefaultValue)
+
+// --- 13.5 max_of / min_of Functions ---
+// TEST: max_of
+T | extend MaxVal = max_of(A, B, C)
+
+// TEST: min_of
+T | extend MinVal = min_of(A, B, C)
+
+
+// ############################################################################
+// SECTION 14: DATA TYPES AND CONVERSIONS
+// ############################################################################
+
+// --- 14.1 Type Conversion Functions ---
+// TEST: tostring()
+T | extend StringVal = tostring(NumericValue)
+
+// TEST: toint()
+T | extend IntVal = toint(StringValue)
+
+// TEST: tolong()
+T | extend LongVal = tolong(StringValue)
+
+// TEST: todouble() / toreal()
+T | extend DoubleVal = todouble(StringValue)
+T | extend RealVal = toreal(StringValue)
+
+// TEST: todecimal()
+T | extend DecimalVal = todecimal(StringValue)
+
+// TEST: tobool()
+T | extend BoolVal = tobool(StringValue)
+
+// TEST: todatetime()
+T | extend DateVal = todatetime(StringTimestamp)
+
+// TEST: totimespan()
+T | extend DurationVal = totimespan(StringDuration)
+
+// TEST: toguid()
+T | extend GuidVal = toguid(StringGuid)
+
+// --- 14.2 Type Checking Functions ---
+// TEST: gettype()
+T | extend TypeName = gettype(Value)
+
+// TEST: isnotnull()
+T | where isnotnull(OptionalField)
+
+// TEST: isnull()
+T | where isnull(OptionalField)
+
+// TEST: isnotempty()
+T | where isnotempty(StringField)
+
+// TEST: isempty()
+T | where isempty(StringField)
+
+// TEST: isnan()
+T | where isnan(FloatValue)
+
+// TEST: isinf()
+T | where isinf(FloatValue)
+
+
+// ############################################################################
+// SECTION 15: BUILT-IN FUNCTIONS - DATETIME
+// ############################################################################
+
+// --- 15.1 Current Time Functions ---
+// TEST: now()
+T | extend CurrentTime = now()
+
+// TEST: ago()
+T | where Timestamp > ago(7d)
+
+// TEST: ago with complex timespan
+T | where Timestamp > ago(1d12h30m)
+
+// --- 15.2 DateTime Arithmetic ---
+// TEST: datetime_add()
+T | extend NextWeek = datetime_add('day', 7, Timestamp)
+
+// TEST: datetime_diff()
+T | extend DaysDiff = datetime_diff('day', EndTime, StartTime)
+
+// --- 15.3 DateTime Truncation ---
+// TEST: startofday()
+T | extend DayStart = startofday(Timestamp)
+
+// TEST: startofweek()
+T | extend WeekStart = startofweek(Timestamp)
+
+// TEST: startofmonth()
+T | extend MonthStart = startofmonth(Timestamp)
+
+// TEST: startofyear()
+T | extend YearStart = startofyear(Timestamp)
+
+// TEST: endofday()
+T | extend DayEnd = endofday(Timestamp)
+
+// TEST: endofweek()
+T | extend WeekEnd = endofweek(Timestamp)
+
+// TEST: endofmonth()
+T | extend MonthEnd = endofmonth(Timestamp)
+
+// TEST: endofyear()
+T | extend YearEnd = endofyear(Timestamp)
+
+// --- 15.4 DateTime Component Extraction ---
+// TEST: getyear()
+T | extend Year = getyear(Timestamp)
+
+// TEST: getmonth()
+T | extend Month = getmonth(Timestamp)
+
+// TEST: dayofmonth()
+T | extend Day = dayofmonth(Timestamp)
+
+// TEST: dayofweek()
+T | extend DayOfWeek = dayofweek(Timestamp)
+
+// TEST: dayofyear()
+T | extend DayOfYear = dayofyear(Timestamp)
+
+// TEST: weekofyear()
+T | extend Week = weekofyear(Timestamp)
+
+// TEST: hourofday()
+T | extend Hour = hourofday(Timestamp)
+
+// TEST: monthofyear()
+T | extend Month = monthofyear(Timestamp)
+
+// --- 15.5 DateTime Formatting ---
+// TEST: format_datetime()
+T | extend Formatted = format_datetime(Timestamp, 'yyyy-MM-dd HH:mm:ss')
+
+// TEST: format_timespan()
+T | extend Formatted = format_timespan(Duration, 'dd.hh:mm:ss')
+
+// --- 15.6 DateTime Construction ---
+// TEST: make_datetime()
+T | extend Constructed = make_datetime(2024, 6, 15, 10, 30, 0)
+
+// TEST: make_timespan()
+T | extend Constructed = make_timespan(2, 3, 4, 5)
+
+// --- 15.7 Binning ---
+// TEST: bin()
+T | summarize count() by bin(Timestamp, 1h)
+
+// TEST: bin with datetime
+T | extend HourBucket = bin(Timestamp, 1h)
+
+// TEST: bin with numeric
+T | extend ValueBucket = bin(Value, 10)
+
+
+// ############################################################################
+// SECTION 16: BUILT-IN FUNCTIONS - STRING
+// ############################################################################
+
+// --- 16.1 String Length and Position ---
+// TEST: strlen()
+T | extend Length = strlen(Name)
+
+// TEST: indexof()
+T | extend Position = indexof(Message, "error")
+
+// TEST: indexof with start position
+T | extend Position = indexof(Message, "error", 10)
+
+// --- 16.2 Substring Extraction ---
+// TEST: substring()
+T | extend Sub = substring(Message, 0, 10)
+
+// TEST: substring to end
+T | extend Sub = substring(Message, 5)
+
+// --- 16.3 String Concatenation ---
+// TEST: strcat()
+T | extend FullName = strcat(FirstName, " ", LastName)
+
+// TEST: strcat_delim()
+T | extend Combined = strcat_delim(", ", City, State, Country)
+
+// TEST: string concatenation with +
+T | extend Combined = FirstName + " " + LastName
+
+// --- 16.4 Case Conversion ---
+// TEST: tolower()
+T | extend Lower = tolower(Name)
+
+// TEST: toupper()
+T | extend Upper = toupper(Name)
+
+// --- 16.5 Trimming ---
+// TEST: trim()
+T | extend Trimmed = trim(" ", RawInput)
+
+// TEST: trim_start()
+T | extend Trimmed = trim_start(" ", RawInput)
+
+// TEST: trim_end()
+T | extend Trimmed = trim_end(" ", RawInput)
+
+// --- 16.6 Padding ---
+// TEST: strcat with repeat for padding
+T | extend Padded = strcat(repeat("0", 5 - strlen(tostring(Id))), Id)
+
+// --- 16.7 Replacement ---
+// TEST: replace_string()
+T | extend Cleaned = replace_string(Message, "error", "warning")
+
+// TEST: replace_strings() - multiple replacements
+T | extend Cleaned = replace_strings(Message, dynamic(["error", "fail"]), dynamic(["warning", "skip"]))
+
+// TEST: replace_regex()
+T | extend Cleaned = replace_regex(Message, @"\d+", "NUM")
+
+// --- 16.8 Splitting ---
+// TEST: split()
+T | extend Parts = split(Path, "/")
+
+// TEST: split with index
+T | extend FirstPart = split(Path, "/")[0]
+
+// --- 16.9 Regex Functions ---
+// TEST: extract()
+T | extend Code = extract(@"Error (\d+)", 1, Message)
+
+// TEST: extract_all()
+T | extend AllCodes = extract_all(@"(\d+)", Message)
+
+// TEST: extract with named groups
+T | extend Extracted = extract(@"(?P<code>\d+)-(?P<name>\w+)", 1, Value)
+
+// --- 16.10 String Comparison ---
+// TEST: strcmp()
+T | extend Comparison = strcmp(A, B)
+
+// --- 16.11 URL Functions ---
+// TEST: parse_url()
+T | extend UrlParts = parse_url(Url)
+
+// TEST: parse_urlquery()
+T | extend QueryParams = parse_urlquery(UrlQuery)
+
+// --- 16.12 Base64 Functions ---
+// TEST: base64_encode_tostring()
+T | extend Encoded = base64_encode_tostring(PlainText)
+
+// TEST: base64_decode_tostring()
+T | extend Decoded = base64_decode_tostring(EncodedText)
+
+// --- 16.13 Hash Functions ---
+// TEST: hash()
+T | extend HashVal = hash(Value)
+
+// TEST: hash_sha256()
+T | extend Sha256 = hash_sha256(Value)
+
+// TEST: hash_md5()
+T | extend Md5 = hash_md5(Value)
+
+
+// ############################################################################
+// SECTION 17: BUILT-IN FUNCTIONS - MATHEMATICAL
+// ############################################################################
+
+// TEST: abs()
+T | extend AbsVal = abs(Value)
+
+// TEST: round()
+T | extend Rounded = round(Value, 2)
+
+// TEST: floor()
+T | extend Floored = floor(Value, 1)
+
+// TEST: ceiling()
+T | extend Ceiled = ceiling(Value)
+
+// TEST: sqrt()
+T | extend SquareRoot = sqrt(Value)
+
+// TEST: pow()
+T | extend Power = pow(Base, Exponent)
+
+// TEST: exp()
+T | extend Exponential = exp(Value)
+
+// TEST: log()
+T | extend NaturalLog = log(Value)
+
+// TEST: log10()
+T | extend Log10 = log10(Value)
+
+// TEST: log2()
+T | extend Log2 = log2(Value)
+
+// TEST: sin()
+T | extend Sine = sin(Angle)
+
+// TEST: cos()
+T | extend Cosine = cos(Angle)
+
+// TEST: tan()
+T | extend Tangent = tan(Angle)
+
+// TEST: asin()
+T | extend ArcSine = asin(Value)
+
+// TEST: acos()
+T | extend ArcCosine = acos(Value)
+
+// TEST: atan()
+T | extend ArcTangent = atan(Value)
+
+// TEST: atan2()
+T | extend ArcTangent2 = atan2(Y, X)
+
+// TEST: rand()
+T | extend RandomVal = rand()
+
+// TEST: rand with seed
+T | extend RandomVal = rand(42)
+
+// TEST: sign()
+T | extend SignVal = sign(Value)
+
+// TEST: pi()
+T | extend PiVal = pi()
+
+// TEST: degrees()
+T | extend Deg = degrees(Radians)
+
+// TEST: radians()
+T | extend Rad = radians(Degrees)
+
+// TEST: isfinite()
+T | where isfinite(Value)
+
+// TEST: beta_cdf()
+T | extend BetaCdf = beta_cdf(0.5, 2, 3)
+
+// TEST: gamma()
+T | extend GammaVal = gamma(5)
+
+
+// ############################################################################
+// SECTION 18: BUILT-IN FUNCTIONS - DYNAMIC/ARRAY
+// ############################################################################
+
+// --- 18.1 Array Functions ---
+// TEST: array_length()
+T | extend Length = array_length(ArrayCol)
+
+// TEST: array_concat()
+T | extend Combined = array_concat(Array1, Array2)
+
+// TEST: array_slice()
+T | extend Subset = array_slice(ArrayCol, 0, 5)
+
+// TEST: array_sort_asc()
+T | extend Sorted = array_sort_asc(ArrayCol)
+
+// TEST: array_sort_desc()
+T | extend Sorted = array_sort_desc(ArrayCol)
+
+// TEST: array_index_of()
+T | extend Index = array_index_of(ArrayCol, "target")
+
+// TEST: array_reverse()
+T | extend Reversed = array_reverse(ArrayCol)
+
+// TEST: array_rotate_left()
+T | extend Rotated = array_rotate_left(ArrayCol, 2)
+
+// TEST: array_rotate_right()
+T | extend Rotated = array_rotate_right(ArrayCol, 2)
+
+// TEST: array_shift_left()
+T | extend Shifted = array_shift_left(ArrayCol, 2)
+
+// TEST: array_shift_right()
+T | extend Shifted = array_shift_right(ArrayCol, 2)
+
+// --- 18.2 Array Element Access ---
+// TEST: Array indexing
+T | extend FirstElement = ArrayCol[0]
+
+// TEST: Negative indexing
+T | extend LastElement = ArrayCol[-1]
+
+// --- 18.3 Set Functions ---
+// TEST: set_union()
+T | extend Union = set_union(Set1, Set2)
+
+// TEST: set_intersect()
+T | extend Intersection = set_intersect(Set1, Set2)
+
+// TEST: set_difference()
+T | extend Difference = set_difference(Set1, Set2)
+
+// TEST: set_has_element()
+T | extend HasElement = set_has_element(SetCol, "target")
+
+// --- 18.4 Property Bag Functions ---
+// TEST: bag_keys()
+T | extend Keys = bag_keys(PropBag)
+
+// TEST: bag_merge()
+T | extend Merged = bag_merge(Bag1, Bag2)
+
+// TEST: bag_remove_keys()
+T | extend Cleaned = bag_remove_keys(PropBag, dynamic(["key1", "key2"]))
+
+// TEST: bag_has_key()
+T | extend HasKey = bag_has_key(PropBag, "targetKey")
+
+// --- 18.5 Pack Functions ---
+// TEST: pack()
+T | extend Packed = pack("key1", Value1, "key2", Value2)
+
+// TEST: pack_all()
+T | extend AllPacked = pack_all()
+
+// TEST: pack_array()
+T | extend PackedArray = pack_array(A, B, C)
+
+// --- 18.6 JSON Functions ---
+// TEST: parse_json()
+T | extend Parsed = parse_json(JsonString)
+
+// TEST: todynamic()
+T | extend Dynamic = todynamic(JsonString)
+
+// TEST: Dynamic property access
+T | extend Value = DynamicCol.propertyName
+
+// TEST: Nested dynamic access
+T | extend Value = DynamicCol.level1.level2.property
+
+// TEST: Dynamic with bracket notation
+T | extend Value = DynamicCol["property-name"]
+
+
+// ############################################################################
+// SECTION 19: SPECIAL CONSTRUCTS - LET STATEMENTS
+// ############################################################################
+
+// --- 19.1 Scalar Variable Let ---
+// TEST: Simple scalar let
+let x = 100;
+T | where Value > x
+
+// TEST: Scalar let with expression
+let threshold = 100 * 2 + 50;
+T | where Value > threshold
+
+// TEST: Scalar let with function call
+let startDate = ago(7d);
+T | where Timestamp > startDate
+
+// --- 19.2 Tabular Expression Let ---
+// TEST: Tabular let
+let activeUsers = Users | where IsActive == true;
+activeUsers | count
+
+// TEST: Tabular let with filter
+let recentEvents = Events | where Timestamp > ago(1h);
+recentEvents | summarize count() by EventType
+
+// --- 19.3 Scalar Function Let ---
+// TEST: Simple function
+let MultiplyByTwo = (x:long) { x * 2 };
+T | extend Doubled = MultiplyByTwo(Value)
+
+// TEST: Function with multiple parameters
+let Calculate = (a:long, b:long, c:long) { (a + b) * c };
+T | extend Result = Calculate(X, Y, Z)
+
+// TEST: Function with default parameter
+let GetPage = (data:(Name:string, Value:long), pageSize:long = 10) { data | take pageSize };
+T | invoke GetPage(5)
+
+// --- 19.4 Tabular Function Let ---
+// TEST: Tabular function (requires invoke)
+let FilterByThreshold = (T:(Value:long), threshold:long) { T | where Value > threshold };
+SourceTable | invoke FilterByThreshold(100)
+
+// TEST: Complex tabular function
+let EnrichData = (T:(Id:string, Value:long)) { 
+    T | extend Category = iff(Value > 100, "High", "Low")
+      | extend Timestamp = now() 
+};
+RawData | invoke EnrichData()
+
+// --- 19.5 View Functions ---
+// TEST: View function (searchable)
+let Range100 = view () { range x from 1 to 100 step 1 };
+Range100 | where x > 50
+
+// TEST: View with parameters
+let FilteredView = view (threshold:long) { Events | where Value > threshold };
+FilteredView(50) | count
+
+
+// ############################################################################
+// SECTION 20: SPECIAL CONSTRUCTS - MATERIALIZE AND TOSCALAR
+// ############################################################################
+
+// --- 20.1 materialize() ---
+// TEST: Basic materialize
+let cachedData = materialize(ExpensiveTable | where Timestamp > ago(1h));
+cachedData | summarize count();
+cachedData | top 10 by Value
+
+// TEST: Materialize with complex query
+let stats = materialize(
+    Events 
+    | summarize Count = count(), AvgValue = avg(Value) by Category
+);
+stats | where Count > 100;
+stats | order by AvgValue desc
+
+// --- 20.2 toscalar() ---
+// TEST: Basic toscalar
+let minTime = toscalar(Events | summarize min(Timestamp));
+Events | where Timestamp > minTime
+
+// TEST: Toscalar for count
+let totalCount = toscalar(Events | count);
+Events | extend Percentage = Value / totalCount * 100
+
+// TEST: Multiple toscalar
+let minVal = toscalar(T | summarize min(Value));
+let maxVal = toscalar(T | summarize max(Value));
+T | extend Normalized = (Value - minVal) / (maxVal - minVal)
+
+
+// ############################################################################
+// SECTION 21: SPECIAL CONSTRUCTS - MV-EXPAND
+// ############################################################################
+
+// --- 21.1 Basic mv-expand ---
+// TEST: Simple array expansion
+T | mv-expand ArrayColumn
+
+// TEST: Expand with alias
+T | mv-expand element = ArrayColumn
+
+// --- 21.2 mv-expand with Type Casting ---
+// TEST: Type casting to long
+T | mv-expand element = ArrayColumn to typeof(long)
+
+// TEST: Type casting to string
+T | mv-expand element = ArrayColumn to typeof(string)
+
+// TEST: Type casting to datetime
+T | mv-expand element = ArrayColumn to typeof(datetime)
+
+// --- 21.3 mv-expand with Item Index ---
+// TEST: With item index
+T | mv-expand with_itemindex=idx ArrayColumn
+
+// TEST: Item index with alias
+T | mv-expand with_itemindex=position element = ArrayColumn
+
+// --- 21.4 mv-expand Kind Options ---
+// TEST: Expand property bag as array
+T | mv-expand kind=array PropBag
+
+// TEST: Expand bag and extract key-value
+T | mv-expand kind=array PropBag | extend key = PropBag[0], val = PropBag[1]
+
+// --- 21.5 Parallel Expansion ---
+// TEST: Expand multiple columns in parallel (zip)
+T | mv-expand Array1, Array2
+
+// TEST: Multiple columns with aliases
+T | mv-expand elem1 = Array1, elem2 = Array2
+
+// --- 21.6 mv-expand with Limit ---
+// TEST: Limit expanded rows
+T | mv-expand ArrayColumn limit 100
+
+
+// ############################################################################
+// SECTION 22: SPECIAL CONSTRUCTS - MV-APPLY
+// ############################################################################
+
+// --- 22.1 Basic mv-apply ---
+// TEST: Simple mv-apply
+T | mv-apply ArrayCol on (summarize Sum = sum(ArrayCol))
+
+// TEST: mv-apply with element alias
+T | mv-apply element = ArrayCol to typeof(long) on (
+    summarize Total = sum(element)
+)
+
+// --- 22.2 mv-apply with Subquery Operations ---
+// TEST: Top within array
+T | mv-apply element = ArrayCol to typeof(long) on (
+    top 3 by element desc
+)
+
+// TEST: Filter and aggregate
+T | mv-apply element = ArrayCol to typeof(long) on (
+    where element > 0
+    | summarize PositiveSum = sum(element)
+)
+
+// --- 22.3 mv-apply with Item Index ---
+// TEST: With item index
+T | mv-apply with_itemindex=idx element = ArrayCol on (
+    summarize FirstIndex = min(idx)
+)
+
+
+// ############################################################################
+// SECTION 23: SPECIAL CONSTRUCTS - MAKE-SERIES
+// ############################################################################
+
+// --- 23.1 Basic make-series ---
+// TEST: Simple time series
+T | make-series Count = count() on Timestamp step 1d
+
+// TEST: With grouping
+T | make-series Count = count() on Timestamp step 1h by Category
+
+// --- 23.2 make-series with Range ---
+// TEST: Explicit range
+T | make-series Count = count() 
+    on Timestamp 
+    from datetime(2024-01-01) to datetime(2024-12-31) step 1d
+
+// TEST: Range with by clause
+T | make-series Count = count() default = 0
+    on Timestamp 
+    from ago(30d) to now() step 1h
+    by Region
+
+// --- 23.3 make-series with Default Value ---
+// TEST: Default for missing periods
+T | make-series Count = count() default = 0 on Timestamp step 1d
+
+// TEST: Default with aggregation
+T | make-series Sum = sum(Value) default = 0 on Timestamp step 1h by Category
+
+// --- 23.4 Multiple Aggregations ---
+// TEST: Multiple series columns
+T | make-series 
+    Count = count(), 
+    Total = sum(Value), 
+    Average = avg(Value) 
+    on Timestamp step 1d
+
+
+// ############################################################################
+// SECTION 24: SPECIAL CONSTRUCTS - PARSE
+// ############################################################################
+
+// --- 24.1 Simple Parse Mode ---
+// TEST: Basic pattern extraction
+T | parse Message with "Error " ErrorCode " on server " ServerName
+
+// TEST: Parse with data type
+T | parse Message with "Count: " Count:int " items"
+
+// TEST: Parse with multiple fields
+T | parse LogLine with Timestamp " [" Level "] " * ":" Message
+
+// --- 24.2 Regex Parse Mode ---
+// TEST: Regex pattern
+T | parse kind=regex EventText with * @"user=(?P<User>\w+)" *
+
+// TEST: Regex with flags
+T | parse kind=regex flags=i EventText with * "error:" * 
+
+// TEST: Regex capturing groups
+T | parse kind=regex Message with @"(\d{4}-\d{2}-\d{2})" Date @"\s+(\w+)" Level
+
+// --- 24.3 Relaxed Parse Mode ---
+// TEST: Relaxed mode (partial matches allowed)
+T | parse kind=relaxed Message with "Status: " Status
+
+// TEST: Relaxed with multiple fields
+T | parse kind=relaxed LogEntry with * "code=" ResponseCode " " *
+
+
+// ############################################################################
+// SECTION 25: SPECIAL CONSTRUCTS - EVALUATE PLUGINS
+// ############################################################################
+
+// --- 25.1 bag_unpack Plugin ---
+// TEST: Basic bag_unpack
+T | evaluate bag_unpack(DynamicColumn)
+
+// TEST: bag_unpack with prefix
+T | evaluate bag_unpack(DynamicColumn, 'Prop_')
+
+// TEST: bag_unpack with output schema
+T | evaluate bag_unpack(DynamicColumn) : (Name:string, Age:long, *)
+
+// --- 25.2 pivot Plugin ---
+// TEST: Basic pivot
+T | evaluate pivot(Category, sum(Value))
+
+// TEST: Pivot with multiple aggregations
+T | evaluate pivot(Category, sum(Value), count())
+
+// --- 25.3 narrow Plugin ---
+// TEST: Unpivot columns
+T | evaluate narrow()
+
+// --- 25.4 Distribution Hints ---
+// TEST: Single distribution
+T | evaluate hint.distribution=single bag_unpack(Props)
+
+// TEST: Per node distribution
+T | evaluate hint.distribution=per_node expensive_plugin()
+
+
+// ############################################################################
+// SECTION 26: RANGE OPERATOR
+// ############################################################################
+
+// TEST: Simple range
+range x from 1 to 10 step 1
+
+// TEST: Range with datetime
+range Timestamp from datetime(2024-01-01) to datetime(2024-01-31) step 1d
+
+// TEST: Range with timespan
+range Duration from 0h to 24h step 1h
+
+// TEST: Range in let statement
+let Numbers = range x from 1 to 100 step 1;
+Numbers | where x % 2 == 0
+
+
+// ############################################################################
+// SECTION 27: PRINT OPERATOR
+// ############################################################################
+
+// TEST: Simple print
+print "Hello World"
+
+// TEST: Print with expression
+print x = 1 + 2, y = "text", z = now()
+
+// TEST: Print with function
+print Result = strcat("Value: ", tostring(42 * 2))
+
+
+// ############################################################################
+// SECTION 28: GETSCHEMA OPERATOR
+// ############################################################################
+
+// TEST: Basic getschema
+StormEvents | getschema
+
+// TEST: Getschema after projection
+StormEvents | project State, EventType | getschema
+
+
+// ############################################################################
+// SECTION 29: COUNT OPERATOR
+// ############################################################################
+
+// TEST: Simple count
+StormEvents | count
+
+// TEST: Count after filter
+StormEvents | where State == "TEXAS" | count
+
+
+// ############################################################################
+// SECTION 30: FACET OPERATOR
+// ############################################################################
+
+// TEST: Facet by single column
+T | facet by State
+
+// TEST: Facet with limit
+T | facet by State with (top 5 by count())
+
+
+// ############################################################################
+// SECTION 31: SERIALIZE OPERATOR
+// ############################################################################
+
+// TEST: Serialize for row numbering
+T | serialize | extend RowNum = row_number()
+
+// TEST: Serialize with prev/next
+T | serialize | extend PrevValue = prev(Value), NextValue = next(Value)
+
+
+// ############################################################################
+// SECTION 32: WINDOW FUNCTIONS (require serialize or partition)
+// ############################################################################
+
+// --- 32.1 Row Functions ---
+// TEST: row_number()
+T | serialize | extend RowNum = row_number()
+
+// TEST: row_number with partition
+T | partition by Category (serialize | extend RowNum = row_number())
+
+// --- 32.2 Navigation Functions ---
+// TEST: prev()
+T | serialize | extend PreviousValue = prev(Value)
+
+// TEST: prev with offset
+T | serialize | extend TwoBack = prev(Value, 2)
+
+// TEST: prev with default
+T | serialize | extend PreviousValue = prev(Value, 1, 0)
+
+// TEST: next()
+T | serialize | extend NextValue = next(Value)
+
+// TEST: next with offset
+T | serialize | extend TwoAhead = next(Value, 2)
+
+// --- 32.3 Running Aggregates ---
+// TEST: row_cumsum()
+T | serialize | extend RunningTotal = row_cumsum(Value)
+
+// TEST: row_cumsum with reset
+T | serialize | extend RunningTotal = row_cumsum(Value, Category != prev(Category))
+
+
+// ############################################################################
+// SECTION 33: PARTITION OPERATOR
+// ############################################################################
+
+// TEST: Basic partition
+T | partition by Category (top 5 by Value)
+
+// TEST: Partition with hint
+T | partition hint.strategy=native by Region (summarize count())
+
+// TEST: Partition with complex subquery
+T | partition by Category (
+    serialize 
+    | extend RowNum = row_number()
+    | where RowNum <= 10
+)
+
+
+// ############################################################################
+// SECTION 34: INVOKE OPERATOR
+// ############################################################################
+
+// TEST: Invoke tabular function
+let FilterActive = (T:(IsActive:bool)) { T | where IsActive == true };
+Users | invoke FilterActive()
+
+// TEST: Invoke with parameters
+let GetTopN = (T:(Value:long), n:long) { T | top n by Value };
+Sales | invoke GetTopN(10)
+
+
+// ############################################################################
+// SECTION 35: AS OPERATOR
+// ############################################################################
+
+// TEST: Name intermediate result
+StormEvents | where State == "TEXAS" | as TexasEvents;
+TexasEvents | count
+
+
+// ############################################################################
+// SECTION 36: CONSUME OPERATOR
+// ############################################################################
+
+// TEST: Consume (discard output, execute for side effects)
+T | where Value > 100 | consume
+
+
+// ############################################################################
+// SECTION 37: FORK OPERATOR
+// ############################################################################
+
+// TEST: Fork into multiple outputs
+StormEvents 
+| fork 
+    (where State == "TEXAS" | project State, EventType)
+    (summarize count() by EventType)
+    (top 10 by DamageProperty)
+
+
+// ############################################################################
+// SECTION 38: LOOKUP OPERATOR
+// ############################################################################
+
+// TEST: Basic lookup
+Employees | lookup Departments on DepartmentId
+
+// TEST: Lookup with kind
+Employees | lookup kind=leftouter Departments on DepartmentId
+
+
+// ############################################################################
+// SECTION 39: SCAN OPERATOR
+// ############################################################################
+
+// TEST: Basic scan with state machine
+T | scan with_match_id=match_id declare(InSequence:bool=false) with (
+    step s1: true => InSequence = true;
+    step s2: Value > 100 and InSequence => InSequence = false;
+)
+
+
+// ############################################################################
+// SECTION 40: RENDER OPERATOR (visualization hint)
+// ############################################################################
+
+// TEST: Render timechart
+T | summarize count() by bin(Timestamp, 1h) | render timechart
+
+// TEST: Render barchart
+T | summarize count() by Category | render barchart
+
+// TEST: Render piechart
+T | summarize count() by Category | render piechart
+
+// TEST: Render with options
+T | summarize count() by bin(Timestamp, 1d) | render timechart with (title="Daily Counts")
+
+// TEST: Render columnchart
+T | summarize sum(Value) by Category | render columnchart
+
+// TEST: Render scatterchart
+T | project X, Y | render scatterchart
+
+// TEST: Render areachart
+T | summarize count() by bin(Timestamp, 1h) | render areachart
+
+// TEST: Render table
+T | take 100 | render table
+
+
+// ############################################################################
+// SECTION 41: EXTERNAL DATA
+// ############################################################################
+
+// TEST: externaldata operator
+externaldata (Name:string, Value:long) [
+    @"https://example.com/data.csv"
+] with (format="csv")
+
+// TEST: externaldata with multiple files
+externaldata (Name:string, Value:long) [
+    @"https://example.com/data1.csv",
+    @"https://example.com/data2.csv"
+] with (format="csv", ignoreFirstRecord=true)
+
+
+// ############################################################################
+// SECTION 42: DATATABLE OPERATOR
+// ############################################################################
+
+// TEST: Inline datatable
+datatable (Name:string, Value:long) [
+    "Alice", 100,
+    "Bob", 200,
+    "Charlie", 300
+]
+
+// TEST: Datatable with various types
+datatable (
+    Name:string, 
+    Count:int, 
+    Price:real, 
+    IsActive:bool, 
+    Created:datetime
+) [
+    "Product1", 10, 99.99, true, datetime(2024-01-01),
+    "Product2", 20, 149.99, false, datetime(2024-02-01)
+]
+
+
+// ############################################################################
+// SECTION 43: COMMENTS
+// ############################################################################
+
+// TEST: Single-line comment
+T | where Value > 100 // Filter high values
+
+// TEST: Comment at start
+// This is a comment
+T | take 10
+
+// TEST: Multiple comments
+// Comment 1
+T 
+// Comment 2
+| where Value > 0
+// Comment 3
+| take 10
+
+
+// ############################################################################
+// SECTION 44: QUERY PARAMETERS
+// ############################################################################
+
+// TEST: Declare query parameter
+declare query_parameters(threshold:long = 100);
+T | where Value > threshold
+
+// TEST: Multiple query parameters
+declare query_parameters(
+    startTime:datetime = ago(1d),
+    endTime:datetime = now(),
+    minValue:long = 0
+);
+Events | where Timestamp between (startTime .. endTime) | where Value > minValue
+
+
+// ############################################################################
+// SECTION 45: COMPLEX COMBINED QUERIES
+// ############################################################################
+
+// TEST: Complex analytics query
+let startTime = ago(7d);
+let endTime = now();
+let threshold = 1000;
+let eventStats = materialize(
+    Events
+    | where Timestamp between (startTime .. endTime)
+    | summarize 
+        TotalCount = count(),
+        HighValueCount = countif(Value > threshold),
+        AvgValue = avg(Value),
+        MaxValue = max(Value)
+        by bin(Timestamp, 1h), Category
+);
+eventStats
+| join kind=leftouter (
+    Categories | project CategoryId = Id, CategoryName = Name
+) on $left.Category == $right.CategoryId
+| extend 
+    HighValuePct = HighValueCount * 100.0 / TotalCount,
+    Severity = case(
+        AvgValue > 5000, "Critical",
+        AvgValue > 1000, "High",
+        AvgValue > 100, "Medium",
+        "Low"
+    )
+| project-away CategoryId
+| sort by Timestamp asc, Category
+
+// TEST: Multi-table correlation
+let userActivity = Users | where LastActive > ago(30d) | project UserId, UserName, LastActive;
+let recentOrders = Orders | where OrderDate > ago(30d) | summarize OrderCount = count(), TotalValue = sum(Value) by UserId;
+let userMetrics = PageViews | where Timestamp > ago(30d) | summarize PageCount = count() by UserId;
+userActivity
+| join kind=leftouter recentOrders on UserId
+| join kind=leftouter userMetrics on UserId
+| extend 
+    OrderCount = coalesce(OrderCount, 0),
+    TotalValue = coalesce(TotalValue, 0.0),
+    PageCount = coalesce(PageCount, 0)
+| extend EngagementScore = PageCount * 0.1 + OrderCount * 10 + TotalValue * 0.01
+| top 100 by EngagementScore desc
+
+// TEST: Time series analysis
+Events
+| make-series 
+    EventCount = count() default = 0,
+    ErrorCount = countif(Level == "Error") default = 0
+    on Timestamp from ago(7d) to now() step 1h
+    by ServiceName
+| extend 
+    ErrorRate = series_divide(ErrorCount, EventCount),
+    Anomalies = series_decompose_anomalies(EventCount, 1.5)
+| mv-expand 
+    Timestamp to typeof(datetime),
+    EventCount to typeof(long),
+    ErrorCount to typeof(long),
+    ErrorRate to typeof(real),
+    Anomalies to typeof(long)
+| where Anomalies != 0
+| project Timestamp, ServiceName, EventCount, ErrorCount, ErrorRate, AnomalyScore = Anomalies
+
+// TEST: Sessionization pattern
+Events
+| where EventType in ("SessionStart", "PageView", "Click", "SessionEnd")
+| sort by UserId, Timestamp asc
+| serialize
+| extend 
+    SessionId = row_cumsum(iff(EventType == "SessionStart", 1, 0)),
+    PrevTimestamp = prev(Timestamp),
+    TimeSinceLast = Timestamp - prev(Timestamp)
+| summarize 
+    SessionStart = min(Timestamp),
+    SessionEnd = max(Timestamp),
+    EventCount = count(),
+    PageViews = countif(EventType == "PageView"),
+    Clicks = countif(EventType == "Click")
+    by UserId, SessionId
+| extend SessionDuration = SessionEnd - SessionStart
+| where SessionDuration > 0s
+
+
+// ############################################################################
+// END OF TEST SUITE
+// ############################################################################
