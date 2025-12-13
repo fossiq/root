@@ -14,22 +14,6 @@ on:
         required: false
 
 jobs:
-  # Check which files have changed to optimize builds
-  changes:
-    name: Check Changes
-    runs-on: ubuntu-latest
-    outputs:
-      parser: ${{ steps.filter.outputs.parser }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            parser:
-              - 'packages/kql-parser/**'
-              - 'packages/kql-ast/**'
-
   lint:
     name: Lint
     runs-on: ubuntu-latest
@@ -58,9 +42,6 @@ jobs:
   # Cross-platform binding build matrix
   build_bindings:
     name: Build Binding ${{ matrix.os }} - ${{ matrix.arch }}
-    needs: changes
-    # Run if not a PR OR if parser changed. (PRs only skip if parser untouched)
-    if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -119,9 +100,6 @@ jobs:
   # WASM build using WASI SDK (no Docker needed)
   build_wasm:
     name: Build WASM
-    needs: changes
-    # Run if not a PR OR if parser changed
-    if: inputs.is_pr == false || needs.changes.outputs.parser == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -165,12 +143,10 @@ jobs:
 
   validate:
     name: Validate & Publish
-    needs: [changes, build_bindings, build_wasm, lint]
+    needs: [build_bindings, build_wasm, lint]
     # Always run unless dependencies failed (skipped is ok)
-    if: always() && needs.changes.result == 'success' && needs.lint.result == 'success' && (needs.build_bindings.result == 'success' || needs.build_bindings.result == 'skipped') && (needs.build_wasm.result == 'success' || needs.build_wasm.result == 'skipped')
+    if: always() && needs.lint.result == 'success' && (needs.build_bindings.result == 'success' || needs.build_bindings.result == 'skipped') && (needs.build_wasm.result == 'success' || needs.build_wasm.result == 'skipped')
     runs-on: ubuntu-latest
-    env:
-      PARSER_CHANGED: ${{ needs.changes.outputs.parser }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -204,7 +180,6 @@ jobs:
 
       # 1. Bindings
       - name: Download Cross-Platform Bindings
-        if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
         uses: actions/download-artifact@v4
         with:
           path: packages/kql-parser/prebuilds
@@ -212,7 +187,6 @@ jobs:
           merge-multiple: false
 
       - name: Organize Bindings
-        if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
         run: .github/scripts/organize-bindings.sh
 
       # Note: For PRs with no parser change, we skip downloading bindings.
@@ -220,19 +194,10 @@ jobs:
 
       # 2. WASM
       - name: Download WASM
-        if: inputs.is_pr == false || env.PARSER_CHANGED == 'true'
         uses: actions/download-artifact@v4
         with:
           name: wasm
           path: packages/kql-parser
-
-      - name: Restore WASM from Cache (if build skipped)
-        if: inputs.is_pr == true && env.PARSER_CHANGED != 'true'
-        uses: actions/cache/restore@v4
-        with:
-          path: packages/kql-parser/tree-sitter-kql.wasm
-          key: wasm-${{ hashFiles('packages/kql-parser/src/**/*.c', 'packages/kql-parser/src/**/*.h', 'packages/kql-parser/src/**/*.json', 'packages/kql-parser/grammar.js') }}
-          fail-on-cache-miss: false
 
       # Build & Test
       - name: Build all packages (turbo)
@@ -277,21 +242,21 @@ jobs:
           echo "@fossiq:registry=https://npm.pkg.github.com" > .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
-      - name: Publish packages
+      - name: Create Release Pull Request or Publish
         if: inputs.is_pr == false
-        id: publish
-        run: .github/scripts/publish-packages.sh
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          # This script runs only when a Version Package PR is merged
+          publish: .github/scripts/publish-packages.sh
+          commit: "chore: version packages"
+          title: "Release: Version Packages"
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Trigger UI deployment
-        if: inputs.is_pr == false
+        if: inputs.is_pr == false && steps.changesets.outputs.published == 'true'
         run: .github/scripts/trigger-ui-deploy.sh
         env:
           DEPLOY_KEY_GITHUB_IO: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
-
-      - name: Create GitHub Release
-        if: inputs.is_pr == false && steps.publish.outputs.published == '1'
-        run: .github/scripts/create-release.sh
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
