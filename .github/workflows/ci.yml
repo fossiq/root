@@ -36,16 +36,13 @@ jobs:
   build-linux:
     needs: lint
     runs-on: ${{ matrix.runner }}
-    container: ${{ matrix.container }}
     strategy:
       matrix:
         include:
           - runner: ubuntu-24.04
-            container: mcr.microsoft.com/devcontainers/typescript-node:1-ubuntu-22.04
             platform: linux-x64
             wasm: true
           - runner: ubuntu-22.04-arm
-            container: mcr.microsoft.com/devcontainers/typescript-node:1-ubuntu-22.04
             platform: linux-arm64
     steps:
       - name: Checkout code
