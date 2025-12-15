@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/fossiq/root/actions/workflows/ci.yml/badge.svg)](https://github.com/fossiq/root/actions/workflows/ci.yml)
 
-A monorepo containing KQL (Kusto Query Language) tooling and applications. Query your CSV files using KQL syntax with an Azure Data Explorer-like interface.
+Hey there! This is a monorepo with KQL (Kusto Query Language) tools and apps. Query your CSV files using KQL syntax, just like Azure Data Explorer.
 
 ## Packages
 
