@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,9 +39,15 @@ jobs:
     strategy:
       matrix:
         include:
+          - os: ubuntu-24.04
+            platform: linux-x64
+          - os: ubuntu-22.04-arm
+            platform: linux-arm64
+          - os: macos-15
+            platform: darwin-arm64
           - os: macos-15-intel
             platform: darwin-x64
-          - os: windows-latest
+          - os: windows-2025
             platform: win32-x64
 
     steps:
@@ -114,7 +120,7 @@ jobs:
 
   test:
     needs: build
-    runs-on: ubuntu-latest # Tests on Ubuntu; expand to matrix if needed for cross-platform
+    runs-on: ubuntu-24.04 # Tests on Ubuntu; expand to matrix if needed for cross-platform
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -154,7 +160,7 @@ jobs:
 
   publish:
     needs: test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: release
     steps:
@@ -187,11 +193,11 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
-      - name: Download ubuntu-latest artifacts
+      - name: Download linux-x64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest
-          path: temp-ubuntu-latest
+          name: built-packages-linux-x64
+          path: temp-linux-x64
 
       - name: Download darwin-arm64 artifacts
         uses: actions/download-artifact@v4
