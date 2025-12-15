@@ -45,7 +45,7 @@ imported by "web-tree-sitter/tree-sitter.js"
 
 ### How do I add a new operator to kql-parser?
 
-See the detailed step-by-step guide in `.github/instructions/kql-parser-dev.md` under "Adding a New Operator".
+See the detailed step-by-step guide in `packages/kql-parser/docs/kql-parser-dev.md` under "Adding a New Operator".
 
 Key steps:
 1. Define types in `src/types.ts`
@@ -137,14 +137,14 @@ bun run build
 bun run test
 ```
 
-### How do I update documentation in .github/instructions/?
+### How do I update documentation now that .github/instructions is gone?
 
-These files are **automatically indexed** by AI agents:
-- Each package has a status file (e.g., `kql-parser-status.md`) for current state
-- Each package has a dev guide (e.g., `kql-parser-dev.md`) for implementation details
-- General guidelines in `meta.md` and `monorepo.md`
+Each package owns its docs under `packages/<name>/docs/`:
+- Status files (e.g., `packages/kql-parser/docs/kql-parser-status.md`) track current feature coverage
+- Dev guides (e.g., `packages/kql-parser/docs/kql-parser-dev.md`) capture implementation details
+- Package-specific instructions live alongside the code they describe
 
 After completing a feature:
-1. Update the status file checklist
-2. Add any new patterns/gotchas to the dev guide
-3. This preserves knowledge for future sessions (AI agents have no memory)
+1. Update the package status checklist
+2. Add new patterns/gotchas to the dev guide
+3. Mention cross-package impacts in root `AGENTS.md` or relevant package guides

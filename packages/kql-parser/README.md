@@ -218,7 +218,7 @@ The parser is built in three layers:
 2. **Types** (`src/types.ts`) - TypeScript AST type definitions
 3. **Builders** (`src/builders/`) - Convert tree-sitter nodes to typed AST
 
-See `.github/instructions/kql-parser-dev.md` for detailed documentation.
+See `packages/kql-parser/docs/kql-parser-dev.md` for detailed documentation.
 
 ## Testing
 
@@ -234,7 +234,7 @@ Tests are organized by feature (operators, expressions, comments, etc.) and vali
 
 **Core tabular/query subset complete** - The parser implements essential KQL operators including project-away/keep/rename/reorder, mv-expand, parse, search, join, and union. Advanced operators from the implementation guide (find, sample, make-series, evaluate, range, etc.) remain pending.
 
-See [status.md](../../.github/instructions/kql-parser-status.md) for detailed feature checklist.
+See [status.md](docs/kql-parser-status.md) for detailed feature checklist.
 
 ## TODO (per implementation guide)
 
@@ -259,4 +259,4 @@ This package was developed with the assistance of AI models including Claude (An
 
 ## Contributing
 
-Contributions welcome! Please see the development guide at `.github/instructions/kql-parser-dev.md` for details on adding new features.
+Contributions welcome! Please see the development guide at `docs/kql-parser-dev.md` for details on adding new features.

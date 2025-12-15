@@ -127,7 +127,7 @@ bun run changeset
 ## Need Help?
 
 - Check existing issues on GitHub
-- Review the documentation in `.github/instructions/`
+- Review the package docs under `packages/<name>/docs/`
 - Open an issue for questions or bugs
 
 ## License
