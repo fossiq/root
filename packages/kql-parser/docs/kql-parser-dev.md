@@ -60,7 +60,7 @@ packages/kql-parser/
 1. Write rules in `src/grammar/rules.ts` (camelCase)
 2. Register in `src/grammar/index.ts` (snake_case)
 3. Compile: `bun run compile-grammar` -> `grammar.js`
-4. Generate: `bun x tree-sitter-cli generate` -> C parser
+4. Generate: `bun x tree-sitter generate` -> C parser
 
 **Naming:** TS `summarizeClause` -> Grammar `summarize_clause`
 
@@ -119,7 +119,7 @@ Edit src/grammar/rules.ts
   |
 bun run compile-grammar -> grammar.js
   |
-bun x tree-sitter-cli generate -> parser (C code)
+bun x tree-sitter generate -> parser (C code)
   |
 bun run build:binding -> prebuilds/<platform>-<arch>/tree-sitter-kql.node (Native Binding)
   |
@@ -298,7 +298,7 @@ export function buildAST(node: SyntaxNode): ASTNode {
 ```bash
 cd packages/kql-parser
 bun run compile-grammar
-bun x tree-sitter-cli generate  # Check for conflicts
+bun x tree-sitter generate  # Check for conflicts
 bun run test-grammar  # Run directly without building
 ```
 
@@ -372,6 +372,6 @@ for (let i = 0; i < list.childCount; i++) {
 ## Dependencies
 
 - **tree-sitter** - Parser generator & runtime (^0.25.0)
-- **tree-sitter-cli** - Dev tool (testing)
+- **tree-sitter CLI** - Dev tool (testing)
 - **TypeScript** - Type safety
 - **Bun** - Runtime & package manager

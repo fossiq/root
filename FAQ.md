@@ -17,26 +17,30 @@ This differs from typical npm packages that target Node.js primarily and add bro
 ### Why do I see "fs/promises" and "module" warnings in the Vite build?
 
 **Question**: During `bun run build` in the UI package, Vite warns:
+
 ```
-Module "fs/promises" has been externalized for browser compatibility, 
+Module "fs/promises" has been externalized for browser compatibility,
 imported by "web-tree-sitter/tree-sitter.js"
 ```
 
 **Answer**: `web-tree-sitter` is a browser-first parser that includes fallback code for maximum runtime compatibility. It has conditional requires for Node.js modules (`fs/promises`, `module`) that are only used in Node.js environments.
 
 **Why this is expected**:
+
 - `web-tree-sitter` is WASM-based and works perfectly in browsers (those requires are never executed)
 - Vite warns because it detects these Node.js imports in the source code
 - The warnings are **not errors** - the build succeeds and the app works correctly
 - The fallback code is intentionally there to support `web-tree-sitter` in multiple runtimes
 
 **Why we don't suppress the warning**:
+
 - Suppressing warnings hides architectural issues
 - These warnings correctly alert developers to Node.js-specific code in browser packages
 - The warnings are informative: they indicate we're using browser-first packages correctly
 - No action needed - just be aware this is expected
 
 **What this means for development**:
+
 - These warnings are safe to ignore during development
 - They do not affect the final bundle (Vite handles WASM externalization correctly)
 - If you introduce new Node.js-specific code, similar warnings will alert you
@@ -48,6 +52,7 @@ imported by "web-tree-sitter/tree-sitter.js"
 See the detailed step-by-step guide in `packages/kql-parser/docs/kql-parser-dev.md` under "Adding a New Operator".
 
 Key steps:
+
 1. Define types in `src/types.ts`
 2. Add grammar rules in `src/grammar/rules.ts`
 3. Register rules in `src/grammar/index.ts`
@@ -57,26 +62,29 @@ Key steps:
 
 ### Why does kql-parser build output grammar.js with CommonJS syntax when package.json says "type": "module"?
 
-**The Issue**: Tree-sitter-cli needs to load `grammar.js` as a CommonJS module (it expects `module.exports`). But when Node.js sees `"type": "module"` in package.json, it treats all `.js` files as ES modules, causing:
+**The Issue**: The `tree-sitter` CLI binary needs to load `grammar.js` as a CommonJS module (it expects `module.exports`). But when Node.js sees `"type": "module"` in package.json, it treats all `.js` files as ES modules, causing:
 
 ```
 ReferenceError: module is not defined in ES module scope
 ```
 
 **The Solution**: We use a build script (`scripts/generate.sh`) that:
+
 1. Compiles grammar to CommonJS syntax (`grammar.js` with `module.exports`)
 2. **Temporarily removes** `"type": "module"` from package.json
-3. Runs `tree-sitter-cli generate` (which expects CommonJS)
+3. Runs `tree-sitter generate` (which expects CommonJS)
 4. **Restores** `"type": "module"` to package.json
 
 This allows both requirements to coexist:
+
 - Source code uses ESM (`"type": "module"`)
-- Grammar generation uses CommonJS (tree-sitter-cli requirement)
+- Grammar generation uses CommonJS (tree-sitter requirement)
 
 **Why this approach**:
-- Tree-sitter-cli is a mature C++ tool that predates ES modules
-- Renaming to `grammar.cjs` doesn't work because tree-sitter-cli explicitly looks for `grammar.js`
-- Temporary package.json modification is the cleanest solution without patching tree-sitter-cli
+
+- The `tree-sitter` CLI is a mature C++ tool that predates ES modules
+- Renaming to `grammar.cjs` doesn't work because the `tree-sitter` CLI explicitly looks for `grammar.js`
+- Temporary package.json modification is the cleanest solution without patching the `tree-sitter` CLI
 
 ## Build & CI
 
@@ -85,6 +93,7 @@ This allows both requirements to coexist:
 The workflow uses a **multi-stage build pattern**:
 
 1. **build_bindings** (parallel on multiple OS/arch):
+
    - Builds native tree-sitter bindings for Linux, Windows, macOS, ARM64
    - Runs in parallel across platforms
    - Uploads artifacts
@@ -106,11 +115,13 @@ The workflow uses a **multi-stage build pattern**:
 - **Changelog generation** from changeset descriptions
 
 **Required for PRs** because:
+
 - Ensures version bumps are intentional
 - Documents what changed for each package
 - Prevents accidental breaking changes (you must explicitly choose "major")
 
 **How to use**:
+
 ```bash
 bun run changeset
 ```
@@ -121,16 +132,18 @@ Then commit the generated `.changeset/*.md` file.
 
 ### The build fails with "Grammar compilation failed"
 
-Check that you've run `bun install` and all dependencies are available. The compile step requires `tree-sitter-cli` to be installed.
+Check that you've run `bun install` and all dependencies are available. The compile step requires the `tree-sitter` CLI to be installed.
 
 ### Tests pass locally but fail in CI
 
 Common causes:
+
 - Missing changeset file (required for package changes)
 - Linting errors (run `bun run lint:fix`)
 - Platform-specific issues (CI runs on Linux)
 
 Check the CI logs for details and run locally:
+
 ```bash
 bun run lint
 bun run build
@@ -140,11 +153,13 @@ bun run test
 ### How do I update documentation now that .github/instructions is gone?
 
 Each package owns its docs under `packages/<name>/docs/`:
+
 - Status files (e.g., `packages/kql-parser/docs/kql-parser-status.md`) track current feature coverage
 - Dev guides (e.g., `packages/kql-parser/docs/kql-parser-dev.md`) capture implementation details
 - Package-specific instructions live alongside the code they describe
 
 After completing a feature:
+
 1. Update the package status checklist
 2. Add new patterns/gotchas to the dev guide
 3. Mention cross-package impacts in root `AGENTS.md` or relevant package guides

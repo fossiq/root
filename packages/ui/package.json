@@ -31,6 +31,7 @@
   "author": "Sushruth Sastry",
   "license": "MIT",
   "engines": {
+    "bun": ">=1.3.0",
     "node": ">=24.0.0"
   },
   "publishConfig": {

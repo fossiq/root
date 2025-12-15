@@ -173,7 +173,7 @@ function compile() {
     // Generate JavaScript source
     const jsSource = generateGrammarJS(grammar);
 
-    // Write to grammar.js (tree-sitter-cli expects this name)
+    // Write to grammar.js (tree-sitter binary expects this name)
     // Note: We output CommonJS syntax since tree-sitter expects it
     const outputPath = resolve(__dirname, "../../grammar.js");
     writeFileSync(outputPath, jsSource, "utf-8");

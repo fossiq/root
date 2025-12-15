@@ -231,7 +231,7 @@ When implementing support for function calls (like `ago()`, `now()`) in `between
 5. **Regenerate Parser Artifacts**:
 
    - Run: `bun run compile-grammar` → generates grammar.js
-   - Run: `bun x tree-sitter-cli generate` → regenerates parser.c, types.ts, grammar.json, node-types.json
+   - Run: `bun x tree-sitter generate` → regenerates parser.c, types.ts, grammar.json, node-types.json
    - Commit all generated files (they're normally in .gitignore but must be tracked for WASM builds)
 
 6. **Test Verification**:
@@ -255,7 +255,7 @@ packages/kql-parser/
 ```
 Edit src/grammar/rules.ts
   → bun run compile-grammar → grammar.js
-  → bun x tree-sitter-cli generate → C parser
+  → bun x tree-sitter generate → C parser
   → bun run build → TypeScript compilation
   → bun run test-grammar → validate
 ```
@@ -268,7 +268,7 @@ Edit src/grammar/rules.ts
 4. Create builders in `src/builders/operators.ts`
 5. Wire up in `src/builders/index.ts`
 6. Add tests in `scripts/test-grammar.ts`
-7. Compile & test: `bun run compile-grammar && bun x tree-sitter-cli generate && bun run test-grammar`
+7. Compile & test: `bun run compile-grammar && bun x tree-sitter generate && bun run test-grammar`
 
 **Key Patterns:**
 
