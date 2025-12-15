@@ -10,8 +10,19 @@ A TypeScript parser for Kusto Query Language (KQL) built with tree-sitter.
 - ✅ **Type-safe AST** - Fully typed Abstract Syntax Tree with discriminated unions
 - ✅ **88 tests** - Comprehensive test coverage for real-world queries
 - ✅ **Tree-sitter based** - Fast, incremental parsing with excellent error recovery
-- ✅ **Cross-platform prebuilts** - Includes native bindings for Linux, Windows, and macOS, and WASM for browser environments
+- ✅ **Cross-platform prebuilts** - Includes native bindings for Linux (x64, ARM64), macOS (x64, ARM64), Windows (x64), and WASM for browser environments
 - ✅ **Minimal dependencies** - Only requires `tree-sitter` for native environments or `web-tree-sitter` for browsers
+
+## Supported Platforms
+
+This package includes prebuilt native binaries for the following platforms:
+
+- **Linux**: x64, ARM64
+- **macOS**: x64, ARM64
+- **Windows**: x64, ARM64
+- **WebAssembly**: For browser environments
+
+The native binaries are automatically loaded by `tree-sitter` when using Node.js or Bun. For browser usage, load the `tree-sitter-kql.wasm` file with `web-tree-sitter`.
 
 ## Installation
 
@@ -249,4 +260,3 @@ This package was developed with the assistance of AI models including Claude (An
 ## Contributing
 
 Contributions welcome! Please see the development guide at `.github/instructions/kql-parser-dev.md` for details on adding new features.
- 

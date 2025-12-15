@@ -38,10 +38,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
+            platform: linux-x64
             wasm: true # Separate WASM build on Ubuntu (uses WASI SDK, no Docker)
+          - os: ubuntu-22.04-arm
+            platform: linux-arm64
+          - os: macos-latest
+            platform: macos-arm64
+          - os: macos-13
+            platform: macos-x64
+          - os: windows-latest
+            platform: windows-x64
+          - os: windows-11-arm
+            platform: win32-arm64
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -79,22 +89,35 @@ jobs:
             turbo-${{ runner.os }}-
 
       - name: Build packages (dependency order)
-        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
+        run: bun x turbo run build:${{ matrix.platform }} --cache-dir=node_modules/.cache/turbo
 
       - name: Build WASM (if applicable)
         if: matrix.wasm
         run: |
           # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
           cd packages/kql-parser
-          bun x tree-sitter build --wasm
+          bun run build:wasm
+
+      - name: Prepare upload directory
+        run: |
+          mkdir -p upload/packages
+          for pkg in packages/*; do
+            name=$(basename "$pkg")
+            mkdir -p "upload/packages/$name"
+            if [ -d "$pkg/dist" ]; then
+              cp -r "$pkg/dist" "upload/packages/$name/"
+            fi
+          done
+          if [ -f packages/kql-parser/tree-sitter-kql.wasm ]; then
+            cp packages/kql-parser/tree-sitter-kql.wasm upload/packages/kql-parser/
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: built-packages-${{ matrix.os }}
-          path: |
-            packages/*/dist/  # Adjust if your build outputs differ (e.g., bindings/)
-            packages/kql-parser/*.wasm  # Include WASM if built
+          name: built-packages-${{ matrix.platform }}
+          path: upload/
+            packages/kql-parser/*.wasm # Include WASM if built
           retention-days: 7
 
   test:
@@ -128,10 +151,10 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
-      - name: Download build artifacts
+      - name: Download linux-x64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest
+          name: built-packages-linux-x64
           path: packages/
 
       - name: Run tests
@@ -172,11 +195,50 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
-      - name: Download build artifacts
+      - name: Download linux-x64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest
-          path: packages/
+          name: built-packages-linux-x64
+          path: temp-linux-x64
+
+      - name: Download linux-arm64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-linux-arm64
+          path: temp-linux-arm64
+
+      - name: Download macos-arm64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-macos-arm64
+          path: temp-macos-arm64
+
+      - name: Download macos-x64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-macos-x64
+          path: temp-macos-x64
+
+      - name: Download windows-x64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-windows-x64
+          path: temp-windows-x64
+
+      - name: Download win32-arm64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-win32-arm64
+          path: temp-win32-arm64
+
+      - name: Merge build artifacts
+        run: |
+          cp -r temp-linux-x64/packages/* packages/
+          cp -r temp-linux-arm64/packages/*/dist/* packages/*/dist/
+          cp -r temp-macos-arm64/packages/*/dist/* packages/*/dist/
+          cp -r temp-macos-x64/packages/*/dist/* packages/*/dist/
+          cp -r temp-windows-x64/packages/*/dist/* packages/*/dist/
+          cp -r temp-win32-arm64/packages/*/dist/* packages/*/dist/
 
       - name: Publish packages
         run: bun run release
