@@ -45,13 +45,12 @@ jobs:
           - os: ubuntu-22.04-arm
             platform: linux-arm64
           - os: macos-latest
-            platform: macos-arm64
+            platform: darwin-arm64
           - os: macos-15-intel
-            platform: macos-x64
+            platform: darwin-x64
           - os: windows-latest
-            platform: windows-x64
-          - os: windows-11-arm
-            platform: win32-arm64
+            platform: win32-x64
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -115,7 +114,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: built-packages-${{ matrix.os }}
+          name: built-packages-${{ matrix.platform }}
           path: upload/
             packages/kql-parser/*.wasm # Include WASM if built
           retention-days: 7
@@ -151,10 +150,10 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
-      - name: Download ubuntu-latest artifacts
+      - name: Download linux-x64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest
+          name: built-packages-linux-x64
           path: packages/
 
       - name: Run tests
@@ -201,44 +200,30 @@ jobs:
           name: built-packages-ubuntu-latest
           path: temp-ubuntu-latest
 
-      - name: Download ubuntu-22.04-arm artifacts
+      - name: Download darwin-arm64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-22.04-arm
-          path: temp-ubuntu-22.04-arm
+          name: built-packages-darwin-arm64
+          path: temp-darwin-arm64
 
-      - name: Download macos-latest artifacts
+      - name: Download darwin-x64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-macos-latest
-          path: temp-macos-latest
+          name: built-packages-darwin-x64
+          path: temp-darwin-x64
 
-      - name: Download macos-15-intel artifacts
+      - name: Download win32-x64 artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-macos-15-intel
-          path: temp-macos-15-intel
-
-      - name: Download windows-latest artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-windows-latest
-          path: temp-windows-latest
-
-      - name: Download windows-11-arm artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-windows-11-arm
-          path: temp-windows-11-arm
+          name: built-packages-win32-x64
+          path: temp-win32-x64
 
       - name: Merge build artifacts
         run: |
-          cp -r temp-ubuntu-latest/packages/* packages/
-          cp -r temp-ubuntu-22.04-arm/packages/*/dist/* packages/*/dist/
-          cp -r temp-macos-latest/packages/*/dist/* packages/*/dist/
-          cp -r temp-macos-15-intel/packages/*/dist/* packages/*/dist/
-          cp -r temp-windows-latest/packages/*/dist/* packages/*/dist/
-          cp -r temp-windows-11-arm/packages/*/dist/* packages/*/dist/
+          cp -r temp-linux-x64/packages/* packages/
+          cp -r temp-darwin-arm64/packages/*/dist/* packages/*/dist/
+          cp -r temp-darwin-x64/packages/*/dist/* packages/*/dist/
+          cp -r temp-win32-x64/packages/*/dist/* packages/*/dist/
 
       - name: Publish packages
         run: bun run release
