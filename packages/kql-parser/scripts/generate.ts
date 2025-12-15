@@ -1,38 +1,84 @@
 #!/usr/bin/env bun
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { $ } from 'bun';
-import { dirname } from 'path';
+import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Change to the parent directory of the script
-process.chdir(`${__dirname}/..`);
+process.chdir(join(__dirname, '..'));
 
-try {
-  // Compile the grammar
-  await $`bun run compile-grammar`;
+const pkgPath = join(process.cwd(), 'package.json');
+const originalPackageJson = readFileSync(pkgPath, 'utf8');
+const treeSitterCliBinary = resolveTreeSitterCli();
 
-  // Temporarily remove "type": "module" for tree-sitter-cli compatibility
-  console.log('Temporarily adjusting package.json for tree-sitter compatibility...');
-  const pkgPath = 'package.json';
-  let pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-  delete pkg.type;
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
-
-  // Run tree-sitter generate
-  console.log('Generating parser...');
-  await $`bun x tree-sitter-cli generate`;
-
-  // Restore "type": "module"
-  console.log('Restoring package.json...');
-  pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
-  pkg.type = 'module';
-  writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
-
-  console.log('✓ Parser generation complete');
-} catch (error) {
-  console.error('Error during parser generation:', error);
-  process.exit(1);
+function log(message: string) {
+  console.log(`[generate] ${message}`);
 }
+
+function resolveTreeSitterCli(): string | null {
+  const override = process.env.TREE_SITTER_CLI?.trim();
+  if (override) {
+    return override;
+  }
+
+  const binName = process.platform === 'win32' ? 'tree-sitter.cmd' : 'tree-sitter';
+  const candidate = join(process.cwd(), 'node_modules', '.bin', binName);
+
+  return existsSync(candidate) ? candidate : null;
+}
+
+function writePackageJson(contents: Record<string, unknown>) {
+  writeFileSync(pkgPath, `${JSON.stringify(contents, null, 2)}\n`);
+}
+
+function restorePackageJson() {
+  writeFileSync(pkgPath, originalPackageJson);
+}
+
+function stripModuleType(): boolean {
+  const pkg = JSON.parse(originalPackageJson);
+  if (pkg.type === undefined) {
+    return false;
+  }
+
+  delete pkg.type;
+  writePackageJson(pkg);
+  return true;
+}
+
+async function runTreeSitterGenerate() {
+  if (treeSitterCliBinary) {
+    log(`Using tree-sitter CLI binary: ${treeSitterCliBinary}`);
+    await $`${treeSitterCliBinary} generate`;
+    return;
+  }
+
+  log('Using bundled tree-sitter-cli via bun x');
+  await $`bun x tree-sitter-cli generate`;
+}
+
+async function main() {
+  try {
+    log('Compiling grammar sources');
+    await $`bun run compile-grammar`;
+
+    const modifiedPackage = stripModuleType();
+    if (modifiedPackage) {
+      log('Temporarily removed "type": "module" for tree-sitter compatibility');
+    }
+
+    log('Generating parser');
+    await runTreeSitterGenerate();
+
+    log('✓ Parser generation complete');
+  } catch (error) {
+    console.error('[generate] Error during parser generation:', error);
+    process.exitCode = 1;
+  } finally {
+    restorePackageJson();
+  }
+}
+
+await main();
