@@ -91,7 +91,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: built-packages-${{ matrix.os }}-${{ matrix.wasm || 'no-wasm' }}
+          name: built-packages-${{ matrix.os }}
           path: |
             packages/*/dist/  # Adjust if your build outputs differ (e.g., bindings/)
             packages/kql-parser/*.wasm  # Include WASM if built
@@ -131,7 +131,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest-true # Updated: Match the artifact name from the Ubuntu build job (which has wasm: true)
+          name: built-packages-ubuntu-latest
           path: packages/
 
       - name: Run tests
@@ -175,7 +175,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest-true # Updated: Match the artifact name from the Ubuntu build job (which has wasm: true)
+          name: built-packages-ubuntu-latest
           path: packages/
 
       - name: Publish packages
