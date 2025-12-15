@@ -39,13 +39,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
-            platform: linux-x64
-            wasm: true # Separate WASM build on Ubuntu (uses WASI SDK, no Docker)
-          - os: ubuntu-22.04-arm
-            platform: linux-arm64
-          - os: macos-latest
-            platform: darwin-arm64
           - os: macos-15-intel
             platform: darwin-x64
           - os: windows-latest
@@ -88,7 +81,7 @@ jobs:
             turbo-${{ runner.os }}-
 
       - name: Build packages (dependency order)
-        run: bun x turbo run build:${{ matrix.platform }} --cache-dir=node_modules/.cache/turbo
+        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
       - name: Build WASM (if applicable)
         if: matrix.wasm
