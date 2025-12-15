@@ -49,7 +49,7 @@ This document contains all instructions for AI agents working on the Fossiq code
 
 ### Runtime & Tools
 
-- **Use Bun as runtime** - `bunx` instead of `npx`, `bun run` instead of `npm run`
+- **Use Bun as runtime** - `bun x` instead of `npx`, `bun run` instead of `npm run`
 - TypeScript with ESM (import/export)
 - Functional programming over classes
 - Pure functions for transformations

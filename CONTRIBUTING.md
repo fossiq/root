@@ -54,6 +54,7 @@ bun run lint:fix
 ### Branch Naming
 
 Use descriptive branch names:
+
 - `feat/add-new-operator` - New features
 - `fix/parser-edge-case` - Bug fixes
 - `docs/update-readme` - Documentation changes
@@ -61,6 +62,7 @@ Use descriptive branch names:
 ### Commit Messages
 
 Write clear, concise commit messages:
+
 - `feat: Add support for mv-expand operator`
 - `fix: Handle edge case in datetime parsing`
 - `docs: Update installation instructions`
@@ -102,7 +104,7 @@ bun run changeset
 ## Code Style
 
 - **Language**: TypeScript with ESM modules
-- **Runtime**: Bun (use `bunx` instead of `npx`, `bun run` instead of `npm run`)
+- **Runtime**: Bun (use `bun x` instead of `npx`, `bun run` instead of `npm run`)
 - **Style**: Functional programming over classes
 - **Functions**: Small, focused, single responsibility
 - **Testing**: Tests in `tests/` directories, not in `src/`

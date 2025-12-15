@@ -79,14 +79,14 @@ jobs:
             turbo-${{ runner.os }}-
 
       - name: Build packages (dependency order)
-        run: bunx turbo run build --cache-dir=node_modules/.cache/turbo
+        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
       - name: Build WASM (if applicable)
         if: matrix.wasm
         run: |
           # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
           cd packages/kql-parser
-          bunx tree-sitter build --wasm
+          bun x tree-sitter build --wasm
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -131,11 +131,11 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest-no-wasm # Restore from Ubuntu build (adjust if matrix varies)
+          name: built-packages-ubuntu-latest-true # Updated: Match the artifact name from the Ubuntu build job (which has wasm: true)
           path: packages/
 
       - name: Run tests
-        run: bunx turbo run test --cache-dir=node_modules/.cache/turbo
+        run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
 
   publish:
     needs: test
@@ -175,7 +175,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: built-packages-ubuntu-latest-no-wasm
+          name: built-packages-ubuntu-latest-true # Updated: Match the artifact name from the Ubuntu build job (which has wasm: true)
           path: packages/
 
       - name: Publish packages
