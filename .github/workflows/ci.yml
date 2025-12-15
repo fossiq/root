@@ -51,8 +51,9 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        id: cache-restore
         with:
           path: node_modules
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
@@ -61,6 +62,13 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      - name: Save node_modules cache
+        uses: actions/cache/save@v4
+        if: always() && steps.cache-restore.outputs.cache-hit != 'true'
+        with:
+          path: node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
 
       - name: Cache Turborepo
         uses: actions/cache@v4
