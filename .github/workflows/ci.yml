@@ -33,16 +33,94 @@ jobs:
       - name: Run lint
         run: bun run lint
 
-  build:
+  build-linux:
+    needs: lint
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            container: ubuntu:24.04
+            platform: linux-x64
+            wasm: true
+          - runner: ubuntu-22.04-arm
+            container: ubuntu:24.04
+            platform: linux-arm64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        id: cache-restore
+        with:
+          path: node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: |
+            bun-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Save node_modules cache
+        uses: actions/cache/save@v4
+        if: always() && steps.cache-restore.outputs.cache-hit != 'true'
+        with:
+          path: node_modules
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+
+      - name: Cache Turborepo
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.cache/turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      - name: Build packages (dependency order)
+        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
+
+      - name: Build WASM (if applicable)
+        if: matrix.wasm
+        run: |
+          # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
+          cd packages/kql-parser
+          bun run build:wasm
+
+      - name: Prepare upload directory
+        run: |
+          mkdir -p upload/packages
+          for pkg in packages/*; do
+            name=$(basename "$pkg")
+            mkdir -p "upload/packages/$name"
+            if [ -d "$pkg/dist" ]; then
+              cp -r "$pkg/dist" "upload/packages/$name/"
+            fi
+          done
+          if [ -f packages/kql-parser/tree-sitter-kql.wasm ]; then
+            cp packages/kql-parser/tree-sitter-kql.wasm upload/packages/kql-parser/
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-packages-${{ matrix.platform }}
+          path: upload/
+            packages/kql-parser/*.wasm # Include WASM if built
+          retention-days: 7
+
+  build-nonlinux:
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - os: ubuntu-24.04
-            platform: linux-x64
-          - os: ubuntu-22.04-arm
-            platform: linux-arm64
           - os: macos-15
             platform: darwin-arm64
           - os: macos-15-intel
@@ -119,7 +197,7 @@ jobs:
           retention-days: 7
 
   test:
-    needs: build
+    needs: build-linux
     runs-on: ubuntu-24.04 # Tests on Ubuntu; expand to matrix if needed for cross-platform
     steps:
       - name: Checkout code
@@ -159,7 +237,9 @@ jobs:
         run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
 
   publish:
-    needs: test
+    needs:
+      - test
+      - build-nonlinux
     runs-on: ubuntu-24.04
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: release
