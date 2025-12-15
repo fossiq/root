@@ -51,7 +51,7 @@
   },
   "scripts": {
     "compile-grammar": "bun src/grammar/compile.ts",
-    "generate": "bash scripts/generate.sh",
+    "generate": "bun run scripts/generate.ts",
     "build:binding": "bun scripts/build-binding.ts",
     "build:wasm": "bun scripts/build-wasm.ts",
     "build": "tsc && bun run generate",
