@@ -6,13 +6,16 @@
  */
 
 import { writeFileSync } from "fs";
-import { resolve, dirname } from "path";
+import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import type { Rule, GrammarConfig } from "./types.js";
 import { createGrammar } from "./index.js";
 
+// Constants - All paths defined at the top
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const PROJECT_ROOT = join(__dirname, "../../");
+const GRAMMAR_JS_PATH = join(PROJECT_ROOT, "grammar.js");
 
 /**
  * Serializes a Rule object into JavaScript source code
@@ -175,10 +178,9 @@ function compile() {
 
     // Write to grammar.js (tree-sitter binary expects this name)
     // Note: We output CommonJS syntax since tree-sitter expects it
-    const outputPath = resolve(__dirname, "../../grammar.js");
-    writeFileSync(outputPath, jsSource, "utf-8");
+    writeFileSync(GRAMMAR_JS_PATH, jsSource, "utf-8");
 
-    console.log(`✓ Grammar compiled successfully to ${outputPath}`);
+    console.log(`✓ Grammar compiled successfully to ${GRAMMAR_JS_PATH}`);
   } catch (error) {
     console.error("✗ Grammar compilation failed:", error);
     process.exit(1);
