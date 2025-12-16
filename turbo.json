@@ -7,12 +7,12 @@
       "inputs": ["src/**", "package.json", "tsconfig.json"]
     },
     "test": {
-      "dependsOn": ["build"],
+      "dependsOn": [],
       "outputs": [],
       "inputs": ["src/**", "tests/**"]
     },
     "test:coverage": {
-      "dependsOn": ["build"],
+      "dependsOn": [],
       "outputs": ["coverage/**"],
       "inputs": ["src/**", "tests/**"]
     },

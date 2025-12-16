@@ -46,7 +46,11 @@ jobs:
       platform: win32-x64
 
   test:
-    needs: build-linux
+    needs:
+      - build-linux
+      - build-darwin-arm64
+      - build-darwin-x64
+      - build-win32-x64
     uses: ./.github/workflows/test.yml
 
   publish:
