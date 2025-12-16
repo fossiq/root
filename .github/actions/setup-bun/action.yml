@@ -29,7 +29,3 @@ runs:
     - uses: tree-sitter/setup-action@v2
       with:
         install-lib: false
-
-    - name: Install dependencies with Bun
-      shell: bash
-      run: bun install

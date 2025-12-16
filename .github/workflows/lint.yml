@@ -12,8 +12,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun & Dependencies
+      - name: Setup Bun tooling
         uses: ./.github/actions/setup-bun
+
+      - name: Install Bun dependencies
+        uses: ./.github/actions/install-bun-deps
 
       - name: Run monorepo lint target
         run: bun run lint

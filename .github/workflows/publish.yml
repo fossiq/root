@@ -44,8 +44,11 @@ jobs:
           name: built-packages-win32-x64
           path: temp-win32-x64
 
-      - name: Setup Bun & Dependencies
+      - name: Setup Bun tooling
         uses: ./.github/actions/setup-bun
+
+      - name: Install Bun dependencies
+        uses: ./.github/actions/install-bun-deps
 
       - name: Merge build artifacts
         run: bun ./.github/scripts/merge-artifacts.ts

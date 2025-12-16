@@ -35,11 +35,14 @@ jobs:
           name: built-packages-win32-x64
           path: packages-win32-x64/
 
+      - name: Setup Bun tooling
+        uses: ./.github/actions/setup-bun
+
       - name: Merge build artifacts
         run: bun ./.github/scripts/merge-artifacts.ts
 
-      - name: Setup Bun & Dependencies
-        uses: ./.github/actions/setup-bun
+      - name: Install Bun dependencies
+        uses: ./.github/actions/install-bun-deps
 
       - name: Run Turbo test target
         run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
