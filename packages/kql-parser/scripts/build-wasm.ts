@@ -2,7 +2,9 @@ import { $ } from "bun";
 import { existsSync } from "fs";
 import { join } from "path";
 
-const wasmPath = join(import.meta.dir, "../tree-sitter-kql.wasm");
+// Constants - All paths defined at the top
+const PROJECT_ROOT = join(import.meta.dir, "..");
+const WASM_PATH = join(PROJECT_ROOT, "tree-sitter-kql.wasm");
 
 /**
  * Build WASM binary
@@ -12,8 +14,8 @@ const wasmPath = join(import.meta.dir, "../tree-sitter-kql.wasm");
  * This script is primarily for CI/CD environments.
  */
 
-if (existsSync(wasmPath)) {
-  console.log(`✓ WASM binary already exists at ${wasmPath}`);
+if (existsSync(WASM_PATH)) {
+  console.log(`✓ WASM binary already exists at ${WASM_PATH}`);
   console.log(
     "  Skipping build. To rebuild, delete the .wasm file and run again."
   );
@@ -28,7 +30,7 @@ console.log(
 
 try {
   await $`bun x tree-sitter build --wasm`;
-  console.log(`✓ WASM binary built successfully`);
+  console.log(`✓ WASM binary built successfully at ${WASM_PATH}`);
 } catch (error) {
   console.error("Failed to build WASM binary:", error);
   console.error("\n📝 Solution:");

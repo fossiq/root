@@ -15,313 +15,49 @@ permissions:
 
 jobs:
   lint:
-    name: Lint Source
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Bun runtime
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: Install dependencies with Bun
-        run: bun install
-
-      - name: Run monorepo lint target
-        run: bun run lint
+    uses: ./.github/workflows/jobs/lint.yml
 
   build-linux:
-    name: Build Packages (Linux Matrix)
     needs: lint
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      matrix:
-        include:
-          - runner: ubuntu-24.04
-            platform: linux-x64
-            wasm: true
-          - runner: ubuntu-22.04-arm
-            platform: linux-arm64
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    uses: ./.github/workflows/jobs/build.yml
+    with:
+      runs-on: ubuntu-24.04
+      platform: linux-x64
 
-      - name: Setup Bun runtime
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        id: cache-restore
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: Install dependencies with Bun
-        run: bun install
-
-      - name: Save node_modules cache
-        uses: actions/cache/save@v4
-        if: always() && steps.cache-restore.outputs.cache-hit != 'true'
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-
-      - name: Cache Turborepo outputs
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
-
-      - name: Build packages in dependency order
-        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
-
-      - name: Build WASM artifacts (if applicable)
-        if: matrix.wasm
-        run: |
-          # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
-          cd packages/kql-parser
-          bun run build:wasm
-
-      - name: Prepare upload directory
-        run: |
-          mkdir -p upload/packages
-          for pkg in packages/*; do
-            name=$(basename "$pkg")
-            mkdir -p "upload/packages/$name"
-            if [ -d "$pkg/dist" ]; then
-              cp -r "$pkg/dist" "upload/packages/$name/"
-            fi
-          done
-          if [ -f packages/kql-parser/tree-sitter-kql.wasm ]; then
-            cp packages/kql-parser/tree-sitter-kql.wasm upload/packages/kql-parser/
-          fi
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: built-packages-${{ matrix.platform }}
-          path: |
-            upload/packages
-            upload/packages/kql-parser/*.wasm # Include WASM if built
-          retention-days: 7
-
-  build-nonlinux:
-    name: Build Packages (macOS & Windows)
+  build-darwin-arm64:
     needs: lint
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      matrix:
-        include:
-          - os: macos-15
-            platform: darwin-arm64
-          - os: macos-15-intel
-            platform: darwin-x64
-          - os: windows-2025
-            platform: win32-x64
+    uses: ./.github/workflows/jobs/build.yml
+    with:
+      runs-on: macos-15
+      platform: darwin-arm64
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  build-darwin-x64:
+    needs: lint
+    uses: ./.github/workflows/jobs/build.yml
+    with:
+      runs-on: macos-15-intel
+      platform: darwin-x64
 
-      - name: Setup Bun runtime
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        id: cache-restore
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: Install dependencies with Bun
-        run: bun install
-
-      - name: Save node_modules cache
-        uses: actions/cache/save@v4
-        if: always() && steps.cache-restore.outputs.cache-hit != 'true'
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-
-      - name: Cache Turborepo outputs
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
-
-      - name: Build packages in dependency order
-        shell: bash
-        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
-
-      - name: Build WASM artifacts (if applicable)
-        if: matrix.wasm
-        shell: bash
-        run: |
-          # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
-          cd packages/kql-parser
-          bun run build:wasm
-
-      - name: Prepare upload directory
-        shell: bash
-        run: |
-          mkdir -p upload/packages
-          for pkg in packages/*; do
-            name=$(basename "$pkg")
-            mkdir -p "upload/packages/$name"
-            if [ -d "$pkg/dist" ]; then
-              cp -r "$pkg/dist" "upload/packages/$name/"
-            fi
-          done
-          if [ -f packages/kql-parser/tree-sitter-kql.wasm ]; then
-            cp packages/kql-parser/tree-sitter-kql.wasm upload/packages/kql-parser/
-          fi
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: built-packages-${{ matrix.platform }}
-          path: |
-            upload/packages
-            upload/packages/kql-parser/*.wasm # Include WASM if built
-          retention-days: 7
+  build-win32-x64:
+    needs: lint
+    uses: ./.github/workflows/jobs/build.yml
+    with:
+      runs-on: windows-2025
+      platform: win32-x64
 
   test:
-    name: Run Test Suite
     needs: build-linux
-    runs-on: ubuntu-24.04 # Tests on Ubuntu; expand to matrix if needed for cross-platform
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Bun runtime
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: Install dependencies with Bun
-        run: bun install
-
-      - name: Cache Turborepo outputs
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
-
-      - name: Download linux-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-linux-x64
-          path: packages/
-
-      - name: Run Turbo test target
-        run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
+    uses: ./.github/workflows/jobs/test.yml
 
   publish:
-    name: Validate & Publish Packages
+    if: github.event_name != 'pull_request'
     needs:
       - test
-      - build-nonlinux
-    runs-on: ubuntu-24.04
-    if: github.event_name != 'pull_request'
-    environment: release
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Required for Changesets to work properly
-
-      - name: Setup Bun runtime
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            bun-${{ runner.os }}-
-
-      - name: Install dependencies with Bun
-        run: bun install
-
-      - name: Cache Turborepo outputs
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.cache/turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            turbo-${{ runner.os }}-
-
-      - name: Download linux-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-linux-x64
-          path: temp-linux-x64
-
-      - name: Download darwin-arm64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-darwin-arm64
-          path: temp-darwin-arm64
-
-      - name: Download darwin-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-darwin-x64
-          path: temp-darwin-x64
-
-      - name: Download win32-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-win32-x64
-          path: temp-win32-x64
-
-      - name: Merge build artifacts
-        run: |
-          cp -r temp-linux-x64/packages/* packages/
-          cp -r temp-darwin-arm64/packages/*/dist/* packages/*/dist/
-          cp -r temp-darwin-x64/packages/*/dist/* packages/*/dist/
-          cp -r temp-win32-x64/packages/*/dist/* packages/*/dist/
-
-      - name: Publish packages via Changesets
-        run: bun run release
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - build-linux
+      - build-darwin-arm64
+      - build-darwin-x64
+      - build-win32-x64
+    uses: ./.github/workflows/jobs/publish.yml
+    secrets:
+      npm-token: ${{ secrets.NPM_TOKEN }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}

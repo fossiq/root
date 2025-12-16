@@ -1,0 +1,19 @@
+name: Lint
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    name: Lint Source
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun & Dependencies
+        uses: ./.github/actions/setup-bun
+
+      - name: Run monorepo lint target
+        run: bun run lint

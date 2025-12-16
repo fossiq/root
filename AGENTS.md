@@ -32,6 +32,11 @@ This document contains all instructions for AI agents working on the Fossiq code
   - Wrapping errors in try-catch to silence them
   - Any action taken "just to pass checks" or "just to make the tests pass"
   - **If you catch yourself about to do this, STOP and ask the user first**
+- **⚠️ NEVER INSTALL tree-sitter-cli ⚠️**
+  - The `tree-sitter-cli` package is abandoned and merged into `tree-sitter` package
+  - Use the `tree-sitter` binary from `node_modules/.bin/tree-sitter` (installed via `tree-sitter` dependency)
+  - Scripts should check workspace root and package-level node_modules for the binary
+  - NEVER add `tree-sitter-cli` as a dependency
 
 ---
 
