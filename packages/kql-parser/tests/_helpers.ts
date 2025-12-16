@@ -1,20 +1,22 @@
-import { $ } from 'bun';
-import { writeFileSync, unlinkSync } from 'fs';
+import { $ } from "bun";
+import { writeFileSync, unlinkSync } from "fs";
 
-export async function parseWithTreeSitter(query: string): Promise<{ success: boolean; output: string }> {
-  const tempFile = '.test-query.kql';
+export async function parseWithTreeSitter(
+  query: string
+): Promise<{ success: boolean; output: string }> {
+  const tempFile = ".test-query.kql";
 
   try {
     writeFileSync(tempFile, query);
 
     const result = await Promise.race([
-      $`bun x tree-sitter-cli parse ${tempFile}`.text(),
+      $`bun x tree-sitter parse ${tempFile}`.text(),
       new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error('Parse timeout')), 5000)
+        setTimeout(() => reject(new Error("Parse timeout")), 5000)
       ),
     ]);
 
-    const hasError = result.includes('(ERROR');
+    const hasError = result.includes("(ERROR");
 
     return {
       success: !hasError,

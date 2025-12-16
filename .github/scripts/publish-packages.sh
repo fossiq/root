@@ -12,7 +12,7 @@ echo "=== Detecting packages to publish ==="
 # Using --dry-run=json to get the list without running the task
 # We removed --affected to ensure we try to publish ALL packages
 # This supports the "single version for all" strategy where a bump in one bumps all
-PACKAGES_JSON=$(bunx turbo run ci:publish --dry-run=json 2>/dev/null || echo '{"packages":[]}')
+PACKAGES_JSON=$(bun x turbo run ci:publish --dry-run=json 2>/dev/null || echo '{"packages":[]}')
 PACKAGES_TO_PUBLISH=$(echo "$PACKAGES_JSON" | jq -r '.packages[]' 2>/dev/null | grep -v "^//" | grep -v "^fossiq-monorepo$" | grep -v "ui$" || true)
 
 if [ -z "$PACKAGES_TO_PUBLISH" ]; then
