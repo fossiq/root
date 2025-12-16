@@ -40,13 +40,14 @@
   },
   "dependencies": {
     "@fossiq/kql-ast": "workspace:*",
-    "@lezer/lr": "^1.4.0",
-    "@lezer/highlight": "^1.2.0"
+    "@lezer/common": "1.4.0",
+    "@lezer/highlight": "1.2.3",
+    "@lezer/lr": "1.4.5"
   },
   "peerDependencies": {
-    "@codemirror/language": "^6.0.0",
-    "@codemirror/state": "^6.0.0",
-    "@codemirror/view": "^6.0.0"
+    "@codemirror/language": "6.11.3",
+    "@codemirror/state": "6.5.2",
+    "@codemirror/view": "6.39.4"
   },
   "peerDependenciesMeta": {
     "@codemirror/language": {
@@ -60,7 +61,7 @@
     }
   },
   "devDependencies": {
-    "@lezer/generator": "^1.5.0",
+    "@lezer/generator": "1.8.0",
     "@types/node": "catalog:",
     "typescript": "catalog:"
   },

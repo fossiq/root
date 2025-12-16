@@ -15,39 +15,39 @@ permissions:
 
 jobs:
   lint:
-    uses: ./.github/workflows/jobs/lint.yml
+    uses: ./.github/workflows/lint.yml
 
   build-linux:
     needs: lint
-    uses: ./.github/workflows/jobs/build.yml
+    uses: ./.github/workflows/build.yml
     with:
       runs-on: ubuntu-24.04
       platform: linux-x64
 
   build-darwin-arm64:
     needs: lint
-    uses: ./.github/workflows/jobs/build.yml
+    uses: ./.github/workflows/build.yml
     with:
       runs-on: macos-15
       platform: darwin-arm64
 
   build-darwin-x64:
     needs: lint
-    uses: ./.github/workflows/jobs/build.yml
+    uses: ./.github/workflows/build.yml
     with:
       runs-on: macos-15-intel
       platform: darwin-x64
 
   build-win32-x64:
     needs: lint
-    uses: ./.github/workflows/jobs/build.yml
+    uses: ./.github/workflows/build.yml
     with:
       runs-on: windows-2025
       platform: win32-x64
 
   test:
     needs: build-linux
-    uses: ./.github/workflows/jobs/test.yml
+    uses: ./.github/workflows/test.yml
 
   publish:
     if: github.event_name != 'pull_request'
@@ -57,7 +57,7 @@ jobs:
       - build-darwin-arm64
       - build-darwin-x64
       - build-win32-x64
-    uses: ./.github/workflows/jobs/publish.yml
+    uses: ./.github/workflows/publish.yml
     secrets:
       npm-token: ${{ secrets.NPM_TOKEN }}
       github-token: ${{ secrets.GITHUB_TOKEN }}

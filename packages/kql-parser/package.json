@@ -54,7 +54,7 @@
     "generate": "bun x tree-sitter generate --js-runtime bun",
     "build:binding": "bun scripts/build-binding.ts",
     "build:wasm": "bun scripts/build-wasm.ts",
-    "build": "tsc && bun run generate && bun run build:binding",
+    "build": "tsc && bun run compile-grammar && bun run generate && bun run build:binding",
     "test": "bun test tests",
     "test:watch": "bun test tests --watch",
     "test:coverage": "bun test tests --coverage",
@@ -67,7 +67,8 @@
   "devDependencies": {
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "node-addon-api": "8.5.0"
   },
   "type": "module"
 }
