@@ -1,0 +1,33 @@
+name: Setup Bun & Dependencies
+description: Setup Bun runtime, restore/install node_modules, and cache Turborepo outputs
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+        restore-keys: |
+          ${{ runner.os }}-bun-
+
+    - name: Setup Bun runtime
+      uses: oven-sh/setup-bun@v2
+
+    - name: Install dependencies with Bun
+      shell: bash
+      run: |
+        if [ "${{ steps.cache-restore.outputs.cache-hit }}" == "true" ]; then
+          echo "Cache hit, skipping installation"
+        else
+          echo "Cache miss, installing dependencies"
+          bun install
+        fi
+
+    - name: Cache turbo build setup
+      uses: actions/cache@v4
+      with:
+        path: .turbo
+        key: ${{ runner.os }}-turbo-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-turbo-

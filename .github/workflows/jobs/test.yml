@@ -1,0 +1,24 @@
+name: Test
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun & Dependencies
+        uses: ./.github/actions/setup-bun
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-linux-x64
+          path: packages/
+
+      - name: Run Turbo test target
+        run: bun x turbo run test --cache-dir=node_modules/.cache/turbo

@@ -1,0 +1,81 @@
+name: Publish
+
+on:
+  workflow_call:
+    secrets:
+      npm-token:
+        required: true
+      github-token:
+        required: true
+
+jobs:
+  publish:
+    name: Validate & Publish Packages
+    runs-on: ubuntu-24.04
+    environment: release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun & Dependencies
+        uses: ./.github/actions/setup-bun
+
+      - name: Download linux-x64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-linux-x64
+          path: temp-linux-x64
+
+      - name: Download darwin-arm64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-darwin-arm64
+          path: temp-darwin-arm64
+
+      - name: Download darwin-x64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-darwin-x64
+          path: temp-darwin-x64
+
+      - name: Download win32-x64 artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages-win32-x64
+          path: temp-win32-x64
+
+      - name: Merge build artifacts
+        run: |
+          set -euo pipefail
+          artifact_root="packages"
+          mkdir -p "$artifact_root"
+
+          if [ -d temp-linux-x64/packages ]; then
+            cp -r temp-linux-x64/packages/* "$artifact_root"/
+          fi
+
+          for platform in darwin-arm64 darwin-x64 win32-x64; do
+            src="temp-${platform}"
+            if [ -d "$src/packages" ]; then
+              for pkg in "$src"/packages/*; do
+                name=$(basename "$pkg")
+                if [ -d "$pkg/dist" ]; then
+                  mkdir -p "$artifact_root/$name/dist"
+                  cp -r "$pkg/dist/"* "$artifact_root/$name/dist/" 2>/dev/null || true
+                fi
+                if [ -f "$pkg/tree-sitter-kql.wasm" ]; then
+                  mkdir -p "$artifact_root/$name"
+                  cp "$pkg/tree-sitter-kql.wasm" "$artifact_root/$name/"
+                fi
+              done
+            fi
+          done
+
+      - name: Publish packages via Changesets
+        run: bun run release
+        env:
+          NPM_TOKEN: ${{ secrets.npm-token }}
+          GITHUB_TOKEN: ${{ secrets.github-token }}
