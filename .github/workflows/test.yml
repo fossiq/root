@@ -35,6 +35,9 @@ jobs:
           name: built-packages-win32-x64
           path: packages-win32-x64/
 
+      - name: Merge build artifacts
+        run: bun ./.github/scripts/merge-artifacts.ts
+
       - name: Setup Bun & Dependencies
         uses: ./.github/actions/setup-bun
 
