@@ -15,12 +15,13 @@ permissions:
 
 jobs:
   lint:
+    name: Lint Source
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: Setup Bun runtime
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
@@ -33,13 +34,14 @@ jobs:
           restore-keys: |
             bun-${{ runner.os }}-
 
-      - name: Install dependencies
+      - name: Install dependencies with Bun
         run: bun install
 
-      - name: Run lint
+      - name: Run monorepo lint target
         run: bun run lint
 
   build-linux:
+    name: Build Packages (Linux Matrix)
     needs: lint
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -51,10 +53,10 @@ jobs:
           - runner: ubuntu-22.04-arm
             platform: linux-arm64
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: Setup Bun runtime
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
@@ -68,7 +70,7 @@ jobs:
           restore-keys: |
             bun-${{ runner.os }}-
 
-      - name: Install dependencies
+      - name: Install dependencies with Bun
         run: bun install
 
       - name: Save node_modules cache
@@ -78,7 +80,7 @@ jobs:
           path: node_modules
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
 
-      - name: Cache Turborepo
+      - name: Cache Turborepo outputs
         uses: actions/cache@v4
         with:
           path: node_modules/.cache/turbo
@@ -86,10 +88,10 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
-      - name: Build packages (dependency order)
+      - name: Build packages in dependency order
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
-      - name: Build WASM (if applicable)
+      - name: Build WASM artifacts (if applicable)
         if: matrix.wasm
         run: |
           # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
@@ -120,6 +122,7 @@ jobs:
           retention-days: 7
 
   build-nonlinux:
+    name: Build Packages (macOS & Windows)
     needs: lint
     runs-on: ${{ matrix.os }}
     defaults:
@@ -136,10 +139,10 @@ jobs:
             platform: win32-x64
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: Setup Bun runtime
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
@@ -153,7 +156,7 @@ jobs:
           restore-keys: |
             bun-${{ runner.os }}-
 
-      - name: Install dependencies
+      - name: Install dependencies with Bun
         run: bun install
 
       - name: Save node_modules cache
@@ -163,7 +166,7 @@ jobs:
           path: node_modules
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
 
-      - name: Cache Turborepo
+      - name: Cache Turborepo outputs
         uses: actions/cache@v4
         with:
           path: node_modules/.cache/turbo
@@ -171,11 +174,11 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
-      - name: Build packages (dependency order)
+      - name: Build packages in dependency order
         shell: bash
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
-      - name: Build WASM (if applicable)
+      - name: Build WASM artifacts (if applicable)
         if: matrix.wasm
         shell: bash
         run: |
@@ -208,13 +211,14 @@ jobs:
           retention-days: 7
 
   test:
+    name: Run Test Suite
     needs: build-linux
     runs-on: ubuntu-24.04 # Tests on Ubuntu; expand to matrix if needed for cross-platform
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun
+      - name: Setup Bun runtime
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
@@ -227,10 +231,10 @@ jobs:
           restore-keys: |
             bun-${{ runner.os }}-
 
-      - name: Install dependencies
+      - name: Install dependencies with Bun
         run: bun install
 
-      - name: Cache Turborepo
+      - name: Cache Turborepo outputs
         uses: actions/cache@v4
         with:
           path: node_modules/.cache/turbo
@@ -244,10 +248,11 @@ jobs:
           name: built-packages-linux-x64
           path: packages/
 
-      - name: Run tests
+      - name: Run Turbo test target
         run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
 
   publish:
+    name: Validate & Publish Packages
     needs:
       - test
       - build-nonlinux
@@ -255,12 +260,12 @@ jobs:
     if: github.event_name != 'pull_request'
     environment: release
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Required for Changesets to work properly
 
-      - name: Setup Bun
+      - name: Setup Bun runtime
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
@@ -273,10 +278,10 @@ jobs:
           restore-keys: |
             bun-${{ runner.os }}-
 
-      - name: Install dependencies
+      - name: Install dependencies with Bun
         run: bun install
 
-      - name: Cache Turborepo
+      - name: Cache Turborepo outputs
         uses: actions/cache@v4
         with:
           path: node_modules/.cache/turbo
@@ -315,7 +320,7 @@ jobs:
           cp -r temp-darwin-x64/packages/*/dist/* packages/*/dist/
           cp -r temp-win32-x64/packages/*/dist/* packages/*/dist/
 
-      - name: Publish packages
+      - name: Publish packages via Changesets
         run: bun run release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
