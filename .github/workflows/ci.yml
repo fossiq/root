@@ -246,7 +246,7 @@ jobs:
       - test
       - build-nonlinux
     runs-on: ubuntu-24.04
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name != 'pull_request'
     environment: release
     steps:
       - name: Checkout code
