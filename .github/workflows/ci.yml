@@ -108,13 +108,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: built-packages-${{ matrix.platform }}
-          path: upload/
-            packages/kql-parser/*.wasm # Include WASM if built
+          path: |
+            upload/packages
+            upload/packages/kql-parser/*.wasm # Include WASM if built
           retention-days: 7
 
   build-nonlinux:
     needs: lint
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         include:
@@ -162,16 +166,19 @@ jobs:
             turbo-${{ runner.os }}-
 
       - name: Build packages (dependency order)
+        shell: bash
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
       - name: Build WASM (if applicable)
         if: matrix.wasm
+        shell: bash
         run: |
           # Specific to kql-parser; uses WASI SDK for Tree-sitter WASM
           cd packages/kql-parser
           bun run build:wasm
 
       - name: Prepare upload directory
+        shell: bash
         run: |
           mkdir -p upload/packages
           for pkg in packages/*; do
@@ -189,8 +196,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: built-packages-${{ matrix.platform }}
-          path: upload/
-            packages/kql-parser/*.wasm # Include WASM if built
+          path: |
+            upload/packages
+            upload/packages/kql-parser/*.wasm # Include WASM if built
           retention-days: 7
 
   test:

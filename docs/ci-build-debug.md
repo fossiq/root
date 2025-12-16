@@ -57,9 +57,8 @@ This document captures the recent debugging history for the Fossiq CI pipeline a
 
 4. Validate the per-package upload directory scaffolding whenever packages are added or renamed so artifact staging remains aligned with the repository layout.
 
-5. If future dependencies require additional native tooling, prefer scoped `apt-get install` steps instead of swapping entire container images.
-
 5. Reconfirm that each platform’s artifact upload path matches the names the downstream download steps expect (for example, `built-packages-linux-x64`) whenever the staging structure changes.
+
 6. When adding or modifying Windows workflow steps that rely on POSIX shell features, ensure `shell: bash` (or an equivalent) is specified so scripts don’t silently fall back to PowerShell.
 
 7. If future dependencies require additional native tooling, prefer scoped `apt-get install` steps instead of swapping entire container images.
