@@ -15,9 +15,11 @@ permissions:
 
 jobs:
   lint:
+    name: Lint Source
     uses: ./.github/workflows/lint.yml
 
   build-linux:
+    name: Build Linux x64
     needs: lint
     uses: ./.github/workflows/build.yml
     with:
@@ -25,6 +27,7 @@ jobs:
       platform: linux-x64
 
   build-darwin-arm64:
+    name: Build macOS ARM64
     needs: lint
     uses: ./.github/workflows/build.yml
     with:
@@ -32,6 +35,7 @@ jobs:
       platform: darwin-arm64
 
   build-darwin-x64:
+    name: Build macOS x64
     needs: lint
     uses: ./.github/workflows/build.yml
     with:
@@ -39,6 +43,7 @@ jobs:
       platform: darwin-x64
 
   build-win32-x64:
+    name: Build Windows x64
     needs: lint
     uses: ./.github/workflows/build.yml
     with:
@@ -46,6 +51,7 @@ jobs:
       platform: win32-x64
 
   test:
+    name: Test Suite
     needs:
       - build-linux
       - build-darwin-arm64
@@ -54,6 +60,7 @@ jobs:
     uses: ./.github/workflows/test.yml
 
   publish:
+    name: Publish Packages & UI
     if: github.event_name != 'pull_request'
     needs:
       - test

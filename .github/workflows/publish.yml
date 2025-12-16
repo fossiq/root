@@ -20,9 +20,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Bun & Dependencies
-        uses: ./.github/actions/setup-bun
-
       - name: Download linux-x64 artifacts
         uses: actions/download-artifact@v4
         with:
@@ -46,6 +43,9 @@ jobs:
         with:
           name: built-packages-win32-x64
           path: temp-win32-x64
+
+      - name: Setup Bun & Dependencies
+        uses: ./.github/actions/setup-bun
 
       - name: Merge build artifacts
         run: bun ./.github/scripts/merge-artifacts.ts

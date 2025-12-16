@@ -11,9 +11,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun & Dependencies
-        uses: ./.github/actions/setup-bun
-
       - name: Download Linux build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -37,6 +34,9 @@ jobs:
         with:
           name: built-packages-win32-x64
           path: packages-win32-x64/
+
+      - name: Setup Bun & Dependencies
+        uses: ./.github/actions/setup-bun
 
       - name: Run Turbo test target
         run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
