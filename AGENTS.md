@@ -32,11 +32,6 @@ This document contains all instructions for AI agents working on the Fossiq code
   - Wrapping errors in try-catch to silence them
   - Any action taken "just to pass checks" or "just to make the tests pass"
   - **If you catch yourself about to do this, STOP and ask the user first**
-- **⚠️ NEVER INSTALL tree-sitter-cli ⚠️**
-  - The `tree-sitter-cli` package is abandoned and merged into `tree-sitter` package
-  - Use the `tree-sitter` binary from `node_modules/.bin/tree-sitter` (installed via `tree-sitter` dependency)
-  - Scripts should check workspace root and package-level node_modules for the binary
-  - NEVER add `tree-sitter-cli` as a dependency
 
 ---
 
@@ -58,6 +53,8 @@ This document contains all instructions for AI agents working on the Fossiq code
 - TypeScript with ESM (import/export)
 - Functional programming over classes
 - Pure functions for transformations
+- **Use `$` commands for single-line operations** - When writing scripts that run in the Bun runtime, use the `$` commands to achieve something unless the command gets longer than one line
+- **Move conditionals to TypeScript** - When using `$` commands, avoid bash conditionals (if statements) in one-liners and instead handle the logic in TypeScript code before executing the command
 
 ### Code Quality
 
@@ -142,9 +139,92 @@ Each exploratory operation (`git status`, `list_directory`, `grep`, `gh label li
 - To fetch workflow logs: `gh run view <run-id> --log` or `gh run view --job=<job-id> --log`
 - Do NOT use WebFetch for GitHub Actions pages
 
+### GitHub Actions Debugging
+
+When debugging GitHub Actions failures, follow this systematic approach:
+
+1. **Identify the failing job:**
+
+   ```bash
+   gh run view <run-id>
+   ```
+
+2. **View job details:**
+
+   ```bash
+   gh run view <run-id> --job=<job-id>
+   ```
+
+3. **Examine failed logs:**
+
+   ```bash
+   gh run view --log-failed --job=<job-id>
+   ```
+
+4. **Check workflow definitions:**
+
+   ```bash
+   gh workflow view <workflow-name> --yaml
+   ```
+
+5. **Inspect repository files:**
+
+   ```bash
+   gh api repos/<owner>/<repo>/contents/<path> --jq '.content' | base64 -d
+   ```
+
+6. **Common failure points and solutions:**
+   - **Dependency installation failures:** Check lock files, cache keys, and dependency compatibility
+   - **Cache issues:** Update cache keys or clear GitHub Actions cache
+   - **Environment mismatches:** Verify runner OS and tool versions match local development
+   - **Path/reference errors:** Check file paths and branch references in workflow files
+
+### Example Debugging Process: CI Dependency Installation Failure
+
+When debugging a CI failure where dependencies failed to install:
+
+1. **Identify the failing job and step:**
+
+   ```bash
+   gh run view 20279398821
+   ```
+
+   This showed the "lint / Lint Source" job failed at "Setup Bun & Dependencies" step.
+
+2. **Examine workflow structure:**
+
+   ```bash
+   gh workflow view CI --yaml
+   gh api repos/fossiq/root/contents/.github/workflows/jobs/lint.yml --jq '.content' | base64 -d
+   ```
+
+   This revealed the job uses a composite action at `./.github/actions/setup-bun`.
+
+3. **Inspect composite action:**
+
+   ```bash
+   gh api repos/fossiq/root/contents/.github/actions/setup-bun/action.yml --jq '.content' | base64 -d
+   ```
+
+   This showed the action uses caching with a key based on `**/bun.lockb` files.
+
+4. **Check repository files:**
+
+   ```bash
+   gh api repos/fossiq/root/contents/ --jq '.[] | select(.name | contains("bun.lock")) | .name'
+   ```
+
+   This would reveal if the expected lock file exists.
+
+5. **Solution implementation:**
+   - Update references from `bun.lockb` to `bun.lock` in workflow files
+   - Add verbose logging to dependency installation scripts
+   - Commit changes and verify CI passes
+
 ### MCP Tools
 
 - **Use context7 MCP** for fetching library/framework documentation when needed
+- **Use webfetch MCP** for retrieving information from GitHub documentation or workflow guides when troubleshooting CI/CD issues
 
 ### Before Making Changes
 
@@ -236,7 +316,7 @@ When implementing support for function calls (like `ago()`, `now()`) in `between
 5. **Regenerate Parser Artifacts**:
 
    - Run: `bun run compile-grammar` → generates grammar.js
-   - Run: `bun x tree-sitter generate` → regenerates parser.c, types.ts, grammar.json, node-types.json
+   - Run: `bun x tree-sitter generate --js-runtime bun` → regenerates parser.c, types.ts, grammar.json, node-types.json
    - Commit all generated files (they're normally in .gitignore but must be tracked for WASM builds)
 
 6. **Test Verification**:
@@ -260,7 +340,7 @@ packages/kql-parser/
 ```
 Edit src/grammar/rules.ts
   → bun run compile-grammar → grammar.js
-  → bun x tree-sitter generate → C parser
+  → bun x tree-sitter generate --js-runtime bun → C parser
   → bun run build → TypeScript compilation
   → bun run test-grammar → validate
 ```
@@ -273,7 +353,7 @@ Edit src/grammar/rules.ts
 4. Create builders in `src/builders/operators.ts`
 5. Wire up in `src/builders/index.ts`
 6. Add tests in `scripts/test-grammar.ts`
-7. Compile & test: `bun run compile-grammar && bun x tree-sitter generate && bun run test-grammar`
+7. Compile & test: `bun run compile-grammar && bun x tree-sitter generate --js-runtime bun && bun run test-grammar`
 
 **Key Patterns:**
 
