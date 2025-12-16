@@ -32,24 +32,10 @@ jobs:
 
       - name: Build WASM artifacts
         if: inputs.platform == 'linux-x64'
-        run: |
-          cd packages/kql-parser
-          bun run build:wasm
+        run: bun ./.github/scripts/build-wasm.ts
 
       - name: Prepare upload directory
-        run: |
-          mkdir -p upload/packages
-          for pkg in packages/*; do
-            name=$(basename "$pkg")
-            mkdir -p "upload/packages/$name"
-            if [ -d "$pkg/dist" ]; then
-              cp -r "$pkg/dist" "upload/packages/$name/"
-            fi
-          done
-          if [ -f packages/kql-parser/tree-sitter-kql.wasm ]; then
-            mkdir -p upload/packages/kql-parser
-            cp packages/kql-parser/tree-sitter-kql.wasm upload/packages/kql-parser/
-          fi
+        run: bun ./.github/scripts/prepare-upload.ts
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
