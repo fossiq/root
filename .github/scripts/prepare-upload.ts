@@ -1,6 +1,5 @@
-import { $ } from "bun";
-import { readdir, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { readdir, stat, mkdir, copyFile } from "node:fs/promises";
+import { join, dirname } from "node:path";
 
 async function directoryExists(path: string): Promise<boolean> {
   try {
@@ -12,8 +11,40 @@ async function directoryExists(path: string): Promise<boolean> {
 }
 
 async function copyDirectoryContents(src: string, dest: string): Promise<void> {
-  await $`mkdir -p ${dest}`;
-  await $`cp -r ${src}/. ${dest}/`;
+  // Create destination directory
+  await mkdir(dest, { recursive: true });
+  
+  // Read source directory
+  const entries = await readdir(src, { withFileTypes: true });
+  
+  // Copy each entry
+  for (const entry of entries) {
+    const srcPath = join(src, entry.name);
+    const destPath = join(dest, entry.name);
+    
+    if (entry.isDirectory()) {
+      // Recursively copy subdirectories
+      await copyDirectoryContents(srcPath, destPath);
+    } else {
+      // Copy files
+      await copyFile(srcPath, destPath);
+    }
+  }
+}
+
+async function copyFileIfExists(src: string, dest: string): Promise<void> {
+  try {
+    // Create destination directory
+    await mkdir(dirname(dest), { recursive: true });
+    
+    // Copy file
+    await copyFile(src, dest);
+  } catch (error) {
+    // File doesn't exist, ignore
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
 }
 
 async function main() {
@@ -21,7 +52,7 @@ async function main() {
 
   try {
     // Create upload directory structure
-    await $`mkdir -p upload/packages`;
+    await mkdir("upload/packages", { recursive: true });
 
     // Get all package directories
     const packagesDir = "packages";
@@ -40,10 +71,8 @@ async function main() {
 
     // Copy WASM file if it exists
     const wasmPath = "packages/kql-parser/tree-sitter-kql.wasm";
-    if (await Bun.file(wasmPath).exists()) {
-      await $`mkdir -p upload/packages/kql-parser`;
-      await $`cp ${wasmPath} upload/packages/kql-parser/`;
-    }
+    const targetWasmPath = "upload/packages/kql-parser/tree-sitter-kql.wasm";
+    await copyFileIfExists(wasmPath, targetWasmPath);
 
     console.log("✓ Upload directory prepared successfully");
   } catch (error) {

@@ -1,6 +1,38 @@
-import { $ } from "bun";
-import { join } from "path";
-import { existsSync } from "fs";
+import { readdir, stat, mkdir, rename, rmdir } from "node:fs/promises";
+import { join } from "node:path";
+
+async function directoryExists(path: string): Promise<boolean> {
+  try {
+    const stats = await stat(path);
+    return stats.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+async function moveDirectoryContents(src: string, dest: string): Promise<void> {
+  // Create destination directory
+  await mkdir(dest, { recursive: true });
+  
+  // Read source directory
+  const entries = await readdir(src);
+  
+  // Move each entry
+  for (const entry of entries) {
+    const srcPath = join(src, entry);
+    const destPath = join(dest, entry);
+    
+    // Move entry
+    await rename(srcPath, destPath);
+  }
+  
+  // Remove empty source directory
+  try {
+    await rmdir(src);
+  } catch {
+    // Ignore errors if directory is not empty
+  }
+}
 
 async function main() {
   console.log("Organizing binding artifacts...");
@@ -9,7 +41,7 @@ async function main() {
     const prebuildsDir = join(process.cwd(), "packages", "kql-parser", "prebuilds");
     
     // Check if prebuilds directory exists
-    if (!existsSync(prebuildsDir)) {
+    if (!await directoryExists(prebuildsDir)) {
       console.log("Prebuilds directory not found, skipping");
       return;
     }
@@ -19,13 +51,15 @@ async function main() {
     
     // Get list of binding directories
     try {
-      const result = await $`ls -d binding-* 2>/dev/null || echo ""`.text();
-      const bindingDirs = result.trim().split('\n').filter(Boolean);
+      const entries = await readdir(".");
+      const bindingDirs = entries.filter(entry => 
+        entry.startsWith("binding-") && entry !== "binding-" && entry.length > 8
+      );
       
       // Process each binding directory
       for (const dir of bindingDirs) {
         // Skip if not a directory
-        if (!existsSync(dir)) {
+        if (!await directoryExists(dir)) {
           continue;
         }
         
@@ -33,24 +67,32 @@ async function main() {
         const target = dir.replace("binding-", "");
         
         // Create target directory
-        await $`mkdir -p ${target}`;
+        await mkdir(target, { recursive: true });
         
         // Move contents if directory exists
-        if (existsSync(dir)) {
-          await $`mv ${dir}/* ${target}/ 2>/dev/null || true`;
-        }
-        
-        // Remove empty directory if it still exists
-        if (existsSync(dir)) {
-          await $`rmdir ${dir}`;
+        if (await directoryExists(dir)) {
+          await moveDirectoryContents(dir, target);
         }
       }
     } catch (error) {
-      // Ignore errors from ls command
+      // Ignore errors
     }
     
     console.log("✓ Binding artifacts organized:");
-    await $`ls -R`;
+    
+    // List all directories
+    try {
+      const entries = await readdir(".");
+      for (const entry of entries) {
+        if (await directoryExists(entry)) {
+          console.log(entry + "/");
+        } else {
+          console.log(entry);
+        }
+      }
+    } catch (error) {
+      // Ignore errors
+    }
   } catch (error) {
     console.error("Failed to organize binding artifacts:", error);
     process.exit(1);
