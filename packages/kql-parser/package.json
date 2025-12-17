@@ -67,7 +67,8 @@
   },
   "devDependencies": {
     "tree-sitter": "0.25.0",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "node-addon-api": "8.5.0"
   },
   "type": "module"
 }
