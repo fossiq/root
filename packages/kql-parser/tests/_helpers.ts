@@ -1,9 +1,33 @@
 import { $ } from "bun";
-import { writeFileSync, unlinkSync } from "fs";
+import { writeFileSync, unlinkSync, existsSync } from "fs";
+import { join } from "path";
+
+const PROJECT_ROOT = join(import.meta.dir, "..");
+const SRC_DIR = join(PROJECT_ROOT, "src");
+const GRAMMAR_JS_PATH = join(PROJECT_ROOT, "grammar.js");
+const GRAMMAR_JSON_PATH = join(SRC_DIR, "grammar.json");
+const NODE_TYPES_PATH = join(SRC_DIR, "node-types.json");
+
+let grammarArtifactsReady = false;
+
+async function ensureGrammarArtifacts() {
+  if (grammarArtifactsReady) return;
+
+  if (!existsSync(GRAMMAR_JS_PATH)) {
+    await $`bun run compile-grammar`;
+  }
+
+  if (!existsSync(GRAMMAR_JSON_PATH) || !existsSync(NODE_TYPES_PATH)) {
+    await $`bun x tree-sitter generate --js-runtime bun`;
+  }
+
+  grammarArtifactsReady = true;
+}
 
 export async function parseWithTreeSitter(
   query: string
 ): Promise<{ success: boolean; output: string }> {
+  await ensureGrammarArtifacts();
   const tempFile = ".test-query.kql";
 
   try {
