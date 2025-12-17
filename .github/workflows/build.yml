@@ -27,9 +27,6 @@ jobs:
       - name: Setup Bun tooling
         uses: ./.github/actions/setup-bun
 
-      - name: Install Bun dependencies
-        uses: ./.github/actions/install-bun-deps
-
       - name: Build packages in dependency order
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 

@@ -11,38 +11,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Linux build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-linux-x64
-          path: packages/
-
-      - name: Download macOS ARM64 build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-darwin-arm64
-          path: packages-darwin-arm64/
-
-      - name: Download macOS x64 build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-darwin-x64
-          path: packages-darwin-x64/
-
-      - name: Download Windows build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-win32-x64
-          path: packages-win32-x64/
-
       - name: Setup Bun tooling
         uses: ./.github/actions/setup-bun
 
-      - name: Merge build artifacts
-        run: bun ./.github/scripts/merge-artifacts.ts
-
-      - name: Install Bun dependencies
-        uses: ./.github/actions/install-bun-deps
+      - name: Run Turbo build target
+        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
       - name: Run Turbo test target
         run: bun x turbo run test --cache-dir=node_modules/.cache/turbo

@@ -1,9 +1,0 @@
-name: Install Bun Dependencies
-description: Install project dependencies using Bun in CI
-
-runs:
-  using: composite
-  steps:
-    - name: Install dependencies with Bun
-      shell: bash
-      run: bun install
