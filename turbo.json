@@ -3,7 +3,15 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "*.wasm"],
+      "outputs": [
+        "dist/**",
+        "**/*.wasm",
+        "**/*.node",
+        "grammar.js",
+        "bindings/**",
+        "prebuilds/**",
+        "!**/node_modules/**"
+      ],
       "inputs": ["src/**", "package.json", "tsconfig.json"]
     },
     "test": {
