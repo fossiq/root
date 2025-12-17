@@ -1,11 +1,18 @@
 name: Setup Tooling & Dependencies
 description: Setup Bun runtime, restore/install node_modules, and cache Turborepo outputs
 
+inputs:
+  tools:
+    description: "List of tools to setup (comma-separated). Supports 'bun', 'node', 'tree-sitter'."
+    required: true
+    default: ""
+
 runs:
   using: composite
   steps:
     - uses: actions/cache@v4
       id: cache-restore
+      if: inputs.tools contains 'bun'
       with:
         path: ~/.bun/install/cache
         key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
@@ -13,19 +20,24 @@ runs:
           ${{ runner.os }}-bun-
 
     - name: Setup Bun runtime
+      if: inputs.tools contains 'bun'
       uses: oven-sh/setup-bun@v2
 
     - name: Cache for Turbo
       uses: rharkor/caching-for-turbo@v2.2.1
 
-    - name: Setup node.js for tree-sitter
+    - name: Setup node.js
+      if: inputs.tools contains 'node'
       uses: actions/setup-node@v6
       with:
         node-version: lts/*
         package-manager-cache: false
 
-    - uses: tree-sitter/setup-action@v2
+    - name: Setup Tree-sitter CLI globally
+      if: inputs.tools contains 'tree-sitter'
+      uses: tree-sitter/setup-action@v2
 
     - name: Install dependencies
+      if: inputs.tools contains 'bun'
       shell: bash
       run: bun install --no-scripts --verbose
