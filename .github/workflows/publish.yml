@@ -50,6 +50,9 @@ jobs:
       - name: Merge build artifacts
         run: bun ./.github/scripts/merge-artifacts.ts
 
+      - name: Build WASM artifacts
+        run: bun ./.github/scripts/build-wasm.ts
+
       - name: Publish packages via Changesets
         run: bun run release
         env:
