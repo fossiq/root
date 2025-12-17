@@ -20,7 +20,6 @@
       "outputs": []
     },
     "ci:publish": {
-      "dependsOn": ["build", "test"],
       "outputs": [],
       "cache": false
     }
