@@ -26,8 +26,6 @@ jobs:
 
       - name: Setup tooling
         uses: ./.github/actions/setup
-        with:
-          tools: bun,node,tree-sitter
 
       - name: Build packages in dependency order
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo

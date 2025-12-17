@@ -13,8 +13,6 @@ jobs:
 
       - name: Setup Bun tooling
         uses: ./.github/actions/setup-bun
-        with:
-          tools: bun,node,tree-sitter
 
       - name: Run Turbo build target
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
