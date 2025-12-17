@@ -24,8 +24,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Bun tooling
-        uses: ./.github/actions/setup-bun
+      - name: Setup tooling
+        uses: ./.github/actions/setup
 
       - name: Build packages in dependency order
         run: bun x turbo run build --cache-dir=node_modules/.cache/turbo

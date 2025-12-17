@@ -1,4 +1,4 @@
-name: Setup Bun & Dependencies
+name: Setup Tooling & Dependencies
 description: Setup Bun runtime, restore/install node_modules, and cache Turborepo outputs
 
 runs:
@@ -20,11 +20,12 @@ runs:
 
     - name: Setup node.js for tree-sitter
       uses: actions/setup-node@v6
+      with:
+        node-version: lts/*
+        package-manager-cache: false
 
     - uses: tree-sitter/setup-action@v2
-      with:
-        install-lib: false
 
     - name: Install dependencies
       shell: bash
-      run: bun install
+      run: bun install --no-scripts --verbose
