@@ -61,14 +61,13 @@
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   },
   "dependencies": {
-    "web-tree-sitter": "catalog:"
+    "web-tree-sitter": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:"
   },
   "devDependencies": {
     "tree-sitter": "0.25.0",
-    "@types/bun": "catalog:",
-    "@types/node": "catalog:",
-    "typescript": "catalog:",
-    "node-addon-api": "8.5.0"
+    "typescript": "catalog:"
   },
   "type": "module"
 }
