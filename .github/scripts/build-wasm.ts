@@ -4,7 +4,7 @@ import { join } from "path";
 async function main() {
   const kqlParserPath = join(process.cwd(), "packages", "kql-parser");
   process.chdir(kqlParserPath);
-  
+
   console.log("Building WASM artifacts...");
   try {
     await $`bun run build:wasm`;

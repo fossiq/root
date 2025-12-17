@@ -29,7 +29,7 @@ console.log(
 );
 
 try {
-  await $`bun x tree-sitter build --wasm`;
+  await $`bun x tree-sitter build --wasm --js-runtime bun`;
   console.log(`✓ WASM binary built successfully at ${WASM_PATH}`);
 } catch (error) {
   console.error("Failed to build WASM binary:", error);
