@@ -87,6 +87,12 @@ if (result.errors.length === 0) {
 - Returns `{ grammar: string; imports: string[]; errors: string[] }`.
 - `errors` includes basic validation failures (missing required fields, duplicates, unknown precedence tokens).
 
+Validation mode can be tuned via `config.validation`:
+
+- `off`: skip passthrough checks
+- `basic` (default): delimiter/quote balance checks + macro invocation checks
+- `strict`: additionally warns on unknown rule/token/macro references (use `allowUnknown` to silence known exceptions)
+
 ### Helpers
 
 - `literal(text)` -> JSON-escaped Lezer string literal (e.g. `"project-away"`)

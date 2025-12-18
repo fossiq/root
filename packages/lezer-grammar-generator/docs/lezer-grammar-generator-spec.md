@@ -28,6 +28,7 @@ The public surface is `generateGrammar(config)`, where `config` includes:
 - `precedence?: string[]` (token precedence list)
 - `skipWhitespace?: boolean` (default `true`)
 - `macros?: Record<string, string>`
+- `validation?: { mode?: "off" | "basic" | "strict"; allowUnknown?: string[] }`
 
 ## Defaults
 
@@ -46,6 +47,7 @@ If not overridden by a custom token with the same name, the generator emits defa
 - [x] Generate `@skip` (global) when `skipWhitespace !== false`
 - [x] Generate `@precedence` from `config.precedence` or numeric rule precedence
 - [x] Emit macros verbatim
+- [x] Best-effort safety checks for passthrough strings (configurable)
 
 ### Nice-To-Haves (Not Required For Scope)
 

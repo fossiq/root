@@ -35,6 +35,22 @@ export interface GrammarGeneratorConfig {
   macros?: {
     [name: string]: string;
   };
+
+  /**
+   * Validation options for passthrough strings (e.g. `grammarFields`, token patterns, macros).
+   *
+   * - `off`: no passthrough validation (only required-field checks still apply)
+   * - `basic` (default): balanced delimiters/quotes + macro invocation checks
+   * - `strict`: additionally attempts to detect unknown rule/token/macro references
+   */
+  validation?: {
+    mode?: "off" | "basic" | "strict";
+    /**
+     * Allowlist for strict-mode unknown reference checks.
+     * Useful when referencing external constructs not modeled by this generator.
+     */
+    allowUnknown?: string[];
+  };
 }
 
 /**

@@ -10,30 +10,30 @@ describe("lezer-grammar-generator", () => {
         statement: {
           grammarName: "statement",
           grammarFields: "letStatement | queryExpression",
-          isRule: true
+          isRule: true,
         },
         letStatement: {
           grammarName: "letStatement",
           grammarFields: 'kw<"let"> identifier Equals expression Semicolon',
-          isRule: true
+          isRule: true,
         },
         queryExpression: {
           grammarName: "queryExpression",
           grammarFields: "identifier (Pipe operator)*",
-          isRule: true
+          isRule: true,
         },
         expression: {
           grammarName: "expression",
           grammarFields: "binaryExpression | literal | identifier",
           isRule: true,
-          precedence: 1
+          precedence: 1,
         },
         binaryExpression: {
           grammarName: "binaryExpression",
           grammarFields: "expression ComparisonOp expression",
           isRule: true,
-          precedence: 2
-        }
+          precedence: 2,
+        },
       },
       tokens: [
         {
@@ -41,18 +41,27 @@ describe("lezer-grammar-generator", () => {
           pattern: "",
           specialized: {
             base: "Identifier",
-            term: "mySpecial"
-          }
-        }
-      ]
+            term: "mySpecial",
+          },
+        },
+      ],
+      macros: {
+        "kw<term>": "@specialize[@name={term}]<Identifier, term>",
+      },
     };
 
     const result = generateGrammar(config);
-    
+
     expect(result.grammar).toContain("@top TestGrammar { statement }");
-    expect(result.grammar).toContain("statement { letStatement | queryExpression }");
-    expect(result.grammar).toContain('letStatement { kw<"let"> identifier Equals expression Semicolon }');
-    expect(result.grammar).toContain("Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }");
+    expect(result.grammar).toContain(
+      "statement { letStatement | queryExpression }"
+    );
+    expect(result.grammar).toContain(
+      'letStatement { kw<"let"> identifier Equals expression Semicolon }'
+    );
+    expect(result.grammar).toContain(
+      "Identifier { $[a-zA-Z_] $[a-zA-Z0-9_]* }"
+    );
     expect(result.grammar).toContain("@skip { whitespace | LineComment }");
     expect(result.errors).toEqual([]);
   });
@@ -64,13 +73,13 @@ describe("lezer-grammar-generator", () => {
         expression: {
           grammarName: "expression",
           grammarFields: "literal",
-          isRule: true
-        }
-      }
+          isRule: true,
+        },
+      },
     };
 
     const result = generateGrammar(config);
-    
+
     expect(result.grammar).toContain("@top TestGrammar { expression }");
   });
 
@@ -81,25 +90,25 @@ describe("lezer-grammar-generator", () => {
         statement: {
           grammarName: "statement",
           grammarFields: "expression",
-          isRule: true
+          isRule: true,
         },
         expression: {
           grammarName: "expression",
           grammarFields: "binaryExpression",
           isRule: true,
-          precedence: 1
+          precedence: 1,
         },
         binaryExpression: {
           grammarName: "binaryExpression",
           grammarFields: "expression Plus expression",
           isRule: true,
-          precedence: 2
-        }
-      }
+          precedence: 2,
+        },
+      },
     };
 
     const result = generateGrammar(config);
-    
+
     expect(result.grammar).toContain("@precedence {");
     expect(result.grammar).toContain("expression,");
     expect(result.grammar).toContain("binaryExpression,");

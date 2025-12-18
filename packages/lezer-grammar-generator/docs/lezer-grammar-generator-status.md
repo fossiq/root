@@ -20,6 +20,7 @@ Legend:
 - [x] Structured helper functions for composing `grammarFields` (`seq`, `choice`, `opt`, `separatedList`, `kw`, ...)
 - [/] Rule syntax/features beyond the generator model (passthrough via `grammarFields`)
 - [x] Basic validation that fills `errors` (required fields, duplicates, precedence references)
+- [x] Configurable passthrough safety checks (`validation.mode`: `off`/`basic`/`strict`)
 
 ## “Feature Complete”?
 
