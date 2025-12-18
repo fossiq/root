@@ -9,7 +9,7 @@
 
 - [x] Created package structure
 - [x] Defined and generated Lezer grammar
-- [x] Implemented core parser functions (parseKQL, toParsedAST, extractHighlightTokens)
+- [x] Implemented core parser functions (parseKQL, parseErrors, extractHighlightTokens)
 - [x] Fixed all type and lint errors
 - [x] Created comprehensive test suite (77 tests, all passing)
 - [x] Set up testing infrastructure with vitest
@@ -41,7 +41,7 @@ None currently.
 - [x] Parser generation from grammar
 - [x] parseKQL() function
 - [x] extractHighlightTokens() for highlighting
-- [x] toParsedAST() for AST conversion
+- [x] parseErrors() for syntax diagnostics
 - [x] Error detection
 
 ### Phase 2: Testing ✓

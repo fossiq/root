@@ -1,7 +1,7 @@
 import { Diagnostic } from "@codemirror/lint";
 import { EditorView } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
-import { toParsedAST } from "@fossiq/kql-lezer";
+import { parseErrors } from "@fossiq/kql-lezer";
 import { Table } from "../contexts/SchemaContext";
 
 /**
@@ -17,7 +17,7 @@ export const createKqlLinter =
     const diagnostics: Diagnostic[] = [];
 
     // 1. Syntax Errors (from Lezer parser)
-    const { errors } = toParsedAST(doc);
+    const errors = parseErrors(doc);
     errors.forEach((error) => {
       diagnostics.push({
         from: error.start,

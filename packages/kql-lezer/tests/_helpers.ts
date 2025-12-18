@@ -1,11 +1,11 @@
-import { parseKQL, extractHighlightTokens, toParsedAST } from "../src/index";
+import { parseKQL, extractHighlightTokens } from "../src/index";
 import type { ParseResult, HighlightToken } from "@fossiq/kql-ast";
 
 /**
  * Parse KQL query and return result
  */
 export function parse(query: string): ParseResult {
-  return toParsedAST(query);
+  return parseKQL(query);
 }
 
 /**

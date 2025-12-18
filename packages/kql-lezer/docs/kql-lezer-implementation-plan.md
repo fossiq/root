@@ -53,22 +53,7 @@ Supporting KQL-specific features with complex parsing rules.
   - Function definitions (`let f=(x) { ... }`)
   - View definitions (`let view x = ...`)
 
-## Phase 4: AST Generation
-
-Bridging the Lezer CST to the shared KQL AST for downstream tools.
-
-- [ ] **Infrastructure**
-  - Implement `toParsedAST` in `src/index.ts` (currently a stub)
-  - Create CST walker/mapper utility
-- [ ] **Node Mapping**
-  - Map Statement nodes (`Let`, `TabularExpression`)
-  - Map Operator nodes (`Where`, `Project`, `Summarize`, etc.) to `kql-ast` interfaces
-  - Map Expression nodes (Binary, Unary, FunctionCalls, Literals)
-- [ ] **Validation**
-  - Verify output against `kql-ast` type definitions
-  - Unit tests comparing input KQL to expected AST structure
-
-## Phase 5: Testing & Refinement
+## Phase 4: Testing & Refinement
 
 - [ ] **Coverage**: Add tests for all new operators and literal types.
 - [ ] **Compatibility**: Ensure parity with `kql-parser` where possible for the shared subset.

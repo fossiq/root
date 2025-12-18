@@ -9,20 +9,8 @@ import { Tree, SyntaxNode } from "@lezer/common";
 import { LRLanguage, LanguageSupport } from "@codemirror/language";
 import { styleTags, tags as t } from "@lezer/highlight";
 
-/**
- * Convert Lezer parse tree to @fossiq/kql-ast ParseResult
- *
- * This allows the Lezer parser output to be compatible with
- * other KQL tools expecting the shared AST format.
- */
-export function toParsedAST(doc: string): ParseResult {
-  const tree = parser.parse(doc);
-  const errors = findErrors(tree);
-
-  return {
-    ast: undefined, // TODO: Full AST conversion when needed
-    errors,
-  };
+export function parseErrors(doc: string): ParseError[] {
+  return findErrors(parser.parse(doc));
 }
 
 /**

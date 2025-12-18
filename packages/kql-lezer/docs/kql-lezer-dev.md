@@ -7,7 +7,6 @@ Lezer-based KQL parser for CodeMirror with real-time syntax highlighting. Optimi
 - **CodeMirror Integration**: First-class syntax highlighting support
 - **Incremental Parsing**: Lezer's incremental parser only re-parses changed regions
 - **No WASM**: Pure JavaScript, no runtime dependencies beyond Lezer
-- **AST Compatible**: Outputs compatible with @fossiq/kql-ast types
 - **Lightweight**: Minimal bundle impact for UI
 
 ## Architecture
@@ -26,7 +25,6 @@ Uses Lezer grammar DSL (`kql.grammar`) to define:
 1. **Lexing**: Tokenize input (keywords, identifiers, operators, etc.)
 2. **Parsing**: Build parse tree respecting KQL grammar
 3. **Highlighting**: Apply syntax highlighting rules via Lezer's tag system
-4. **AST Conversion**: Convert to @fossiq/kql-ast format (optional)
 
 ## Package Structure
 
@@ -64,8 +62,9 @@ Exports:
 
 - `kqlLanguage`: Lezer language definition
 - `kql()`: CodeMirror LanguageSupport
-- `toParsedAST()`: Convert to @fossiq/kql-ast format
+- `parseErrors()`: Extract syntax errors (for linting)
 - `extractHighlightTokens()`: Get highlight tokens
+- `parseKQL()`: Parse and return `{ tokens, errors }` for diagnostics/highlighting
 
 ## Build Process
 
@@ -118,9 +117,7 @@ Tags applied via `styleTags`:
 
 ### Phase 3: AST Conversion
 
-- [ ] Implement toParsedAST()
-- [ ] Implement extractHighlightTokens()
-- [ ] Full compatibility with kql-ast types
+- (Removed) AST conversion is out of scope for `@fossiq/kql-lezer`.
 
 ### Phase 4: Testing
 
