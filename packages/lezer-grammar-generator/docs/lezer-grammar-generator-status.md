@@ -5,7 +5,7 @@ Scope: library that generates Lezer `.grammar` text from config (no `.grammar` p
 Legend:
 
 - `[x]` Implemented in this package
-- `[/]` Passthrough (you can write raw Lezer grammar syntax in strings; no validation)
+- `[/]` Passthrough (you can write raw Lezer grammar syntax in strings; only best-effort validation)
 - `[ ]` Not implemented
 
 ## Status Checklist
@@ -18,7 +18,7 @@ Legend:
 - [x] `@precedence` from explicit token list or numeric rule precedence
 - [x] Macros emitted verbatim
 - [x] Structured helper functions for composing `grammarFields` (`seq`, `choice`, `opt`, `separatedList`, `kw`, ...)
-- [/] Rule syntax/features beyond the generator model (passthrough via `grammarFields`)
+- [/] Rule syntax/features beyond the generator model (still passthrough via `grammarFields`; best-effort safety via `validation.mode`)
 - [x] Basic validation that fills `errors` (required fields, duplicates, precedence references)
 - [x] Configurable passthrough safety checks (`validation.mode`: `off`/`basic`/`strict`)
 
