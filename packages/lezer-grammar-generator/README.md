@@ -91,6 +91,8 @@ if (result.errors.length === 0) {
 
 - `literal(text)` -> JSON-escaped Lezer string literal (e.g. `"project-away"`)
 - `p\`...\``->`String.raw` helper for writing Lezer token patterns/macros with fewer escaping issues
+- Grammar fragment builders: `seq`, `choice`, `group`, `opt`, `many`, `many1`, `separatedList`
+- Macro helpers (requires macros in your grammar): `kw("where")` -> `kw<"where">`, `kwRenamed("!in", "NotIn")`
 
 ## Default Tokens
 

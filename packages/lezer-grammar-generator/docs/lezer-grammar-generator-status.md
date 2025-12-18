@@ -17,6 +17,7 @@ Legend:
 - [x] `@skip { whitespace | LineComment }` (global)
 - [x] `@precedence` from explicit token list or numeric rule precedence
 - [x] Macros emitted verbatim
+- [x] Structured helper functions for composing `grammarFields` (`seq`, `choice`, `opt`, `separatedList`, `kw`, ...)
 - [/] Rule syntax/features beyond the generator model (passthrough via `grammarFields`)
 - [x] Basic validation that fills `errors` (required fields, duplicates, precedence references)
 
