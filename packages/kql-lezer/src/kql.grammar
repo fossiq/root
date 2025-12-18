@@ -141,6 +141,14 @@ literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
   DateTimeLiteral { ("datetime" | "date") "(" $[ \t\n\r]* $[0-9]+ "-" $[0-9]+ "-" $[0-9]+ (("T" | " ") $[0-9]+ ":" $[0-9]+ ":" $[0-9]+ ("." $[0-9]+)? "Z"?)? $[ \t\n\r]* ")" }
   GuidLiteral { "guid(" $[ \t\n\r]* $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ $[ \t\n\r]* ")" }
   String { 
+    // Verbatim double quoted: @"C:\path\file.txt" (no escapes)
+    '@"' (!["\n])* '"' |
+    // Verbatim single quoted: @'no escapes \t'
+    "@'" (!['])* "'" |
+    // Obfuscated double quoted: h"secret"
+    'h"' (!["\n])* '"' |
+    // Obfuscated verbatim double quoted: h@"verbatim secret"
+    'h@"' (!["\n])* '"' |
     // Standard double quoted
     '"' (![\"])* '"' |
     // Standard single quoted

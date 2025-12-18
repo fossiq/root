@@ -294,6 +294,14 @@ const config = {
     {
       name: "String",
       pattern: p`
+    // Verbatim double quoted: @"C:\path\file.txt" (no escapes)
+    '@"' (!["\n])* '"' |
+    // Verbatim single quoted: @'no escapes \t'
+    "@'" (!['])* "'" |
+    // Obfuscated double quoted: h"secret"
+    'h"' (!["\n])* '"' |
+    // Obfuscated verbatim double quoted: h@"verbatim secret"
+    'h@"' (!["\n])* '"' |
     // Standard double quoted
     '"' (![\"])* '"' |
     // Standard single quoted

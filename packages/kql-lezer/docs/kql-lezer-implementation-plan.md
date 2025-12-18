@@ -16,11 +16,11 @@ Fixing foundational token gaps to ensure correct parsing of real-world queries.
 
   - [x] Standard single/double quoted strings
 
-  - [ ] Verbatim strings (`@"path\to\file"`, `@'text'`) - _Deferred due to escaping complexity_
+  - [x] Verbatim strings (`@"path\to\file"`, `@'text'`) - _Supported (no multiline / embedded quote support yet)_
 
   - [ ] Multi-line strings - _Deferred_
 
-  - [ ] Obfuscated strings (`h"secret"`) - _Deferred_
+  - [x] Obfuscated strings (`h"secret"`, `h@"verbatim secret"`) - _Supported_
 
 - [x] **DateTime Literals**
 
@@ -32,7 +32,7 @@ Fixing foundational token gaps to ensure correct parsing of real-world queries.
 
 ### Technical Note: Regex Escaping Challenges
 
-We encountered significant friction generating complex Lezer regex patterns (specifically for verbatim strings) via TypeScript. The interaction between TypeScript template literal escaping, `lezer-grammar-generator` string handling, and Lezer's own regex syntax causes "Unexpected character" errors for backslashes in character classes (e.g., `!["\\\n]`). A `p` tag helper was introduced to `lezer-grammar-generator` to mitigate this, but complex patterns remain fragile.
+We encountered significant friction generating complex Lezer regex patterns (specifically for verbatim strings) via TypeScript. The interaction between TypeScript template literal escaping, `lezer-grammar-generator` string handling, and Lezer's own regex syntax causes "Unexpected character" errors for backslashes in character classes (e.g., `!["\\\n]`). A `p` tag helper was introduced to `lezer-grammar-generator` to mitigate this, and the current implementation avoids backslash-heavy character classes to keep patterns robust.
 
 ## Phase 2: Critical Operators (SQL Mapping)
 
@@ -44,7 +44,7 @@ Implementing operators essential for standard SQL translation.
 
     - _TODO: Fix `1 .. 10` parsing (precedence/token issue)_
 
-    - _TODO: Implement `!between` (requires dedicated `NotBetween` token)_
+    - _TODO: Implement `!between` (requires dedicated `NotBetween` token; `!` can’t start `Identifier`)_
 
 - [ ] **Search & Find**
 
@@ -54,7 +54,7 @@ Implementing operators essential for standard SQL translation.
 
 - [ ] **Set Operators**
 
-  - `union` - _Moved to Deferred/Out of Scope due to specialized token conflicts (identifier vs keyword)_
+  - `union` - _Partially implemented; remaining keyword/value token conflicts (e.g., `kind=inner`)_
 
 ## Phase 3: Advanced Language Constructs
 
