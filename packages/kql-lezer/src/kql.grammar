@@ -22,7 +22,9 @@ operator { whereClause | projectClause | projectAwayClause | projectKeepClause |
 
 joinClause { kw<"join"> joinKind? tableExpression kw<"on"> expression }
 
-unionClause { kw<"union"> (kw<"kind"> Equals identifier)? (kw<"withsource"> Equals identifier)? (tableExpression (Comma tableExpression)*) }
+unionClause { kw<"union"> (kw<"kind"> Equals unionKind)? (kw<"withsource"> Equals identifier)? (tableExpression (Comma tableExpression)*) }
+
+unionKind { kw<"inner"> | kw<"outer"> | identifier }
 
 searchClause { kw<"search"> (kw<"kind"> Equals identifier)? (kw<"in"> OpenParen tableExpression (Comma tableExpression)* CloseParen)? expression }
 
@@ -82,7 +84,7 @@ andExpression { notExpression (kw<"and"> notExpression)* }
 
 notExpression { kw<"not"> notExpression | comparisonExpression }
 
-comparisonExpression { sumExpression ((comparisonOperator sumExpression) | ((kw<"between"> | kwRenamed<"!between", "NotBetween">) OpenParen sumExpression RangeDoubleDot sumExpression CloseParen))* }
+comparisonExpression { sumExpression ((comparisonOperator sumExpression) | ((kw<"between"> | NotBetween) OpenParen sumExpression RangeDoubleDot sumExpression CloseParen))* }
 
 sumExpression { termExpression ((Plus | Minus) termExpression)* }
 
@@ -96,7 +98,7 @@ columnReference { identifier (OpenBracket expression CloseBracket)* }
 
 functionCall { functionName OpenParen argumentList? CloseParen }
 
-comparisonOperator { ComparisonOp | kw<"contains"> | kwRenamed<"!contains", "NotContains"> | kw<"startswith"> | kw<"endswith"> | kw<"has"> | kwRenamed<"!has", "NotHas"> | kw<"in"> | kwRenamed<"!in", "NotIn"> }
+comparisonOperator { ComparisonOp | kw<"contains"> | NotContains | kw<"startswith"> | kw<"endswith"> | kw<"has"> | NotHas | kw<"in"> | NotIn }
 
 literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
 
@@ -137,6 +139,10 @@ literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
   ProjectRename { "project-rename" }
   ProjectReorder { "project-reorder" }
   RangeDoubleDot { ".." }
+  NotBetween { "!between" }
+  NotContains { "!contains" }
+  NotHas { "!has" }
+  NotIn { "!in" }
   Timespan { (@digit+ ("." @digit+)? ("d" | "h" | "m" | "s" | "ms" | "microsecond" | "tick"))+ }
   DateTimeLiteral { ("datetime" | "date") "(" $[ \t\n\r]* $[0-9]+ "-" $[0-9]+ "-" $[0-9]+ (("T" | " ") $[0-9]+ ":" $[0-9]+ ":" $[0-9]+ ("." $[0-9]+)? "Z"?)? $[ \t\n\r]* ")" }
   GuidLiteral { "guid(" $[ \t\n\r]* $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ "-" $[0-9a-fA-F]+ $[ \t\n\r]* ")" }
@@ -164,6 +170,10 @@ literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
     ProjectRename,
     ProjectReorder,
     RangeDoubleDot,
+    NotBetween,
+    NotContains,
+    NotHas,
+    NotIn,
     Timespan,
     DateTimeLiteral,
     GuidLiteral,
@@ -174,5 +184,4 @@ literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
 
 @skip { whitespace | LineComment }
 
-kwRenamed<term, name> { @specialize[@name={name}]<Identifier, term> }
 kw<term> { @specialize[@name={term}]<Identifier, term> }

@@ -61,7 +61,12 @@ const config = {
     unionClause: {
       grammarName: "unionClause",
       grammarFields:
-        'kw<"union"> (kw<"kind"> Equals identifier)? (kw<"withsource"> Equals identifier)? (tableExpression (Comma tableExpression)*)',
+        'kw<"union"> (kw<"kind"> Equals unionKind)? (kw<"withsource"> Equals identifier)? (tableExpression (Comma tableExpression)*)',
+      isRule: true,
+    },
+    unionKind: {
+      grammarName: "unionKind",
+      grammarFields: 'kw<"inner"> | kw<"outer"> | identifier',
       isRule: true,
     },
     searchClause: {
@@ -220,7 +225,7 @@ const config = {
     comparisonExpression: {
       grammarName: "comparisonExpression",
       grammarFields:
-        'sumExpression ((comparisonOperator sumExpression) | ((kw<"between"> | kwRenamed<"!between", "NotBetween">) OpenParen sumExpression RangeDoubleDot sumExpression CloseParen))*',
+        'sumExpression ((comparisonOperator sumExpression) | ((kw<"between"> | NotBetween) OpenParen sumExpression RangeDoubleDot sumExpression CloseParen))*',
       isRule: true,
     },
     sumExpression: {
@@ -260,7 +265,7 @@ const config = {
     comparisonOperator: {
       grammarName: "comparisonOperator",
       grammarFields:
-        'ComparisonOp | kw<"contains"> | kwRenamed<"!contains", "NotContains"> | kw<"startswith"> | kw<"endswith"> | kw<"has"> | kwRenamed<"!has", "NotHas"> | kw<"in"> | kwRenamed<"!in", "NotIn">',
+        'ComparisonOp | kw<"contains"> | NotContains | kw<"startswith"> | kw<"endswith"> | kw<"has"> | NotHas | kw<"in"> | NotIn',
       isRule: true,
     },
 
@@ -278,6 +283,10 @@ const config = {
     { name: "ProjectRename", pattern: literal("project-rename") },
     { name: "ProjectReorder", pattern: literal("project-reorder") },
     { name: "RangeDoubleDot", pattern: literal("..") },
+    { name: "NotBetween", pattern: literal("!between") },
+    { name: "NotContains", pattern: literal("!contains") },
+    { name: "NotHas", pattern: literal("!has") },
+    { name: "NotIn", pattern: literal("!in") },
     {
       name: "Timespan",
       pattern:
@@ -318,6 +327,10 @@ const config = {
     "ProjectRename",
     "ProjectReorder",
     "RangeDoubleDot",
+    "NotBetween",
+    "NotContains",
+    "NotHas",
+    "NotIn",
     "Timespan",
     "DateTimeLiteral",
     "GuidLiteral",
@@ -326,7 +339,6 @@ const config = {
     "Identifier",
   ],
   macros: {
-    "kwRenamed<term, name>": "@specialize[@name={name}]<Identifier, term>",
     "kw<term>": "@specialize[@name={term}]<Identifier, term>",
   },
 };
