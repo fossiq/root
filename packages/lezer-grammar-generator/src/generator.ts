@@ -340,7 +340,7 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
           `Token '${token.name}': \`pattern\` must be a non-empty string.`
         );
       } else if (validationMode !== "off") {
-        validatePassthrough(
+        validateTokenPattern(
           `Token '${token.name}': pattern`,
           token.pattern,
           errors
@@ -433,6 +433,18 @@ function validatePassthrough(label: string, input: string, errors: string[]) {
   const problems = findBalanceProblems(input);
   for (const p of problems) errors.push(`${label}: ${p}`);
 
+  const tokenBalanceProblems = findDelimiterTokenBalanceProblems(input);
+  for (const p of tokenBalanceProblems) errors.push(`${label}: ${p}`);
+
+  if (/\|\s*\|/.test(input)) {
+    errors.push(`${label}: contains empty alternative ('||').`);
+  }
+}
+
+function validateTokenPattern(label: string, input: string, errors: string[]) {
+  // Token patterns frequently contain quoted strings (and sometimes single-quoted
+  // fragments) that we don't try to fully parse here. Keep checks limited to
+  // delimiter-token balance and obvious empty alternatives.
   const tokenBalanceProblems = findDelimiterTokenBalanceProblems(input);
   for (const p of tokenBalanceProblems) errors.push(`${label}: ${p}`);
 
