@@ -106,9 +106,17 @@ function getTokenType(nodeName: string): TokenType | null {
     case "kw_top":
     case "kw_distinct":
     case "kw_summarize":
+    case "kw_join":
+    case "kw_union":
+    case "kw_find":
+    case "kw_search":
+    case "kw_kind":
+    case "kw_withsource":
     case "kw_by":
     case "kw_asc":
     case "kw_desc":
+    case "kw_inner":
+    case "kw_outer":
     case "kw_and":
     case "kw_or":
     case "kw_not":
@@ -120,10 +128,13 @@ function getTokenType(nodeName: string): TokenType | null {
     case "kw_nothas":
     case "kw_in":
     case "kw_notin":
+    case "mvexpand":
+    case "MvExpand":
     case "let":
     case "NotContains":
     case "NotHas":
     case "NotIn":
+    case "NotBetween":
       return "keyword";
     // Operators
     case "Pipe":
@@ -170,6 +181,7 @@ export const kqlLanguage = LRLanguage.define({
         // Query operators (pipe operators) - distinct from regular keywords
         "where project projectndash;away projectndash;keep projectndash;rename projectndash;reorder extend sort limit take top distinct summarize join":
           t.keyword,
+        "search find union mvexpand": t.keyword,
         // Let statement
         let: t.definitionKeyword,
         // Join kinds

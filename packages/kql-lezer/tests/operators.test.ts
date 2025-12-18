@@ -91,6 +91,13 @@ describe("Where operator", () => {
   });
 });
 
+describe("mv-expand operator", () => {
+  test("mv-expand clause parses", () => {
+    expect(isValid("Events | mv-expand Values")).toBe(true);
+    expect(isValid("Events | mv-expand Values, MoreValues")).toBe(true);
+  });
+});
+
 describe("Project operator", () => {
   test("single column", () => {
     expect(isValid("Users | project name")).toBe(true);

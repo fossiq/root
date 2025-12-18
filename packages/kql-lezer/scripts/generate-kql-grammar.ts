@@ -23,7 +23,7 @@ const config = {
     pipelineExpression: {
       grammarName: "pipelineExpression",
       grammarFields:
-        "(tableExpression | unionClause | searchClause) (Pipe operator)*",
+        "(tableExpression | unionClause | searchClause | findClause) (Pipe operator)*",
       isRule: true,
     },
     tableExpression: {
@@ -49,7 +49,7 @@ const config = {
     // Operator
     operator: {
       grammarName: "operator",
-      grammarFields: `whereClause | projectClause | projectAwayClause | projectKeepClause | projectRenameClause | projectReorderClause | extendClause | sortClause | limitClause | takeClause | topClause | distinctClause | summarizeClause | joinClause | unionClause | searchClause | identifier | Number | String`,
+      grammarFields: `whereClause | projectClause | projectAwayClause | projectKeepClause | projectRenameClause | projectReorderClause | extendClause | sortClause | limitClause | takeClause | topClause | distinctClause | summarizeClause | joinClause | unionClause | searchClause | findClause | mvExpandClause | identifier | Number | String`,
       isRule: true,
     },
     // Clauses
@@ -67,6 +67,12 @@ const config = {
     unionKind: {
       grammarName: "unionKind",
       grammarFields: 'kw<"inner"> | kw<"outer"> | identifier',
+      isRule: true,
+    },
+    findClause: {
+      grammarName: "findClause",
+      grammarFields:
+        'kw<"find"> (kw<"kind"> Equals identifier)? (kw<"in"> OpenParen tableExpression (Comma tableExpression)* CloseParen)? expression',
       isRule: true,
     },
     searchClause: {
@@ -140,6 +146,11 @@ const config = {
     whereClause: {
       grammarName: "whereClause",
       grammarFields: 'kw<"where"> expression',
+      isRule: true,
+    },
+    mvExpandClause: {
+      grammarName: "mvExpandClause",
+      grammarFields: '(MvExpand | kw<"mvexpand">) columnNameList',
       isRule: true,
     },
 
@@ -282,6 +293,7 @@ const config = {
     { name: "ProjectKeep", pattern: literal("project-keep") },
     { name: "ProjectRename", pattern: literal("project-rename") },
     { name: "ProjectReorder", pattern: literal("project-reorder") },
+    { name: "MvExpand", pattern: literal("mv-expand") },
     { name: "RangeDoubleDot", pattern: literal("..") },
     { name: "NotBetween", pattern: literal("!between") },
     { name: "NotContains", pattern: literal("!contains") },
@@ -326,6 +338,7 @@ const config = {
     "ProjectKeep",
     "ProjectRename",
     "ProjectReorder",
+    "MvExpand",
     "RangeDoubleDot",
     "NotBetween",
     "NotContains",

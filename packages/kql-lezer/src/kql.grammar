@@ -8,7 +8,7 @@ statement { pipelineExpression | letStatement statement? }
 
 letStatement { kw<"let"> identifier Equals expression Semicolon }
 
-pipelineExpression { (tableExpression | unionClause | searchClause) (Pipe operator)* }
+pipelineExpression { (tableExpression | unionClause | searchClause | findClause) (Pipe operator)* }
 
 tableExpression { identifier | parenthesizedTableExpression }
 
@@ -18,13 +18,15 @@ identifier { Identifier | bracketedIdentifier }
 
 bracketedIdentifier { OpenBracket String CloseBracket }
 
-operator { whereClause | projectClause | projectAwayClause | projectKeepClause | projectRenameClause | projectReorderClause | extendClause | sortClause | limitClause | takeClause | topClause | distinctClause | summarizeClause | joinClause | unionClause | searchClause | identifier | Number | String }
+operator { whereClause | projectClause | projectAwayClause | projectKeepClause | projectRenameClause | projectReorderClause | extendClause | sortClause | limitClause | takeClause | topClause | distinctClause | summarizeClause | joinClause | unionClause | searchClause | findClause | mvExpandClause | identifier | Number | String }
 
 joinClause { kw<"join"> joinKind? tableExpression kw<"on"> expression }
 
 unionClause { kw<"union"> (kw<"kind"> Equals unionKind)? (kw<"withsource"> Equals identifier)? (tableExpression (Comma tableExpression)*) }
 
 unionKind { kw<"inner"> | kw<"outer"> | identifier }
+
+findClause { kw<"find"> (kw<"kind"> Equals identifier)? (kw<"in"> OpenParen tableExpression (Comma tableExpression)* CloseParen)? expression }
 
 searchClause { kw<"search"> (kw<"kind"> Equals identifier)? (kw<"in"> OpenParen tableExpression (Comma tableExpression)* CloseParen)? expression }
 
@@ -53,6 +55,8 @@ distinctClause { kw<"distinct"> columnNameList }
 summarizeClause { kw<"summarize"> aggregationList (kw<"by"> columnNameList)? }
 
 whereClause { kw<"where"> expression }
+
+mvExpandClause { (MvExpand | kw<"mvexpand">) columnNameList }
 
 sortColumnList { sortColumn (Comma sortColumn)* }
 
@@ -138,6 +142,7 @@ literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
   ProjectKeep { "project-keep" }
   ProjectRename { "project-rename" }
   ProjectReorder { "project-reorder" }
+  MvExpand { "mv-expand" }
   RangeDoubleDot { ".." }
   NotBetween { "!between" }
   NotContains { "!contains" }
@@ -169,6 +174,7 @@ literal { Number | String | Timespan | DateTimeLiteral | GuidLiteral }
     ProjectKeep,
     ProjectRename,
     ProjectReorder,
+    MvExpand,
     RangeDoubleDot,
     NotBetween,
     NotContains,

@@ -7,27 +7,16 @@ This document outlines the roadmap for completing the `@fossiq/kql-lezer` packag
 Fixing foundational token gaps to ensure correct parsing of real-world queries.
 
 - [x] **Timespan Literals**
-
   - Support shorthand syntax (e.g., `1d`, `30m`, `1h30m`)
-
   - Support `timespan(value)` syntax
-
 - [/] **Complex String Literals** (Partial)
-
   - [x] Standard single/double quoted strings
-
   - [x] Verbatim strings (`@"path\to\file"`, `@'text'`) - _Supported (no multiline / embedded quote support yet)_
-
   - [ ] Multi-line strings - _Deferred_
-
   - [x] Obfuscated strings (`h"secret"`, `h@"verbatim secret"`) - _Supported_
-
 - [x] **DateTime Literals**
-
   - Ensure `datetime(...)` is handled correctly (either as literal or function call)
-
 - [x] **GUID/UUID Literals**
-
   - Support `guid(...)` format
 
 ### Technical Note: Regex Escaping Challenges
@@ -38,30 +27,21 @@ We encountered significant friction generating complex Lezer regex patterns (spe
 
 Implementing operators essential for standard SQL translation.
 
-- [ ] **Range Operators**
-
+- [x] **Range Operators**
   - `between` operator
-
-    - _TODO: Fix `1 .. 10` parsing (precedence/token issue)_
-
-    - _TODO: Implement `!between` (requires dedicated `NotBetween` token; `!` can’t start `Identifier`)_
-
-- [ ] **Search & Find**
-
-  - `search` operator
-
-  - `find` operator
-
-- [ ] **Set Operators**
-
-  - `union` - _Partially implemented; remaining keyword/value token conflicts (e.g., `kind=inner`)_
+    - Supports `between (min .. max)` and `!between (min .. max)`
+- [/] **Search & Find** (Partial)
+  - [x] `search` operator
+  - [x] `find` operator
+- [x] **Set Operators**
+  - `union` - includes `kind=...` and `withsource=...`
 
 ## Phase 3: Advanced Language Constructs
 
 Supporting KQL-specific features with complex parsing rules.
 
-- [ ] **Array Expansion**
-  - `mv-expand` (including typed syntax and properties)
+- [/] **Array Expansion** (Partial)
+  - [x] `mv-expand` (basic column list)
   - `mv-apply` (handling subquery syntax)
 - [ ] **Pattern Matching**
   - `parse` operator (simple, regex, and relaxed modes)
