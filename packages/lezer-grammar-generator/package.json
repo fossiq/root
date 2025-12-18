@@ -51,10 +51,6 @@
     "build": "tsc",
     "test": "bun test tests",
     "test:coverage": "bun test tests --coverage",
-    "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance",
-    "generate": "bun run build && node dist/cli.js"
-  },
-  "bin": {
-    "lezer-grammar-generator": "dist/cli.js"
+    "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   }
 }
