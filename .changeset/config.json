@@ -6,7 +6,7 @@
     [
       "@fossiq/kql-ast",
       "@fossiq/kql-lezer",
-      "@fossiq/kql-parser",
+      "@fossiq/lezer-grammar-generator",
       "@fossiq/kql-to-duckdb",
       "@fossiq/ui"
     ]

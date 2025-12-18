@@ -2,7 +2,7 @@
 
 ## Purpose
 - Canonical AST + highlight token definitions that every parser/highlighter implements. Keep everything language-agnostic and minimal.
-- Primary consumers: `@fossiq/kql-parser`, `@fossiq/kql-lezer`, `@fossiq/kql-to-duckdb`, `@fossiq/ui`.
+- Primary consumers: `@fossiq/kql-lezer`, `@fossiq/kql-to-duckdb`, `@fossiq/ui`.
 
 ## Structure
 ```

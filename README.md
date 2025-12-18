@@ -8,20 +8,10 @@ Hey there! This is a monorepo with KQL (Kusto Query Language) tools and apps. Qu
 
 | Package                                           | Description                                           | Status                                                                                                                |
 | ------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [@fossiq/kql-parser](./packages/kql-parser)       | Tree-sitter based KQL parser with typed AST           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser)       |
 | [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb) | KQL to DuckDB SQL translator                          | [![npm](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb) |
 | [@fossiq/kql-ast](./packages/kql-ast)             | Shared AST type definitions                           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-ast.svg)](https://www.npmjs.com/package/@fossiq/kql-ast)             |
 | [@fossiq/kql-lezer](./packages/kql-lezer)         | Lezer-based parser for CodeMirror syntax highlighting | [![npm](https://img.shields.io/npm/v/@fossiq/kql-lezer.svg)](https://www.npmjs.com/package/@fossiq/kql-lezer)         |
 | [@fossiq/ui](./packages/ui)                       | Web application (private)                             | -                                                                                                                     |
-
-### @fossiq/kql-parser
-
-Tree-sitter based KQL parser providing:
-
-- Complete KQL grammar (14 operators, all expression types)
-- Type-safe AST generation
-- 88 comprehensive tests
-- Cross-platform native bindings
 
 ### @fossiq/kql-to-duckdb
 
@@ -132,4 +122,3 @@ See [AGENTS.md](./AGENTS.md) for detailed instructions on working with this code
 ## License
 
 MIT
- 

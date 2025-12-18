@@ -1,129 +1,91 @@
-/**
- * Tag function for defining raw Lezer grammar patterns.
- * Functions exactly like String.raw, allowing you to write patterns
- * with single backslashes.
- *
- * Example:
- * ```ts
- * pattern: p`"\\"` // Outputs "\" in the grammar file
- * ```
- */
-export const p = String.raw;
+import type { PatternExpression } from "./model.js";
 
-/**
- * Creates a quoted string literal pattern for Lezer.
- * Automatically handles escaping of quotes and special characters.
- *
- * Example:
- * ```ts
- * pattern: literal("project-away") // Outputs "project-away"
- * ```
- */
-export function literal(s: string): string {
-  return JSON.stringify(s);
+/** Create a literal string pattern. */
+export function literal(value: string): PatternExpression {
+  return { type: "literal", value };
 }
 
-function isWrappedInParens(s: string): boolean {
-  const trimmed = s.trim();
-  return trimmed.startsWith("(") && trimmed.endsWith(")");
+/** Create a regex pattern (without surrounding slashes). */
+export function regex(pattern: string): PatternExpression {
+  return { type: "regex", pattern };
 }
 
-function needsGrouping(s: string): boolean {
-  return /[\s|]/.test(s.trim());
+/** Reference a rule/token by name, optionally with args. */
+export function ref(name: string, args?: readonly string[]): PatternExpression {
+  if (args && args.length > 0) {
+    return { type: "ref", name, args };
+  }
+  return { type: "ref", name };
 }
 
-function maybeGroup(s: string): string {
-  const trimmed = s.trim();
-  if (trimmed.length === 0) return trimmed;
-  if (isWrappedInParens(trimmed)) return trimmed;
-  return needsGrouping(trimmed) ? `(${trimmed})` : trimmed;
+/** Sequence a list of expressions with spaces. */
+export function seq(...elements: PatternExpression[]): PatternExpression {
+  return { type: "seq", elements };
 }
 
-/**
- * Join grammar fragments with spaces (like Lezer `seq(...)`).
- *
- * Example:
- * ```ts
- * seq("identifier", "Equals", "expression") // => "identifier Equals expression"
- * ```
- */
-export function seq(
-  ...parts: Array<string | null | undefined | false>
-): string {
-  return parts.filter(Boolean).join(" ");
-}
-
-/**
- * Join alternatives with ` | ` (like Lezer `choice(...)`).
- *
- * Example:
- * ```ts
- * choice("Number", "String") // => "Number | String"
- * ```
- */
+/** Choose between alternatives with `|`. */
 export function choice(
-  ...alts: Array<string | null | undefined | false>
-): string {
-  return alts.filter(Boolean).join(" | ");
+  ...alternatives: PatternExpression[]
+): PatternExpression {
+  return { type: "choice", alternatives };
 }
 
-/**
- * Wrap an expression in parentheses.
- */
-export function group(expr: string): string {
-  return `(${expr.trim()})`;
+/** Repeat an expression with `*` or `+`. */
+export function repeat(
+  expr: PatternExpression,
+  kind: "*" | "+",
+): PatternExpression {
+  return { type: "repeat", kind, expr };
 }
 
-/**
- * Make an expression optional (`?`), grouping it when needed.
- */
-export function opt(expr: string): string {
-  return `${maybeGroup(expr)}?`;
+/** Optional expression (`?`). */
+export function optional(expr: PatternExpression): PatternExpression {
+  return { type: "optional", expr };
 }
 
-/**
- * Repeat an expression zero-or-more times (`*`), grouping it when needed.
- */
-export function many(expr: string): string {
-  return `${maybeGroup(expr)}*`;
+/** Group an expression in parentheses. */
+export function group(expr: PatternExpression): PatternExpression {
+  return { type: "group", expr };
 }
 
-/**
- * Repeat an expression one-or-more times (`+`), grouping it when needed.
- */
-export function many1(expr: string): string {
-  return `${maybeGroup(expr)}+`;
+/** Emit raw Lezer grammar content. */
+export function raw(content: string): PatternExpression {
+  return { type: "raw", content };
 }
 
-/**
- * Generate a separated list pattern like `item (sep item)*` (or optional when `min` is 0).
- *
- * Examples:
- * ```ts
- * separatedList("identifier", "Comma")                 // => "identifier (Comma identifier)*"
- * separatedList("identifier", "Comma", { min: 0 })     // => "(identifier (Comma identifier)*)?"
- * ```
- */
+/** Repeat zero-or-more (`*`). */
+export function many(expr: PatternExpression): PatternExpression {
+  return repeat(expr, "*");
+}
+
+/** Repeat one-or-more (`+`). */
+export function many1(expr: PatternExpression): PatternExpression {
+  return repeat(expr, "+");
+}
+
+/** Optional helper alias. */
+export function opt(expr: PatternExpression): PatternExpression {
+  return optional(expr);
+}
+
+/** Separated list builder with optional minimum. */
 export function separatedList(
-  item: string,
-  separator: string,
-  opts: { min?: 0 | 1 } = {}
-): string {
-  const list = seq(item, many(seq(group(seq(separator, item)))));
-  if (opts.min === 0) return opt(list);
+  item: PatternExpression,
+  separator: PatternExpression,
+  opts: { min?: 0 | 1 } = {},
+): PatternExpression {
+  const tail = many(group(seq(separator, item)));
+  const list = seq(item, tail);
+  if (opts.min === 0) return optional(list);
   return list;
 }
 
-/**
- * Emit a `kw<"...">` macro invocation (requires a matching macro in your grammar).
- */
-export function kw(term: string): string {
-  return `kw<${literal(term)}>`;
+/** Macro helper for kw<"..."> usage via raw content. */
+export function kw(term: string): PatternExpression {
+  return raw(`kw<${JSON.stringify(term)}>`);
 }
 
-/**
- * Emit a `kwRenamed<"...", "...">` macro invocation (requires a matching macro in your grammar).
- */
-export function kwRenamed(term: string, name: string): string {
-  return `kwRenamed<${literal(term)}, ${literal(name)}>`;
+/** Macro helper for kwRenamed<"...", "..."> usage via raw content. */
+export function kwRenamed(term: string, name: string): PatternExpression {
+  return raw(`kwRenamed<${JSON.stringify(term)}, ${JSON.stringify(name)}>`);
 }

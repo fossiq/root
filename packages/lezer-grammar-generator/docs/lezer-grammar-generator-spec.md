@@ -1,16 +1,17 @@
 # Lezer Grammar Generator Spec
 
-This package is a **library** that takes a JS/TS config and returns Lezer `.grammar` source text.
+This package is a **library** that takes a JS/TS config and returns Lezer
+`.grammar` source text.
 
 ## Scope
 
 - Generate a complete `.grammar` string with:
-  - `@top` rule
+  - `@tokens` block
+  - optional `@external` block
+  - optional `@precedence` block
+  - optional `@top` rule
   - rule definitions
-  - `@tokens` (defaults + custom)
-  - optional `@precedence`
-  - optional `@skip`
-  - optional macros
+- Validation for shape + references
 
 Non-goals:
 
@@ -18,38 +19,72 @@ Non-goals:
 - Running `@lezer/generator` / producing `LRParser`
 - Conflict detection / GLR diagnostics
 
-## Inputs
+## Inputs (GrammarDefinition API)
 
-The public surface is `generateGrammar(config)`, where `config` includes:
+The primary surface is:
 
-- `grammarName: string`
-- `astTypes: Record<string, { grammarName; grammarFields; isRule?; precedence? }>`
-- `tokens?: Array<{ name; pattern; specialized? }>`
-- `precedence?: string[]` (token precedence list)
-- `skipWhitespace?: boolean` (default `true`)
-- `macros?: Record<string, string>`
-- `validation?: { mode?: "off" | "basic" | "strict"; allowUnknown?: string[] }`
+- `generateLezerGrammar(def: GrammarDefinition): string`
+- `validateGrammar(def: GrammarDefinition): ValidationResult`
 
-## Defaults
+`GrammarDefinition` includes:
 
-If not overridden by a custom token with the same name, the generator emits defaults for:
-`Pipe`, `OpenParen`, `CloseParen`, `OpenBracket`, `CloseBracket`, `Comma`, `Semicolon`, `Equals`,
-`Plus`, `Minus`, `Star`, `Slash`, `Percent`,
-`ComparisonOp`, `Identifier`, `Number`, `String`, `LineComment`, `whitespace`.
+- `name?: string`
+- `top?: string`
+- `tokens?: Array<{ name; pattern }>`
+- `rules: Record<string, RuleDef>`
+- `precedence?: Array<{ name; associativity? }>`
+- `externals?: string[]`
 
-## Checklist
+`RuleDef` includes:
 
-### Grammar Generation
+- `expression: PatternExpression`
+- `params?: string[]`
+- `props?: Record<string, string | number | boolean>`
 
-- [x] Generate `@top`
-- [x] Generate rules from `astTypes` where `isRule`
-- [x] Generate default tokens + custom tokens
-- [x] Generate `@skip` (global) when `skipWhitespace !== false`
-- [x] Generate `@precedence` from `config.precedence` or numeric rule precedence
-- [x] Emit macros verbatim
-- [x] Best-effort safety checks for passthrough strings (configurable)
+`PatternExpression` supports:
 
-### Nice-To-Haves (Not Required For Scope)
+- `literal`, `regex`, `ref`, `seq`, `choice`, `repeat`, `optional`, `group`, `raw`
 
-- [x] Populate `errors` with meaningful validation (duplicates, missing start rule, unknown precedence tokens)
-- [x] More structured helpers for common Lezer constructs (lists, keywords, etc.)
+## Serialization
+
+Deterministic ordering:
+
+1. `@tokens`
+2. `@external` (if any)
+3. `@precedence` (if any)
+4. `@top` (if any)
+5. rules (top rule first if provided, then alphabetical)
+
+Formatting:
+
+- Two-space indent in blocks
+- Unix newlines
+- Blank line between sections
+
+## Validation
+
+`ValidationResult` includes:
+
+- `ok: boolean`
+- `issues: Array<{ code; message; path?; level }>`
+
+Checks:
+
+- rules present and non-empty
+- identifier pattern `^[A-Za-z_][A-Za-z0-9_]*$`
+- undefined references -> error
+- duplicate names between tokens/rules -> error
+- reserved names (`@tokens`, `@precedence`, `@top`) -> error
+- ref arity matches rule params length -> error
+- cycles -> warning
+- unused rules (except top) -> warning
+
+## Legacy Inputs (String-Based)
+
+The legacy surface remains for AST-style configs:
+
+- `generateGrammar(config)`
+- `generateGrammarFromPlugins(config)`
+
+Legacy config supports `macros`, `@skip`, default tokens, and passthrough
+validation modes (`off`/`basic`/`strict`).

@@ -18,8 +18,6 @@
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   },
   "dependencies": {
-    "@fossiq/kql-parser": "workspace:*",
-    "web-tree-sitter": "catalog:"
   },
   "devDependencies": {
     "@types/bun": "catalog:",

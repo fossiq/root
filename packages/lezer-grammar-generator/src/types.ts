@@ -53,6 +53,24 @@ export interface GrammarGeneratorConfig {
   };
 }
 
+export interface GrammarPlugin {
+  name: string;
+  dependsOn?: string[];
+  tokens?: TokenDefinition[];
+  rules?: Record<string, string>;
+  precedence?: string[];
+  macros?: Record<string, string>;
+  skipWhitespace?: boolean;
+}
+
+export interface PluginGrammarConfig {
+  grammarName: string;
+  plugins: GrammarPlugin[];
+  precedence?: string[];
+  skipWhitespace?: boolean;
+  validation?: GrammarGeneratorConfig["validation"];
+}
+
 /**
  * AST type definition
  */

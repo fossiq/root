@@ -1,10 +1,11 @@
 import {
   generateGrammar,
-  p,
-  literal,
+  legacy,
 } from "../../lezer-grammar-generator/src/index.ts";
 import { writeFileSync } from "fs";
 import { join } from "path";
+
+const { p, literal } = legacy;
 
 const config = {
   grammarName: "Query",

@@ -26,7 +26,6 @@ Lezer provides a CST (syntax tree closely reflecting grammar structure). Transla
 A dedicated CST→AST mapper:
 - normalizes structure once (single source of truth)
 - exposes stable node shapes for downstream tools (typed AST)
-- enables parity checks against `@fossiq/kql-parser` for the shared subset
 
 ---
 
@@ -229,12 +228,6 @@ Start with small fixtures:
 - `project_cols.kql`: `Events | project A, B`
 - `between.kql`: `Events | where Value between (1 .. 10)`
 - `function_call.kql`: `Events | where Timestamp between (ago(7d) .. now())`
-
-### Parity Tests (Optional, Secondary)
-
-For the shared subset, compare against `@fossiq/kql-parser` output:
-- Only compare normalized shape, not exact node metadata
-- Useful to prevent Lezer mapper drifting
 
 ---
 

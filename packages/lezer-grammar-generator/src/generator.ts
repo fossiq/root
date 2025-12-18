@@ -1,11 +1,13 @@
 import {
   GrammarGeneratorConfig,
+  GrammarPlugin,
   GeneratedGrammar,
+  PluginGrammarConfig,
   TokenDefinition,
 } from "./types.js";
 
 export function generateGrammar(
-  config: GrammarGeneratorConfig
+  config: GrammarGeneratorConfig,
 ): GeneratedGrammar {
   const tokens = config.tokens || [];
   const errors = validateConfig(config);
@@ -56,11 +58,191 @@ ${macrosSection}
   };
 }
 
+export function generateGrammarFromPlugins(
+  config: PluginGrammarConfig,
+): GeneratedGrammar {
+  const pluginErrors: string[] = [];
+  const orderedPlugins = orderPlugins(config.plugins, pluginErrors);
+
+  const merged = mergePlugins(orderedPlugins, config, pluginErrors);
+
+  const astTypes = rulesToAstTypes(merged.rules);
+
+  const result = generateGrammar({
+    grammarName: config.grammarName,
+    astTypes,
+    tokens: merged.tokens,
+    macros: merged.macros,
+    precedence: merged.precedence,
+    skipWhitespace: merged.skipWhitespace,
+    validation: config.validation,
+  });
+
+  return {
+    grammar: result.grammar,
+    imports: result.imports,
+    errors: [...pluginErrors, ...result.errors],
+  };
+}
+
 function generateMacrosSection(macros?: { [name: string]: string }): string {
   if (!macros) return "";
   return Object.entries(macros)
     .map(([name, body]) => `${name} { ${body} }`)
     .join("\n");
+}
+
+function mergePlugins(
+  plugins: GrammarPlugin[],
+  config: PluginGrammarConfig,
+  errors: string[],
+): {
+  tokens: TokenDefinition[];
+  rules: Map<string, string>;
+  macros: { [name: string]: string } | undefined;
+  precedence: string[] | undefined;
+  skipWhitespace: boolean | undefined;
+} {
+  const tokens: TokenDefinition[] = [];
+  const tokenNames = new Set<string>();
+  const rules = new Map<string, string>();
+  const macros = new Map<string, string>();
+
+  let skipWhitespace: boolean | undefined = config.skipWhitespace;
+
+  for (const plugin of plugins) {
+    if (plugin.skipWhitespace !== undefined) {
+      if (skipWhitespace === undefined) {
+        skipWhitespace = plugin.skipWhitespace;
+      } else if (skipWhitespace !== plugin.skipWhitespace) {
+        errors.push(
+          `Conflicting skipWhitespace across plugins (found both ${String(
+            skipWhitespace,
+          )} and ${String(plugin.skipWhitespace)}).`,
+        );
+      }
+    }
+
+    for (const token of plugin.tokens ?? []) {
+      if (tokenNames.has(token.name)) {
+        errors.push(`Duplicate token name '${token.name}' across plugins.`);
+        continue;
+      }
+      tokenNames.add(token.name);
+      tokens.push(token);
+    }
+
+    for (const [name, rule] of Object.entries(plugin.rules ?? {})) {
+      if (rules.has(name)) {
+        errors.push(`Duplicate rule name '${name}' across plugins.`);
+        continue;
+      }
+      rules.set(name, rule);
+    }
+
+    for (const [name, body] of Object.entries(plugin.macros ?? {})) {
+      if (macros.has(name)) {
+        const existing = macros.get(name);
+        if (existing !== body) {
+          errors.push(`Duplicate macro name '${name}' across plugins.`);
+        }
+        continue;
+      }
+      macros.set(name, body);
+    }
+  }
+
+  const precedence =
+    config.precedence ??
+    mergePrecedence(plugins.map((plugin) => plugin.precedence ?? []));
+
+  return {
+    tokens,
+    rules,
+    macros: macros.size > 0 ? Object.fromEntries(macros) : undefined,
+    precedence,
+    skipWhitespace,
+  };
+}
+
+function mergePrecedence(precedenceGroups: string[][]): string[] | undefined {
+  const merged: string[] = [];
+  const seen = new Set<string>();
+
+  for (const group of precedenceGroups) {
+    for (const token of group) {
+      if (seen.has(token)) continue;
+      seen.add(token);
+      merged.push(token);
+    }
+  }
+
+  return merged.length > 0 ? merged : undefined;
+}
+
+function rulesToAstTypes(rules: Map<string, string>) {
+  const astTypes: GrammarGeneratorConfig["astTypes"] = {};
+  for (const [name, grammarFields] of rules) {
+    astTypes[name] = {
+      grammarName: name,
+      grammarFields,
+      isRule: true,
+    };
+  }
+  return astTypes;
+}
+
+function orderPlugins(
+  plugins: GrammarPlugin[],
+  errors: string[],
+): GrammarPlugin[] {
+  const byName = new Map<string, GrammarPlugin>();
+
+  for (const plugin of plugins) {
+    if (!plugin.name || typeof plugin.name !== "string") {
+      errors.push("All plugins must have a non-empty `name`.");
+      continue;
+    }
+    if (byName.has(plugin.name)) {
+      errors.push(`Duplicate plugin name '${plugin.name}'.`);
+      continue;
+    }
+    byName.set(plugin.name, plugin);
+  }
+
+  const ordered: GrammarPlugin[] = [];
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+
+  const visit = (name: string) => {
+    if (visited.has(name)) return;
+    if (visiting.has(name)) {
+      errors.push(`Cyclic plugin dependency detected at '${name}'.`);
+      return;
+    }
+    const plugin = byName.get(name);
+    if (!plugin) return;
+
+    visiting.add(name);
+    for (const dep of plugin.dependsOn ?? []) {
+      if (!byName.has(dep)) {
+        errors.push(`Plugin '${name}' depends on missing plugin '${dep}'.`);
+        continue;
+      }
+      visit(dep);
+    }
+    visiting.delete(name);
+    visited.add(name);
+    ordered.push(plugin);
+  };
+
+  for (const plugin of plugins) {
+    if (plugin.name && byName.has(plugin.name)) {
+      visit(plugin.name);
+    }
+  }
+
+  return ordered;
 }
 
 function generateTokensSection(tokens: TokenDefinition[]): string {
@@ -123,7 +305,7 @@ function generateTokensSection(tokens: TokenDefinition[]): string {
         tokenLines.push(
           `  ${token.name} { @specialize[@name=${token.name}]<${
             token.specialized.base
-          }, ${JSON.stringify(token.specialized.term)}> }`
+          }, ${JSON.stringify(token.specialized.term)}> }`,
         );
       } else {
         tokenLines.push(`  ${token.name} { ${token.pattern} }`);
@@ -156,7 +338,7 @@ function getStartRule(config: GrammarGeneratorConfig): string {
 
   for (const ruleName of startRules) {
     const rule = Object.values(config.astTypes).find(
-      (def) => def.grammarName.toLowerCase() === ruleName
+      (def) => def.grammarName.toLowerCase() === ruleName,
     );
     if (rule && rule.isRule) {
       return rule.grammarName;
@@ -173,7 +355,7 @@ function getCommentToken(tokens: TokenDefinition[]): string {
     (t) =>
       t.name === "LineComment" ||
       t.name === "BlockComment" ||
-      t.name === "comment"
+      t.name === "comment",
   );
   return commentToken ? commentToken.name : "LineComment";
 }
@@ -253,7 +435,7 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
     errors.push("`grammarName` is required.");
   } else if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(config.grammarName)) {
     errors.push(
-      "`grammarName` must be a valid identifier (letters, digits, underscore; cannot start with a digit)."
+      "`grammarName` must be a valid identifier (letters, digits, underscore; cannot start with a digit).",
     );
   }
 
@@ -277,23 +459,23 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
     }
     if (!def.grammarFields || typeof def.grammarFields !== "string") {
       errors.push(
-        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`
+        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`,
       );
     } else if (def.grammarFields.trim().length === 0) {
       errors.push(
-        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`
+        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`,
       );
     } else if (validationMode !== "off") {
       validatePassthrough(
         `Rule '${def.grammarName}': grammarFields`,
         def.grammarFields,
-        errors
+        errors,
       );
     }
 
     ruleNameCounts.set(
       def.grammarName,
-      (ruleNameCounts.get(def.grammarName) || 0) + 1
+      (ruleNameCounts.get(def.grammarName) || 0) + 1,
     );
     if (def.isRule) hasRule = true;
   }
@@ -306,7 +488,7 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
 
   if (!hasRule) {
     errors.push(
-      "No rules found: at least one `astTypes` entry must have `isRule: true`."
+      "No rules found: at least one `astTypes` entry must have `isRule: true`.",
     );
   }
 
@@ -327,23 +509,23 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
         typeof token.specialized.term !== "string"
       ) {
         errors.push(
-          `Token '${token.name}': \`specialized\` must include non-empty \`base\` and \`term\`.`
+          `Token '${token.name}': \`specialized\` must include non-empty \`base\` and \`term\`.`,
         );
       }
     } else {
       if (!token.pattern || typeof token.pattern !== "string") {
         errors.push(
-          `Token '${token.name}': \`pattern\` must be a non-empty string.`
+          `Token '${token.name}': \`pattern\` must be a non-empty string.`,
         );
       } else if (token.pattern.trim().length === 0) {
         errors.push(
-          `Token '${token.name}': \`pattern\` must be a non-empty string.`
+          `Token '${token.name}': \`pattern\` must be a non-empty string.`,
         );
       } else if (validationMode !== "off") {
         validateTokenPattern(
           `Token '${token.name}': pattern`,
           token.pattern,
-          errors
+          errors,
         );
       }
     }
@@ -366,7 +548,7 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
       !availableTokens.has(token.specialized.base)
     ) {
       errors.push(
-        `Token '${token.name}': specialized base '${token.specialized.base}' is not a known token.`
+        `Token '${token.name}': specialized base '${token.specialized.base}' is not a known token.`,
       );
     }
   }
@@ -393,13 +575,13 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
         `Rule '${def.grammarName}': grammarFields`,
         def.grammarFields,
         macroNames,
-        errors
+        errors,
       );
     }
 
     if (validationMode === "strict") {
       const ruleNames = new Set(
-        astTypeDefs.map((d) => d.grammarName).filter(Boolean) as string[]
+        astTypeDefs.map((d) => d.grammarName).filter(Boolean) as string[],
       );
       const known = new Set<string>([
         ...ruleNames,
@@ -418,7 +600,7 @@ function validateConfig(config: GrammarGeneratorConfig): string[] {
           if (allowUnknown.has(ref)) continue;
           if (!known.has(ref)) {
             errors.push(
-              `Rule '${def.grammarName}': grammarFields references unknown identifier '${ref}'.`
+              `Rule '${def.grammarName}': grammarFields references unknown identifier '${ref}'.`,
             );
           }
         }
@@ -457,13 +639,13 @@ function validateMacroInvocations(
   label: string,
   input: string,
   macroNames: Set<string>,
-  errors: string[]
+  errors: string[],
 ) {
   const invocations = extractMacroInvocations(input);
   for (const name of invocations) {
     if (!macroNames.has(name)) {
       errors.push(
-        `${label}: uses macro '${name}<...>' but no such macro is defined in config.macros.`
+        `${label}: uses macro '${name}<...>' but no such macro is defined in config.macros.`,
       );
     }
   }
