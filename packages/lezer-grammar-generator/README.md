@@ -1,10 +1,17 @@
 # @fossiq/lezer-grammar-generator
 
-TypeScript library for generating Lezer grammars from AST type definitions.
+Generate Lezer `.grammar` source text from a JS/TS config.
 
-## Purpose
+## What This Package Does
 
-This package provides a programmatic way to generate Lezer grammar files from TypeScript AST type definitions, making it easier to maintain and evolve parser grammars alongside type definitions.
+- Input: a plain object describing rules, tokens, precedence, skip, and macros
+- Output: a `.grammar` file as a string
+
+Non-goals:
+
+- Running `@lezer/generator` / `lezer-generator`
+- Producing a parser module (`parser.ts`/`parser.js`)
+- Grammar conflict detection / deep validation
 
 ## Installation
 
@@ -14,128 +21,75 @@ bun add @fossiq/lezer-grammar-generator
 
 ## Usage
 
-### Basic Example
-
 ```typescript
-import { generateGrammar } from '@fossiq/lezer-grammar-generator';
+import { generateGrammar, p, literal } from "@fossiq/lezer-grammar-generator";
 
 const config = {
-  grammarName: 'MyGrammar',
+  grammarName: "MyGrammar",
   astTypes: {
     statement: {
-      grammarName: 'statement',
-      grammarFields: 'expression',
-      isRule: true
+      grammarName: "statement",
+      grammarFields: "expression",
+      isRule: true,
     },
     expression: {
-      grammarName: 'expression',
-      grammarFields: 'binaryExpression | literal',
+      grammarName: "expression",
+      grammarFields: "binaryExpression | literal | identifier",
       isRule: true,
-      precedence: 1
+      precedence: 1,
     },
     binaryExpression: {
-      grammarName: 'binaryExpression',
-      grammarFields: 'expression ComparisonOp expression',
+      grammarName: "binaryExpression",
+      grammarFields: "expression ComparisonOp expression",
       isRule: true,
-      precedence: 2
+      precedence: 2,
+    },
+    identifier: {
+      grammarName: "identifier",
+      grammarFields: "Identifier",
+      isRule: true,
     },
     literal: {
-      grammarName: 'literal',
-      grammarFields: 'Number | String',
-      isRule: true
-    }
+      grammarName: "literal",
+      grammarFields: "Number | String",
+      isRule: true,
+    },
   },
   tokens: [
     {
-      name: 'MyKeyword',
-      pattern: '"mykeyword"'
-    }
-  ]
+      name: "MyKeyword",
+      pattern: literal("mykeyword"),
+    },
+    {
+      name: "DateTimeLiteral",
+      pattern: p`"datetime(" $[ \t\n\r]* $[0-9]+ "-" $[0-9]+ "-" $[0-9]+ $[ \t\n\r]* ")"`,
+    },
+  ],
+  macros: {
+    "kw<term>": "@specialize[@name={term}]<Identifier, term>",
+  },
 };
 
 const result = generateGrammar(config);
 
 if (result.errors.length === 0) {
+  // Write `result.grammar` to `*.grammar` and run `lezer-generator` in your build.
   console.log(result.grammar);
-  // Use the generated grammar with lezer-generator
 } else {
-  console.error('Errors:', result.errors);
+  console.error("Errors:", result.errors);
 }
 ```
 
-### Generating a Grammar File
+## API
 
-```typescript
-import { writeFileSync } from 'fs';
-import { generateGrammar } from '@fossiq/lezer-grammar-generator';
+### `generateGrammar(config)`
 
-const config = { /* ... */ };
-const result = generateGrammar(config);
+- Returns `{ grammar: string; imports: string[]; errors: string[] }`.
 
-if (result.errors.length === 0) {
-  writeFileSync('my-grammar.grammar', result.grammar);
-  console.log('Grammar file generated successfully!');
-}
-```
+### Helpers
 
-### CLI Tool
-
-Create a script file:
-
-```javascript
-#!/usr/bin/env node
-// generate-grammar.js
-import { readFileSync } from 'fs';
-import { generateGrammar } from '@fossiq/lezer-grammar-generator';
-
-const config = JSON.parse(readFileSync('./grammar-config.json', 'utf8'));
-const result = generateGrammar(config);
-
-if (result.errors.length > 0) {
-  console.error('Failed to generate grammar:', result.errors);
-  process.exit(1);
-}
-
-console.log(result.grammar);
-```
-
-Then run it:
-
-```bash
-node generate-grammar.js > my-grammar.grammar
-```
-
-## API Reference
-
-### `generateGrammar(config: GrammarGeneratorConfig): GeneratedGrammar`
-
-Generates a Lezer grammar from the provided configuration.
-
-#### `GrammarGeneratorConfig`
-
-- `grammarName`: Name of the grammar (used for `@top` rule)
-- `astTypes`: Object mapping AST type names to `ASTTypeDefinition`
-- `tokens`: Optional array of custom `TokenDefinition`s
-- `skipWhitespace`: Whether to generate `@skip { whitespace | LineComment }` (default: `true`)
-
-#### `ASTTypeDefinition`
-
-- `grammarName`: Rule name in the generated grammar
-- `grammarFields`: Grammar rule fields definition
-- `isRule`: Whether this type should generate a grammar rule
-- `precedence`: Optional precedence level for `@precedence` section
-
-#### `TokenDefinition`
-
-- `name`: Token name
-- `pattern`: Token pattern string
-- `specialized`: Optional specialization configuration
-
-#### `GeneratedGrammar`
-
-- `grammar`: The generated grammar string
-- `imports`: List of imports needed (currently empty, reserved for future use)
-- `errors`: List of validation errors
+- `literal(text)` -> JSON-escaped Lezer string literal (e.g. `"project-away"`)
+- `p\`...\``->`String.raw` helper for writing Lezer token patterns/macros with fewer escaping issues
 
 ## Default Tokens
 
@@ -147,32 +101,9 @@ The generator automatically includes these tokens:
 - **Basic tokens**: `Identifier`, `Number`, `String`
 - **Comments**: `LineComment`, `whitespace`
 
-## Integration with @fossiq/kql-ast
+## Integration With `@fossiq/kql-ast`
 
-This package can be used with `@fossiq/kql-ast` to generate grammars from KQL AST types:
-
-```typescript
-import { generateGrammar } from '@fossiq/lezer-grammar-generator';
-import type { 
-  KQLDocument, 
-  QueryStatement, 
-  TabularStatement,
-  // ... other types
-} from '@fossiq/kql-ast';
-
-// Build config from kql-ast types
-const config = {
-  grammarName: 'Query',
-  astTypes: {
-    statement: {
-      grammarName: 'statement',
-      grammarFields: 'pipelineExpression | letStatement',
-      isRule: true
-    },
-    // ... map other types
-  }
-};
-```
+Use `@fossiq/kql-ast` as the source of names/types and map them into `astTypes` + `grammarFields`.
 
 ## Development
 
