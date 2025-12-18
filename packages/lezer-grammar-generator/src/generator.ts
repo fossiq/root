@@ -8,7 +8,7 @@ export function generateGrammar(
   config: GrammarGeneratorConfig
 ): GeneratedGrammar {
   const tokens = config.tokens || [];
-  const errors: string[] = [];
+  const errors = validateConfig(config);
   const imports: string[] = [];
 
   // Build tokens section
@@ -121,7 +121,9 @@ function generateTokensSection(tokens: TokenDefinition[]): string {
     tokens.forEach((token) => {
       if (token.specialized) {
         tokenLines.push(
-          `  ${token.name} { @specialize[@name={${token.specialized.term}}]<${token.specialized.base}, ${token.specialized.term}> }`
+          `  ${token.name} { @specialize[@name=${token.name}]<${
+            token.specialized.base
+          }, ${JSON.stringify(token.specialized.term)}> }`
         );
       } else {
         tokenLines.push(`  ${token.name} { ${token.pattern} }`);
@@ -213,4 +215,155 @@ function generatePrecedenceSection(config: GrammarGeneratorConfig): string {
   });
 
   return `\n\n  @precedence {\n${precedenceLines.join("\n")}\n  }`;
+}
+
+const defaultTokenNames = [
+  // Delimiters
+  "Pipe",
+  "OpenParen",
+  "CloseParen",
+  "OpenBracket",
+  "CloseBracket",
+  "Comma",
+  "Semicolon",
+  "Equals",
+  // Math operators
+  "Plus",
+  "Minus",
+  "Star",
+  "Slash",
+  "Percent",
+  // Comparison operators
+  "ComparisonOp",
+  // Basic tokens
+  "Identifier",
+  "Number",
+  "String",
+  // Comments
+  "LineComment",
+  "whitespace",
+] as const;
+
+function validateConfig(config: GrammarGeneratorConfig): string[] {
+  const errors: string[] = [];
+
+  if (!config.grammarName || typeof config.grammarName !== "string") {
+    errors.push("`grammarName` is required.");
+  } else if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(config.grammarName)) {
+    errors.push(
+      "`grammarName` must be a valid identifier (letters, digits, underscore; cannot start with a digit)."
+    );
+  }
+
+  if (!config.astTypes || typeof config.astTypes !== "object") {
+    errors.push("`astTypes` is required.");
+    return errors;
+  }
+
+  const astTypeDefs = Object.values(config.astTypes);
+  if (astTypeDefs.length === 0) {
+    errors.push("`astTypes` must include at least one type definition.");
+  }
+
+  const ruleNameCounts = new Map<string, number>();
+  let hasRule = false;
+
+  for (const def of astTypeDefs) {
+    if (!def.grammarName || typeof def.grammarName !== "string") {
+      errors.push("All `astTypes` entries must include `grammarName`.");
+      continue;
+    }
+    if (!def.grammarFields || typeof def.grammarFields !== "string") {
+      errors.push(
+        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`
+      );
+    } else if (def.grammarFields.trim().length === 0) {
+      errors.push(
+        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`
+      );
+    }
+
+    ruleNameCounts.set(
+      def.grammarName,
+      (ruleNameCounts.get(def.grammarName) || 0) + 1
+    );
+    if (def.isRule) hasRule = true;
+  }
+
+  for (const [name, count] of ruleNameCounts) {
+    if (count > 1) {
+      errors.push(`Duplicate rule name '${name}' in \`astTypes\`.`);
+    }
+  }
+
+  if (!hasRule) {
+    errors.push(
+      "No rules found: at least one `astTypes` entry must have `isRule: true`."
+    );
+  }
+
+  const tokens = config.tokens || [];
+  const tokenNameCounts = new Map<string, number>();
+  for (const token of tokens) {
+    tokenNameCounts.set(token.name, (tokenNameCounts.get(token.name) || 0) + 1);
+
+    if (!token.name || typeof token.name !== "string") {
+      errors.push("All `tokens` entries must include `name`.");
+      continue;
+    }
+    if (token.specialized) {
+      if (
+        !token.specialized.base ||
+        typeof token.specialized.base !== "string" ||
+        !token.specialized.term ||
+        typeof token.specialized.term !== "string"
+      ) {
+        errors.push(
+          `Token '${token.name}': \`specialized\` must include non-empty \`base\` and \`term\`.`
+        );
+      }
+    } else {
+      if (!token.pattern || typeof token.pattern !== "string") {
+        errors.push(
+          `Token '${token.name}': \`pattern\` must be a non-empty string.`
+        );
+      } else if (token.pattern.trim().length === 0) {
+        errors.push(
+          `Token '${token.name}': \`pattern\` must be a non-empty string.`
+        );
+      }
+    }
+  }
+
+  for (const [name, count] of tokenNameCounts) {
+    if (count > 1) {
+      errors.push(`Duplicate token name '${name}' in \`tokens\`.`);
+    }
+  }
+
+  const availableTokens = new Set<string>([
+    ...defaultTokenNames,
+    ...tokens.map((t) => t.name),
+  ]);
+
+  for (const token of tokens) {
+    if (
+      token.specialized?.base &&
+      !availableTokens.has(token.specialized.base)
+    ) {
+      errors.push(
+        `Token '${token.name}': specialized base '${token.specialized.base}' is not a known token.`
+      );
+    }
+  }
+
+  if (config.precedence) {
+    for (const tokenName of config.precedence) {
+      if (!availableTokens.has(tokenName)) {
+        errors.push(`\`precedence\` references unknown token '${tokenName}'.`);
+      }
+    }
+  }
+
+  return errors;
 }

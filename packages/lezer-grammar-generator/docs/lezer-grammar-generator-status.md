@@ -18,8 +18,8 @@ Legend:
 - [x] `@precedence` from explicit token list or numeric rule precedence
 - [x] Macros emitted verbatim
 - [/] Rule syntax/features beyond the generator model (passthrough via `grammarFields`)
-- [ ] Deep validation / conflict detection (`errors` is currently always empty)
+- [x] Basic validation that fills `errors` (required fields, duplicates, precedence references)
 
 ## “Feature Complete”?
 
-For the current scope (generate `.grammar` text), it’s mostly complete. The main gap is basic validation that fills `errors`.
+For the current scope (generate `.grammar` text), it’s feature complete. Remaining work is optional ergonomics (more helpers) and deeper validation if desired.

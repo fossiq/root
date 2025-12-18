@@ -85,6 +85,7 @@ if (result.errors.length === 0) {
 ### `generateGrammar(config)`
 
 - Returns `{ grammar: string; imports: string[]; errors: string[] }`.
+- `errors` includes basic validation failures (missing required fields, duplicates, unknown precedence tokens).
 
 ### Helpers
 

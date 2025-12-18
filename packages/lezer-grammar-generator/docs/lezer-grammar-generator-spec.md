@@ -49,5 +49,5 @@ If not overridden by a custom token with the same name, the generator emits defa
 
 ### Nice-To-Haves (Not Required For Scope)
 
-- [ ] Populate `errors` with meaningful validation (duplicates, missing start rule, unknown precedence tokens)
+- [x] Populate `errors` with meaningful validation (duplicates, missing start rule, unknown precedence tokens)
 - [ ] More structured helpers for common Lezer constructs (lists, keywords, etc.)
