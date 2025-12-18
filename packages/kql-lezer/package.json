@@ -61,6 +61,7 @@
     }
   },
   "devDependencies": {
+    "@fossiq/lezer-grammar-generator": "workspace:*",
     "@lezer/generator": "1.8.0",
     "@types/node": "catalog:",
     "typescript": "catalog:"
