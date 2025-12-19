@@ -24,6 +24,9 @@ function convertRegexToLezer(pattern: string): string {
     // Common substitutions
     let result = pattern;
 
+    // Quote @ that is not followed by a letter
+    result = result.replace(/@(?![a-zA-Z])/g, '"@"');
+
     // Remove non-capturing groups: (?:...) -> (...)
     result = result.replace(/\(\?:/g, "(");
 

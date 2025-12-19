@@ -26,7 +26,16 @@ if (!validation.ok) {
 }
 
 // Generate the .grammar source text
-const grammarText = generateLezerGrammar(def);
+let grammarText = generateLezerGrammar(def);
+
+// HACK: inject macros because generateLezerGrammar doesn't support them
+if ((def as any).macros) {
+    const macros = (def as any).macros;
+    const macrosText = Object.entries(macros)
+        .map(([name, body]) => `${name} { ${body} }`)
+        .join("\n\n");
+    grammarText += `\n\n${macrosText}\n`;
+}
 
 // Write the grammar file next to this script
 // Resolve __dirname for ESM and compute output path

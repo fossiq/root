@@ -5,6 +5,7 @@ import {
     choice,
     literal,
     type RuleDef,
+    group,
 } from "@fossiq/lezer-grammar-generator";
 
 /**
@@ -17,26 +18,24 @@ export const expressionRules: Record<string, RuleDef> = {
     },
 
     AdditiveExpression: {
-        expression: seq(
-            ref("MultiplicativeExpression"),
-            many(
-                seq(
-                    choice(literal("+"), literal("-")),
-                    ref("MultiplicativeExpression"),
-                ),
+        expression: choice(
+            seq(
+                ref("AdditiveExpression"),
+                group(choice(literal("+"), literal("-"))),
+                ref("MultiplicativeExpression"),
             ),
+            ref("MultiplicativeExpression"),
         ),
     },
 
     MultiplicativeExpression: {
-        expression: seq(
-            ref("PrimaryExpression"),
-            many(
-                seq(
-                    choice(literal("*"), literal("/"), literal("%")),
-                    ref("PrimaryExpression"),
-                ),
+        expression: choice(
+            seq(
+                ref("MultiplicativeExpression"),
+                group(choice(literal("*"), literal("/"), literal("%"))),
+                ref("PrimaryExpression"),
             ),
+            ref("PrimaryExpression"),
         ),
     },
 

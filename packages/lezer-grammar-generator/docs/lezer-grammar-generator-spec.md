@@ -1,4 +1,4 @@
-# Lezer Grammar Generator Spec
+## Known Issues
 
 This package is a **library** that takes a JS/TS config and returns Lezer
 `.grammar` source text.

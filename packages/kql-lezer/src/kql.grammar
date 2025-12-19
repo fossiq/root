@@ -28,22 +28,22 @@
   Semicolon { ";" }
   Slash { "/" }
   Star { "*" }
-  String { @"!["]*"|@'![']*'|h"!["\n]*"|h@"!["]*"|"!["]*"|'![']*' }
+  String { @"!["]*"|@'![']*'|h"!["]*"|h@"!["]*"|("!["\\]|\\.)*"|'(!['\\]|\\.)*' }
   Timespan { @digit+(\.@digit+)?(d|h|m|s|ms|microsecond|tick)+ }
   whitespace { $[ \t\n\r]+ }
 }
 
-@top Query { Query }
+@top KQL { Query }
 
 Query { LetStatement* PipelineExpression }
 
-AdditiveExpression { MultiplicativeExpression "+" | "-" MultiplicativeExpression* }
+AdditiveExpression { AdditiveExpression ("+" | "-") MultiplicativeExpression | MultiplicativeExpression }
 
 Expression { AdditiveExpression }
 
 LetStatement { kw<"let"> Identifier "=" Expression ";" }
 
-MultiplicativeExpression { PrimaryExpression "*" | "/" | "%" PrimaryExpression* }
+MultiplicativeExpression { MultiplicativeExpression ("*" | "/" | "%") PrimaryExpression | PrimaryExpression }
 
 PipelineExpression { TableExpression "|" WhereClause* }
 
@@ -52,3 +52,6 @@ PrimaryExpression { "(" Expression ")" | Identifier | Number | String }
 TableExpression { Identifier | "(" PipelineExpression ")" }
 
 WhereClause { kw<"where"> Expression }
+
+
+kw<term> { @specialize[@name={term}]<Identifier, term> }

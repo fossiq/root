@@ -24,12 +24,15 @@ import { allRules } from "./rules";
  * - scalar.arithmetic
  * - scalar.comparison
  */
-export const coreGrammar: GrammarDefinition = {
-    name: "Query",
+export const coreGrammar: any = {
+    name: "KQL",
     top: "Query",
     tokens: allTokens,
     rules: allRules,
     precedence: [],
+    macros: {
+        "kw<term>": "@specialize[@name={term}]<Identifier, term>",
+    },
 };
 
 export default coreGrammar;
