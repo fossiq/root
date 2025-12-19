@@ -1,238 +1,257 @@
 import type {
-  ParseResult,
-  HighlightToken,
-  TokenType,
-  ParseError,
+    ParseResult,
+    HighlightToken,
+    TokenType,
+    ParseError,
 } from "@fossiq/kql-ast";
 import { parser } from "./parser";
 import { Tree, SyntaxNode } from "@lezer/common";
 import { LRLanguage, LanguageSupport } from "@codemirror/language";
 import { styleTags, tags as t } from "@lezer/highlight";
+import { cstToAst } from "./parser/cst-to-ast";
 
 export function parseErrors(doc: string): ParseError[] {
-  return findErrors(parser.parse(doc));
+    return findErrors(parser.parse(doc));
 }
 
 /**
  * Extract highlight tokens from Lezer parse tree for syntax highlighting
  */
 export function extractHighlightTokens(doc: string): HighlightToken[] {
-  const tree = parser.parse(doc);
-  const tokens: HighlightToken[] = [];
+    const tree = parser.parse(doc);
+    const tokens: HighlightToken[] = [];
 
-  walkTree(tree.topNode, doc, (node, text) => {
-    const tokenType = getTokenType(node.name);
-    if (tokenType) {
-      tokens.push({
-        type: tokenType,
-        start: node.from,
-        end: node.to,
-        value: text,
-      });
-    }
-  });
+    walkTree(tree.topNode, doc, (node, text) => {
+        const tokenType = getTokenType(node.name);
+        if (tokenType) {
+            tokens.push({
+                type: tokenType,
+                start: node.from,
+                end: node.to,
+                value: text,
+            });
+        }
+    });
 
-  return tokens;
+    return tokens;
 }
 
 /**
  * Parse KQL and return both AST and highlight tokens
  */
 export function parseKQL(doc: string): ParseResult {
-  const tree = parser.parse(doc);
-  const errors = findErrors(tree);
-  const tokens = extractHighlightTokens(doc);
+    const tree = parser.parse(doc);
+    const errors = findErrors(tree);
+    const tokens = extractHighlightTokens(doc);
 
-  return {
-    ast: undefined,
-    tokens,
-    errors,
-  };
+    // Convert CST to AST only if there are no parse errors
+    let ast = undefined;
+    if (errors.length === 0) {
+        const astResult = cstToAst(tree, doc);
+        // Only set ast if conversion succeeded (not an ErrorNode)
+        if (astResult.type !== "ErrorNode") {
+            ast = astResult;
+        } else {
+            // Add the AST conversion error to the errors list
+            errors.push({
+                type: "ParseError" as const,
+                message: astResult.error,
+                start: astResult.from,
+                end: astResult.to,
+            });
+        }
+    }
+
+    return {
+        ast,
+        tokens,
+        errors,
+    };
 }
 
 /**
  * Find parse errors in the tree
  */
 function findErrors(tree: Tree): ParseError[] {
-  const errors: ParseError[] = [];
+    const errors: ParseError[] = [];
 
-  const cursor = tree.cursor();
-  do {
-    if (cursor.name === "⚠") {
-      errors.push({
-        type: "ParseError" as const,
-        message: `Syntax error at position ${cursor.from}`,
-        start: cursor.from,
-        end: cursor.to,
-      });
-    }
-  } while (cursor.next());
+    const cursor = tree.cursor();
+    do {
+        if (cursor.name === "⚠") {
+            errors.push({
+                type: "ParseError" as const,
+                message: `Syntax error at position ${cursor.from}`,
+                start: cursor.from,
+                end: cursor.to,
+            });
+        }
+    } while (cursor.next());
 
-  return errors;
+    return errors;
 }
 
 /**
  * Map token names to TokenType for syntax highlighting
  */
 function getTokenType(nodeName: string): TokenType | null {
-  switch (nodeName) {
-    case "LineComment":
-      return "comment";
-    case "Identifier":
-      return "identifier";
-    case "Number":
-      return "number";
-    case "String":
-      return "string";
-    // Keywords
-    case "kw_where":
-    case "kw_project":
-    case "kw_extend":
-    case "kw_sort":
-    case "kw_limit":
-    case "kw_take":
-    case "kw_top":
-    case "kw_distinct":
-    case "kw_summarize":
-    case "kw_join":
-    case "kw_union":
-    case "kw_find":
-    case "kw_search":
-    case "kw_kind":
-    case "kw_withsource":
-    case "kw_by":
-    case "kw_asc":
-    case "kw_desc":
-    case "kw_inner":
-    case "kw_outer":
-    case "kw_and":
-    case "kw_or":
-    case "kw_not":
-    case "kw_contains":
-    case "kw_notcontains":
-    case "kw_startswith":
-    case "kw_endswith":
-    case "kw_has":
-    case "kw_nothas":
-    case "kw_in":
-    case "kw_notin":
-    case "mvexpand":
-    case "MvExpand":
-    case "let":
-    case "NotContains":
-    case "NotHas":
-    case "NotIn":
-    case "NotBetween":
-      return "keyword";
-    // Operators
-    case "Pipe":
-    case "ComparisonOp":
-      return "operator";
-    // Punctuation
-    case "ParenthesizedExpression":
-    case "BracketExpression":
-      return "punctuation";
-    default:
-      // For internal nodes like Query, statement, expression
-      if (nodeName.endsWith("Clause")) {
-        return "keyword"; // Operators like where, project etc.
-      }
-      return null;
-  }
+    switch (nodeName) {
+        case "LineComment":
+            return "comment";
+        case "Identifier":
+            return "identifier";
+        case "Number":
+            return "number";
+        case "String":
+            return "string";
+        // Keywords
+        case "kw_where":
+        case "kw_project":
+        case "kw_extend":
+        case "kw_sort":
+        case "kw_limit":
+        case "kw_take":
+        case "kw_top":
+        case "kw_distinct":
+        case "kw_summarize":
+        case "kw_join":
+        case "kw_union":
+        case "kw_find":
+        case "kw_search":
+        case "kw_kind":
+        case "kw_withsource":
+        case "kw_by":
+        case "kw_asc":
+        case "kw_desc":
+        case "kw_inner":
+        case "kw_outer":
+        case "kw_and":
+        case "kw_or":
+        case "kw_not":
+        case "kw_contains":
+        case "kw_notcontains":
+        case "kw_startswith":
+        case "kw_endswith":
+        case "kw_has":
+        case "kw_nothas":
+        case "kw_in":
+        case "kw_notin":
+        case "mvexpand":
+        case "MvExpand":
+        case "let":
+        case "NotContains":
+        case "NotHas":
+        case "NotIn":
+        case "NotBetween":
+            return "keyword";
+        // Operators
+        case "Pipe":
+        case "ComparisonOp":
+            return "operator";
+        // Punctuation
+        case "ParenthesizedExpression":
+        case "BracketExpression":
+            return "punctuation";
+        default:
+            // For internal nodes like Query, statement, expression
+            if (nodeName.endsWith("Clause")) {
+                return "keyword"; // Operators like where, project etc.
+            }
+            return null;
+    }
 }
 
 /**
  * Walk the parse tree and call callback for each node
  */
 function walkTree(
-  node: SyntaxNode | null,
-  doc: string,
-  callback: (node: SyntaxNode, text: string) => void
+    node: SyntaxNode | null,
+    doc: string,
+    callback: (node: SyntaxNode, text: string) => void,
 ): void {
-  if (!node) return;
+    if (!node) return;
 
-  const text = doc.slice(node.from, node.to);
-  callback(node, text);
+    const text = doc.slice(node.from, node.to);
+    callback(node, text);
 
-  let child = node.firstChild;
-  while (child) {
-    walkTree(child, doc, callback);
-    child = child.nextSibling;
-  }
+    let child = node.firstChild;
+    while (child) {
+        walkTree(child, doc, callback);
+        child = child.nextSibling;
+    }
 }
 
 // Define the KQL language for Lezer
 export const kqlLanguage = LRLanguage.define({
-  parser: parser.configure({
-    props: [
-      styleTags({
-        // Query operators (pipe operators) - distinct from regular keywords
-        "where project projectndash;away projectndash;keep projectndash;rename projectndash;reorder extend sort limit take top distinct summarize join":
-          t.keyword,
-        "search find union mvexpand": t.keyword,
-        // Let statement
-        let: t.definitionKeyword,
-        // Join kinds
-        "inner leftouter rightouter fullouter leftanti rightanti leftsemi rightsemi":
-          t.modifier,
-        // Sorting and grouping keywords
-        "by asc desc on": t.modifier,
-        // Logical operators
-        "and or not": t.logicOperator,
-        // String comparison operators (keyword-style)
-        "contains startswith endswith has in": t.operatorKeyword,
-        "NotContains NotHas NotIn": t.operatorKeyword,
-        // Pipe operator
-        Pipe: t.punctuation,
-        // Comparison operators
-        ComparisonOp: t.compareOperator,
-        // Math operators
-        Plus: t.arithmeticOperator,
-        Minus: t.arithmeticOperator,
-        Star: t.arithmeticOperator,
-        Slash: t.arithmeticOperator,
-        Percent: t.arithmeticOperator,
-        // Assignment
-        Equals: t.definitionOperator,
-        // Brackets and punctuation
-        OpenParen: t.paren,
-        CloseParen: t.paren,
-        OpenBracket: t.squareBracket,
-        CloseBracket: t.squareBracket,
-        Comma: t.separator,
-        Semicolon: t.separator,
-        // Literals
-        Number: t.number,
-        String: t.string,
-        // Comments
-        LineComment: t.lineComment,
-        // Function names in function calls
-        "functionName/Identifier": t.function(t.variableName),
-        // Table name (first identifier in query, also in join)
-        "tableExpression/Identifier": t.typeName,
-        // Column names in various contexts
-        "columnSpec/Identifier": t.propertyName,
-        "sortColumn/Identifier": t.propertyName,
-        "columnNameList/Identifier": t.propertyName,
-        // Identifiers in aggregation (e.g., "x = count()")
-        "aggregation/Identifier": t.propertyName,
-        // Comparison left-hand side (column reference)
-        "comparison/Identifier": t.propertyName,
-        // Let statement variable name
-        "letStatement/Identifier": t.definition(t.variableName),
-        // Default identifiers (variables in expressions)
-        Identifier: t.variableName,
-      }),
-    ],
-  }),
-  languageData: {
-    commentTokens: { line: "//" },
-  },
+    parser: parser.configure({
+        props: [
+            styleTags({
+                // Query operators (pipe operators) - distinct from regular keywords
+                "where project projectndash;away projectndash;keep projectndash;rename projectndash;reorder extend sort limit take top distinct summarize join":
+                    t.keyword,
+                "search find union mvexpand": t.keyword,
+                // Let statement
+                let: t.definitionKeyword,
+                // Join kinds
+                "inner leftouter rightouter fullouter leftanti rightanti leftsemi rightsemi":
+                    t.modifier,
+                // Sorting and grouping keywords
+                "by asc desc on": t.modifier,
+                // Logical operators
+                "and or not": t.logicOperator,
+                // String comparison operators (keyword-style)
+                "contains startswith endswith has in": t.operatorKeyword,
+                "NotContains NotHas NotIn": t.operatorKeyword,
+                // Pipe operator
+                Pipe: t.punctuation,
+                // Comparison operators
+                ComparisonOp: t.compareOperator,
+                // Math operators
+                Plus: t.arithmeticOperator,
+                Minus: t.arithmeticOperator,
+                Star: t.arithmeticOperator,
+                Slash: t.arithmeticOperator,
+                Percent: t.arithmeticOperator,
+                // Assignment
+                Equals: t.definitionOperator,
+                // Brackets and punctuation
+                OpenParen: t.paren,
+                CloseParen: t.paren,
+                OpenBracket: t.squareBracket,
+                CloseBracket: t.squareBracket,
+                Comma: t.separator,
+                Semicolon: t.separator,
+                // Literals
+                Number: t.number,
+                String: t.string,
+                // Comments
+                LineComment: t.lineComment,
+                // Function names in function calls
+                "functionName/Identifier": t.function(t.variableName),
+                // Table name (first identifier in query, also in join)
+                "tableExpression/Identifier": t.typeName,
+                // Column names in various contexts
+                "columnSpec/Identifier": t.propertyName,
+                "sortColumn/Identifier": t.propertyName,
+                "columnNameList/Identifier": t.propertyName,
+                // Identifiers in aggregation (e.g., "x = count()")
+                "aggregation/Identifier": t.propertyName,
+                // Comparison left-hand side (column reference)
+                "comparison/Identifier": t.propertyName,
+                // Let statement variable name
+                "letStatement/Identifier": t.definition(t.variableName),
+                // Default identifiers (variables in expressions)
+                Identifier: t.variableName,
+            }),
+        ],
+    }),
+    languageData: {
+        commentTokens: { line: "//" },
+    },
 });
 
 /**
  * Initialize KQL language for CodeMirror
  */
 export function kql() {
-  return new LanguageSupport(kqlLanguage);
+    return new LanguageSupport(kqlLanguage);
 }

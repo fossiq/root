@@ -55,14 +55,25 @@ This document contains all instructions for AI agents working on the Fossiq code
 - Pure functions for transformations
 - **Use `$` commands for single-line operations** - When writing scripts that run in the Bun runtime, use the `$` commands to achieve something unless the command gets longer than one line
 - **Move conditionals to TypeScript** - When using `$` commands, avoid bash conditionals (if statements) in one-liners and instead handle the logic in TypeScript code before executing the command
+- **NEVER assume how libraries/standards/specs work** - ALWAYS search online for official documentation when working with:
+  - New libraries or frameworks
+  - Grammar specifications (Lezer, ANTLR, etc.)
+  - File formats or protocols
+  - API specifications
+  - Language syntax rules
+- **Use WebSearch or context7 MCP to fetch docs BEFORE making assumptions**
 
 ### Code Quality
 
 - Small, focused functions (single responsibility)
 - Descriptive names
-- Files under ~100-150 lines
+- **Keep files small and maintainable** - Split large files into smaller, focused modules (~100-150 lines max)
+- **Organize related code in subdirectories** - Group tokens, rules, types, etc. by category
 - Handle errors with descriptive messages
 - ESLint configured at root - run `bun run lint` to check
+- **Remove planning terminology from code** - No "phase0", "phase1", etc. in file names, variable names, or comments
+  - Use descriptive names: `core.ts` instead of `phase0-core.ts`
+  - Use feature names: `arithmetic-expressions.ts` instead of `phase1-expressions.ts`
 
 ### Architecture
 

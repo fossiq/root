@@ -33,6 +33,7 @@
       "devDependencies": {
         "@fossiq/lezer-grammar-generator": "workspace:*",
         "@lezer/generator": "1.8.0",
+        "@types/bun": "catalog:",
         "@types/node": "catalog:",
         "typescript": "catalog:",
       },

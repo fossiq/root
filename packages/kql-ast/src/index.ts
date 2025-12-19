@@ -9,9 +9,19 @@
  * Base node type for all AST nodes
  */
 export interface ASTNode {
-  type: string;
-  start: number;
-  end: number;
+    type: string;
+    start: number;
+    end: number;
+}
+
+/**
+ * CST-to-AST conversion error node
+ */
+export interface ErrorNode {
+    type: "ErrorNode";
+    error: string;
+    from: number;
+    to: number;
 }
 
 /**
@@ -19,190 +29,218 @@ export interface ASTNode {
  * Used by syntax highlighters to apply appropriate styling to parsed tokens
  */
 export type TokenType =
-  // Keywords
-  | "keyword"
-  // Literals
-  | "string"
-  | "number"
-  | "boolean"
-  // Identifiers and names
-  | "identifier"
-  | "functionName"
-  | "columnName"
-  | "tableName"
-  // Operators
-  | "operator"
-  | "comparisonOperator"
-  | "logicalOperator"
-  // Delimiters
-  | "punctuation"
-  // Comments
-  | "comment"
-  // Whitespace
-  | "whitespace"
-  // Special
-  | "invalid";
+    // Keywords
+    | "keyword"
+    // Literals
+    | "string"
+    | "number"
+    | "boolean"
+    // Identifiers and names
+    | "identifier"
+    | "functionName"
+    | "columnName"
+    | "tableName"
+    // Operators
+    | "operator"
+    | "comparisonOperator"
+    | "logicalOperator"
+    // Delimiters
+    | "punctuation"
+    // Comments
+    | "comment"
+    // Whitespace
+    | "whitespace"
+    // Special
+    | "invalid";
 
 /**
  * Statement types
  */
 export type StatementType =
-  | "QueryStatement"
-  | "PipeStatement"
-  | "LetStatement"
-  | "TabularStatement";
+    | "Query"
+    | "PipeStatement"
+    | "LetStatement"
+    | "TabularStatement";
 
 /**
- * Query statement node
+ * Let statement for variable binding
  */
-export interface QueryStatement extends ASTNode {
-  type: "QueryStatement";
-  tabularStatement: TabularStatement;
+export interface LetStatement extends ASTNode {
+    type: "LetStatement";
+    name: string;
+    value: Expression;
 }
 
 /**
- * Tabular statement node (table reference or transformation)
+ * Tabular operators (e.g., where, project, summarize)
  */
-export interface TabularStatement extends ASTNode {
-  type: "TabularStatement";
-  source: TableSource;
-  operators: QueryOperator[];
+export type TabularOperator = WhereOperator;
+
+/**
+ * Where operator for filtering
+ */
+export interface WhereOperator extends ASTNode {
+    type: "WhereOperator";
+    expression: Expression;
 }
 
 /**
- * Table source (table name or subquery)
+ * Table reference (source of a pipeline)
  */
-export interface TableSource extends ASTNode {
-  type: "TableSource";
-  name: string;
+export interface TableReference extends ASTNode {
+    type: "TableReference";
+    name: string;
 }
 
 /**
- * Query operator (where, select, filter, etc.)
+ * Pipeline expression (table source + operators)
  */
-export interface QueryOperator extends ASTNode {
-  type: string;
-  operator: string;
-  expression?: Expression;
+export interface PipelineExpression extends ASTNode {
+    type: "PipelineExpression";
+    source: TableReference | PipelineExpression;
+    operators: TabularOperator[];
+}
+
+/**
+ * Top-level query node
+ */
+export interface Query extends ASTNode {
+    type: "Query";
+    letStatements: LetStatement[];
+    pipeline: PipelineExpression;
 }
 
 /**
  * Expression types
  */
 export type ExpressionType =
-  | "BinaryExpression"
-  | "UnaryExpression"
-  | "FunctionCall"
-  | "Identifier"
-  | "Literal"
-  | "ParenthesizedExpression";
+    | "BinaryExpression"
+    | "UnaryExpression"
+    | "FunctionCall"
+    | "Identifier"
+    | "Literal"
+    | "ParenthesizedExpression"
+    | "NumberLiteral"
+    | "StringLiteral";
 
 /**
  * Binary expression (e.g., a > 5)
  */
 export interface BinaryExpression extends ASTNode {
-  type: "BinaryExpression";
-  left: Expression;
-  operator: string;
-  right: Expression;
+    type: "BinaryExpression";
+    left: Expression;
+    operator: string;
+    right: Expression;
 }
 
 /**
  * Function call (e.g., now(), contains("text"))
  */
 export interface FunctionCall extends ASTNode {
-  type: "FunctionCall";
-  name: string;
-  args: Expression[];
+    type: "FunctionCall";
+    name: string;
+    args: Expression[];
 }
 
 /**
  * Identifier reference
  */
 export interface Identifier extends ASTNode {
-  type: "Identifier";
-  name: string;
+    type: "Identifier";
+    name: string;
 }
 
 /**
- * Literal value
+ * Generic literal value
  */
 export interface Literal extends ASTNode {
-  type: "Literal";
-  value: string | number | boolean | null;
-  raw: string;
+    type: "Literal";
+    value: string | number | boolean | null;
+    raw: string;
+}
+
+/**
+ * Number literal
+ */
+export interface NumberLiteral extends ASTNode {
+    type: "NumberLiteral";
+    value: number;
+    raw: string;
+}
+
+/**
+ * String literal
+ */
+export interface StringLiteral extends ASTNode {
+    type: "StringLiteral";
+    value: string;
+    raw: string;
 }
 
 /**
  * Union of all expression types
  */
 export type Expression =
-  | BinaryExpression
-  | UnaryExpression
-  | FunctionCall
-  | Identifier
-  | Literal
-  | ParenthesizedExpression;
+    | BinaryExpression
+    | UnaryExpression
+    | FunctionCall
+    | Identifier
+    | Literal
+    | ParenthesizedExpression
+    | NumberLiteral
+    | StringLiteral;
 
 /**
  * Unary expression (e.g., !condition)
  */
 export interface UnaryExpression extends ASTNode {
-  type: "UnaryExpression";
-  operator: string;
-  operand: Expression;
+    type: "UnaryExpression";
+    operator: string;
+    operand: Expression;
 }
 
 /**
  * Parenthesized expression
  */
 export interface ParenthesizedExpression extends ASTNode {
-  type: "ParenthesizedExpression";
-  expression: Expression;
-}
-
-/**
- * Parsed KQL document
- */
-export interface KQLDocument extends ASTNode {
-  type: "KQLDocument";
-  statement: QueryStatement;
+    type: "ParenthesizedExpression";
+    expression: Expression;
 }
 
 /**
  * Parser configuration options
  */
 export interface ParserOptions {
-  /** Include whitespace and comment nodes */
-  includeTrivia?: boolean;
-  /** Position tracking (character offsets) */
-  trackPositions?: boolean;
+    /** Include whitespace and comment nodes */
+    includeTrivia?: boolean;
+    /** Position tracking (character offsets) */
+    trackPositions?: boolean;
 }
 
 /**
  * Highlight token - used for syntax highlighting
  */
 export interface HighlightToken {
-  type: TokenType;
-  start: number;
-  end: number;
-  value: string;
+    type: TokenType;
+    start: number;
+    end: number;
+    value: string;
 }
 
 /**
  * Parser result
  */
 export interface ParseResult {
-  ast?: KQLDocument;
-  tokens?: HighlightToken[];
-  errors: ParseError[];
+    ast?: Query;
+    tokens?: HighlightToken[];
+    errors: ParseError[];
 }
 
 /**
  * Parse error
  */
 export interface ParseError extends ASTNode {
-  type: "ParseError";
-  message: string;
-  expected?: string[];
+    type: "ParseError";
+    message: string;
+    expected?: string[];
 }

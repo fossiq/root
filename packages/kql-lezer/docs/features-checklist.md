@@ -102,11 +102,11 @@ export default plugin;
 
 ### C. Phase 0 (blocker): Reference implementation (one person/agent)
 
-- [ ] Implement tokens, `Query`, a single `TabularOperator` (e.g., `where`), and a scalar expressions subset.
-- [ ] Convert the TS grammar to `.grammar` via `@fossiq/lezer-grammar-generator` and build a Lezer parser.
-- [ ] Implement a basic CST-to-AST converter for the delivered operator using real Lezer API (`node.type.name`, `node.firstChild`, `node.nextSibling`, `text.slice(node.from,node.to)`).
-- [ ] Add tests that parse sample queries and validate AST structure.
-- [ ] Metric: this reference must parse 50 real-world KQL queries in <50ms average per query on CI sample runner. If not, iterate grammar patterns.
+- [x] Implement tokens, `Query`, a single `TabularOperator` (e.g., `where`), and a scalar expressions subset.
+- [x] Convert the TS grammar to `.grammar` via `@fossiq/lezer-grammar-generator` and build a Lezer parser.
+- [x] Implement a basic CST-to-AST converter for the delivered operator using real Lezer API (`node.type.name`, `node.firstChild`, `node.nextSibling`, `text.slice(node.from,node.to)`).
+- [x] Add tests that parse sample queries and validate AST structure.
+- [x] Metric: this reference must parse 50 real-world KQL queries in <50ms average per query on CI sample runner. If not, iterate grammar patterns.
 
 ### D. Feature Inventory and per-feature spec (must exist before implementing feature)
 
