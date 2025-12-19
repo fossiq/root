@@ -58,23 +58,7 @@ Key steps:
 
 ## Build & CI
 
-### Why does the CI workflow have separate build_bindings and build-test-publish jobs?
 
-The workflow uses a **multi-stage build pattern**:
-
-1. **build_bindings** (parallel on multiple OS/arch):
-
-   - Builds native tree-sitter bindings for Linux, Windows, macOS, ARM64
-   - Runs in parallel across platforms
-   - Uploads artifacts
-
-2. **build-test-publish** (depends on build_bindings):
-   - Downloads all pre-built bindings
-   - Builds TypeScript packages
-   - Runs tests
-   - Publishes to npm
-
-**Why**: Native bindings are platform-specific and slow to build. Parallelizing across platforms saves time while ensuring all artifacts are available before tests run.
 
 ### What are changesets and why are they required?
 

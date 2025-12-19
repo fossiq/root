@@ -1,7 +1,6 @@
 /**
  * Prepends TypeScript/ESLint ignore directives to generated parser files.
  * The lezer-generator output has implicit any types we don't need to fix.
- * Cross-platform replacement for fix-parser-types.sh
  */
 
 import { readFileSync, writeFileSync } from "fs";
