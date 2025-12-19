@@ -70,13 +70,13 @@ bun run changeset    # Create a changeset for versioning
 
 ```bash
 # Build specific package
-cd packages/kql-parser && bun run build
+cd packages/kql-lezer && bun run build
 
 # Run tests
-cd packages/kql-parser && bun run test
+cd packages/kql-lezer && bun run test
 
 # Watch mode
-cd packages/kql-parser && bun run test:watch
+cd packages/kql-lezer && bun run test:watch
 ```
 
 ## Repository Structure
@@ -84,7 +84,6 @@ cd packages/kql-parser && bun run test:watch
 ```
 .
 ├── packages/
-│   ├── kql-parser/      # Tree-sitter KQL parser
 │   ├── kql-to-duckdb/   # KQL to SQL translator
 │   ├── kql-ast/         # Shared AST types
 │   ├── kql-lezer/       # Lezer parser for editors
@@ -113,7 +112,7 @@ See [AGENTS.md](./AGENTS.md) for detailed instructions on working with this code
 
 - **Runtime**: Bun
 - **Language**: TypeScript (ESM)
-- **Parsers**: Tree-sitter, Lezer
+- **Parsers**: Lezer
 - **Frontend**: SolidJS, Vite, PicoCSS, CodeMirror 6
 - **Database**: DuckDB WASM
 - **CI/CD**: GitHub Actions

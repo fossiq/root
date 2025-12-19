@@ -12,7 +12,6 @@
 ### Phase 1: Setup & Parsing (Completed)
 
 - [x] Create package structure
-- [x] Add dependency on `@fossiq/kql-parser`
 - [x] Implement basic parser invocation
 - [x] Verify with simple test
 
@@ -252,7 +251,6 @@
 
 **Parser Fixes**
 
-- Patched `@fossiq/kql-parser` to handle wrapper nodes for operators, expressions, and literals
 - Verified fix with `kql-to-duckdb` integration tests
 
 ## Test Coverage

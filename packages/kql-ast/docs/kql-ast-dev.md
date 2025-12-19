@@ -57,20 +57,6 @@ interface ParseResult {
 
 ## Usage by Other Packages
 
-### kql-parser (tree-sitter)
-
-```typescript
-import type { ParseResult, KQLDocument } from "@fossiq/kql-ast";
-
-export function parseKQL(input: string): ParseResult {
-  const tree = treeSitterParser.parse(input);
-  return {
-    ast: convertToCommonAST(tree),
-    errors: extractErrors(tree)
-  };
-}
-```
-
 ### kql-lezer (Lezer)
 
 ```typescript

@@ -1,7 +1,7 @@
 # @fossiq/kql-to-duckdb Agent Guide
 
 ## Purpose
-- Translate KQL AST (from `@fossiq/kql-parser`) into DuckDB SQL using chained CTEs.
+- Translate KQL AST into DuckDB SQL using chained CTEs.
 - Downstream consumers: `@fossiq/ui`, backend tooling, CLI experiments.
 
 ## Structure

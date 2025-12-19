@@ -50,7 +50,6 @@ Visit `http://localhost:5173` (or the port shown in the console) to see the appl
 
 The UI integrates several internal packages:
 
-- **@fossiq/kql-parser**: Parses KQL queries into an AST.
 - **@fossiq/kql-lezer**: Provides Lezer grammar for CodeMirror syntax highlighting and error detection.
 - **@fossiq/kql-to-duckdb**: Translates KQL AST into SQL.
 

@@ -101,7 +101,6 @@ packages/kql-lezer-to-ast/
   tests/
     fixtures/               # input KQL + expected AST JSON
     to-ast.test.ts          # golden tests
-    parity.test.ts          # optional parity vs kql-parser for shared subset
 ```
 
 ### CST Traversal Utilities

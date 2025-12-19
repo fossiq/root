@@ -36,7 +36,6 @@ None currently.
 
 ### Phase 2: Documentation & Examples
 - [ ] README with examples
-- [ ] Usage examples for kql-parser integration
 - [ ] Usage examples for kql-lezer integration
 - [ ] API reference
 
@@ -46,8 +45,7 @@ None currently.
 - [ ] Verify type compatibility
 
 ### Phase 4: Integration
-- [ ] Integrate with kql-parser
-- [ ] Integrate with kql-lezer (when created)
+- [ ] Integrate with kql-lezer
 - [ ] Update UI to use shared types
 
 ## Type Definitions
@@ -75,7 +73,7 @@ None currently.
 
 ## Design Decisions
 
-1. **Language Agnostic**: No tree-sitter or Lezer-specific code
+1. **Language Agnostic**: No Lezer-specific code
 2. **Position Tracking**: All nodes have start/end byte offsets
 3. **Flexible Type Field**: Extensible via string `type` property
 4. **Optional Properties**: Parsers can choose what to include (ast, tokens)
@@ -86,4 +84,4 @@ None currently.
 1. Build the TypeScript package
 2. Create README with examples
 3. Start kql-lezer package implementation
-4. Integrate both parsers with shared types
+4. Integrate kql-lezer with shared types

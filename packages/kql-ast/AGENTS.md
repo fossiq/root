@@ -59,7 +59,7 @@ packages/kql-ast/
 ## Next Steps & Checklists
 - Phase 2 Docs: README examples for parser integrations, API reference.
 - Phase 3 Build/Test: compile with tsc, add unit tests, verify type compatibility downstream.
-- Phase 4 Integration: wire into kql-parser/kql-lezer + UI once finalized.
+- Phase 4 Integration: wire into kql-lezer + UI once finalized.
 
 ## Documentation
 - Development guide: `packages/kql-ast/docs/kql-ast-dev.md`

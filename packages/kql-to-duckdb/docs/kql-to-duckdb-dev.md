@@ -39,18 +39,12 @@ SELECT * FROM cte_1
     *   `translatePipe(operator)`: Dispatches to specific operator handlers.
     *   `translateExpression(expr)`: Recursive expression converter.
 
-2.  **Parser Integration**:
-    *   Uses `@fossiq/kql-parser` to generate the AST.
-    *   Requires `initParser(wasmPath)` to be called before usage (web-tree-sitter requirement).
+
 
 ## Usage
 
 ```typescript
-import { kqlToDuckDB, initParser } from '@fossiq/kql-to-duckdb';
-
-// Initialize parser once (required for web-tree-sitter)
-// Path must point to the .wasm file served by your app
-await initParser('/tree-sitter-kql.wasm');
+import { kqlToDuckDB } from '@fossiq/kql-to-duckdb';
 
 const kql = "Table | where Col > 10";
 try {

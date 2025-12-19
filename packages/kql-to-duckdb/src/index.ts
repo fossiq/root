@@ -1,36 +1,24 @@
-import { Parser, Language } from "web-tree-sitter";
-import { buildAST } from "@fossiq/kql-parser";
-import type { SourceFile } from "@fossiq/kql-parser";
 import { translate } from "./translator";
 
 export { translate };
 
-let parser: Parser | null = null;
+export type SourceFile = unknown;
 
-export async function initParser(wasmPath: string, treeSitterWasmPath?: string): Promise<void> {
-  if (parser) return;
-
-  await Parser.init({
-    locateFile() {
-      return treeSitterWasmPath || '/tree-sitter.wasm';
-    }
-  });
-  const KqlLanguage = await Language.load(wasmPath);
-
-  parser = new Parser();
-  parser.setLanguage(KqlLanguage);
+export async function initParser(
+    _wasmPath: string,
+    _treeSitterWasmPath?: string,
+): Promise<void> {
+    // Stub: kql-parser removed
 }
 
-export function parseKql(query: string): SourceFile {
-  if (!parser) {
-    throw new Error("Parser not initialized. Call initParser() first.");
-  }
-  const tree = parser.parse(query);
-  // @ts-expect-error - web-tree-sitter types might differ slightly from native but AST structure is same
-  return buildAST(tree.rootNode) as SourceFile;
+export function parseKql(_query: string): unknown {
+    throw new Error(
+        "parseKql is not implemented: kql-parser has been removed.",
+    );
 }
 
-export function kqlToDuckDB(query: string): string {
-  const ast = parseKql(query);
-  return translate(ast);
+export function kqlToDuckDB(_query: string): string {
+    throw new Error(
+        "kqlToDuckDB is not implemented: kql-parser has been removed.",
+    );
 }
