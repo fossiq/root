@@ -38,6 +38,7 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - Handle errors descriptively.
 - Run `bun run lint` to check.
 - No planning terms (e.g., "phase1") in names/comments—use descriptive/feature names.
+- Avoid barrel files (index.ts files that re-export everything); import directly from specific modules.
 
 ### Architecture
 - Monorepo with `packages/` workspaces.
