@@ -49,8 +49,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "bun test tests",
-    "test:coverage": "bun test tests --coverage",
+    "test": "bun test tests --ignore 'dist/**'",
+    "test:coverage": "bun test tests --coverage --ignore 'dist/**'",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   }
 }
