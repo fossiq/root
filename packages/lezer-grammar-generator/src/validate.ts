@@ -183,6 +183,22 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
     ...externals,
   ]);
 
+  if (def.skip) {
+    walkExpressions(def.skip, (expr) => {
+      if (expr.type !== "ref") return;
+      if (!symbolTable.has(expr.name)) {
+        issues.push(
+          issue(
+            "skip.unknown",
+            `Unknown reference '${expr.name}' in global skip.`,
+            "skip",
+            "error",
+          ),
+        );
+      }
+    });
+  }
+
   const ruleParams = new Map<string, readonly string[]>();
   for (const [name, rule] of Object.entries(def.rules)) {
     if (rule.params && rule.params.length > 0) {
@@ -241,6 +257,23 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
         );
       }
     });
+
+    if (rule.skip) {
+      walkExpressions(rule.skip, (expr) => {
+        if (expr.type !== "ref") return;
+        if (!symbolTable.has(expr.name)) {
+          issues.push(
+            issue(
+              "skip.unknown",
+              `Unknown reference '${expr.name}' in skip for rule '${name}'.`,
+              `rules.${name}`,
+              "error",
+            ),
+          );
+        }
+      });
+    }
+
     references.set(name, refs);
   }
 

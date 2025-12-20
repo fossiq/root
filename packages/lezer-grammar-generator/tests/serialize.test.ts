@@ -37,8 +37,8 @@ describe("generateLezerGrammar", () => {
 
     expect(grammar).toBe(`@tokens {
   Equals { "=" }
-  Identifier { /[A-Za-z_][A-Za-z0-9_]*/ }
-  Number { /[0-9]+/ }
+  Identifier { $[A-Za-z_]$[A-Za-z0-9_]* }
+  Number { @digit+ }
 }
 
 @external tokens {
