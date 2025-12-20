@@ -1,12 +1,18 @@
 import type {
   GrammarDefinition,
   PatternExpression,
+  TokenDef,
   ValidationIssue,
   ValidationResult,
 } from "./model.js";
 
 const IDENTIFIER_RE = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const RESERVED_NAMES = new Set(["@tokens", "@precedence", "@top"]);
+
+interface NameValidationResult {
+  names: Set<string>;
+  issues: ValidationIssue[];
+}
 
 /** Validate a GrammarDefinition for shape and references. */
 export function validateGrammar(def: GrammarDefinition): ValidationResult {
@@ -18,221 +24,48 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
     return finalize(issues);
   }
 
-  const tokenNames = new Set<string>();
-  const tokenCounts = new Map<string, number>();
-  for (const token of def.tokens ?? []) {
-    tokenCounts.set(token.name, (tokenCounts.get(token.name) || 0) + 1);
-    if (!isIdentifier(token.name)) {
-      issues.push(
-        issue(
-          "token.invalidName",
-          `Invalid token name '${token.name}'.`,
-          `tokens.${token.name}`,
-          "error",
-        ),
-      );
-      continue;
-    }
-    tokenNames.add(token.name);
-  }
-  for (const [name, count] of tokenCounts) {
-    if (count > 1) {
-      issues.push(
-        issue(
-          "token.duplicate",
-          `Duplicate token name '${name}'.`,
-          `tokens.${name}`,
-          "error",
-        ),
-      );
-    }
-  }
-
-  const localTokenNames = new Set<string>();
-  const localTokenCounts = new Map<string, number>();
-  for (const token of def.localTokens ?? []) {
-    localTokenCounts.set(
-      token.name,
-      (localTokenCounts.get(token.name) || 0) + 1,
-    );
-    if (!isIdentifier(token.name)) {
-      issues.push(
-        issue(
-          "token.invalidName",
-          `Invalid local token name '${token.name}'.`,
-          `localTokens.${token.name}`,
-          "error",
-        ),
-      );
-      continue;
-    }
-    localTokenNames.add(token.name);
-  }
-  for (const [name, count] of localTokenCounts) {
-    if (count > 1) {
-      issues.push(
-        issue(
-          "token.duplicate",
-          `Duplicate local token name '${name}'.`,
-          `localTokens.${name}`,
-          "error",
-        ),
-      );
-    }
-  }
-
   const declaredDialects = new Set(def.dialects ?? []);
-  for (const token of def.tokens ?? []) {
-    if (token.dialect && !declaredDialects.has(token.dialect)) {
-      issues.push(
-        issue(
-          "dialect.unknown",
-          `Unknown dialect '${token.dialect}' for token '${token.name}'.`,
-          `tokens.${token.name}`,
-          "error",
-        ),
-      );
-    }
-  }
-  for (const token of def.localTokens ?? []) {
-    if (token.dialect && !declaredDialects.has(token.dialect)) {
-      issues.push(
-        issue(
-          "dialect.unknown",
-          `Unknown dialect '${token.dialect}' for local token '${token.name}'.`,
-          `localTokens.${token.name}`,
-          "error",
-        ),
-      );
-    }
-  }
+  // Validate tokens
+  const globalTokens = validateTokens(
+    def.tokens ?? [],
+    "tokens",
+    declaredDialects,
+  );
+  issues.push(...globalTokens.issues);
 
-  const ruleNameSet = new Set<string>();
-  for (const name of ruleNames) {
-    if (!isIdentifier(name)) {
-      issues.push(
-        issue(
-          "rule.invalidName",
-          `Invalid rule name '${name}'.`,
-          `rules.${name}`,
-          "error",
-        ),
-      );
-    }
-    if (RESERVED_NAMES.has(name)) {
-      issues.push(
-        issue(
-          "rule.reservedName",
-          `Rule name '${name}' is reserved.`,
-          `rules.${name}`,
-          "error",
-        ),
-      );
-    }
-    ruleNameSet.add(name);
-  }
+  // Validate local tokens
+  const localTokens = validateTokens(
+    def.localTokens ?? [],
+    "localTokens",
+    declaredDialects,
+  );
+  issues.push(...localTokens.issues);
 
-  for (const tokenName of tokenNames) {
-    if (RESERVED_NAMES.has(tokenName)) {
-      issues.push(
-        issue(
-          "token.reservedName",
-          `Token name '${tokenName}' is reserved.`,
-          `tokens.${tokenName}`,
-          "error",
-        ),
-      );
-    }
-    if (ruleNameSet.has(tokenName)) {
-      issues.push(
-        issue(
-          "name.duplicate",
-          `Name '${tokenName}' is used by both a token and a rule.`,
-          `tokens.${tokenName}`,
-          "error",
-        ),
-      );
-    }
-    if (localTokenNames.has(tokenName)) {
-      issues.push(
-        issue(
-          "name.duplicate",
-          `Name '${tokenName}' is used by both a global and local token.`,
-          `tokens.${tokenName}`,
-          "error",
-        ),
-      );
-    }
-  }
-  for (const tokenName of localTokenNames) {
-    if (RESERVED_NAMES.has(tokenName)) {
-      issues.push(
-        issue(
-          "token.reservedName",
-          `Local token name '${tokenName}' is reserved.`,
-          `localTokens.${tokenName}`,
-          "error",
-        ),
-      );
-    }
-    if (ruleNameSet.has(tokenName)) {
-      issues.push(
-        issue(
-          "name.duplicate",
-          `Name '${tokenName}' is used by both a local token and a rule.`,
-          `localTokens.${tokenName}`,
-          "error",
-        ),
-      );
-    }
-  }
+  // Validate rules
+  const ruleValidation = validateRules(ruleNames, declaredDialects);
+  issues.push(...ruleValidation.issues);
 
-  const externals = new Set(def.externals ?? []);
-  const externalCounts = new Map<string, number>();
-  for (const name of def.externals ?? []) {
-    externalCounts.set(name, (externalCounts.get(name) || 0) + 1);
-  }
-  for (const [name, count] of externalCounts) {
-    if (count > 1) {
-      issues.push(
-        issue(
-          "external.duplicate",
-          `Duplicate external name '${name}'.`,
-          `externals.${name}`,
-          "error",
-        ),
-      );
-    }
-  }
-  for (const name of externals) {
-    if (!isIdentifier(name)) {
-      issues.push(
-        issue(
-          "external.invalidName",
-          `Invalid external name '${name}'.`,
-          `externals.${name}`,
-          "error",
-        ),
-      );
-    }
-    if (
-      ruleNameSet.has(name) ||
-      tokenNames.has(name) ||
-      localTokenNames.has(name)
-    ) {
-      issues.push(
-        issue(
-          "external.duplicate",
-          `External name '${name}' conflicts with a rule or token.`,
-          `externals.${name}`,
-          "error",
-        ),
-      );
-    }
-  }
+  // Validate externals
+  const externals = validateExternals(
+    def.externals ?? [],
+    globalTokens.names,
+    localTokens.names,
+    ruleValidation.names,
+  );
+  issues.push(...externals.issues);
+
+  // Check name conflicts
+  issues.push(
+    ...checkNameConflicts(
+      globalTokens.names,
+      localTokens.names,
+      ruleValidation.names,
+      externals.names,
+    ),
+  );
 
   if (def.top) {
-    if (!ruleNameSet.has(def.top)) {
+    if (!ruleValidation.names.has(def.top)) {
       issues.push(
         issue(
           "top.unknown",
@@ -273,10 +106,10 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   }
 
   const symbolTable = new Set<string>([
-    ...ruleNameSet,
-    ...tokenNames,
-    ...localTokenNames,
-    ...externals,
+    ...ruleValidation.names,
+    ...globalTokens.names,
+    ...localTokens.names,
+    ...externals.names,
   ]);
 
   if (def.skip) {
@@ -295,6 +128,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
     });
   }
 
+  // Collect rule parameters and validate dialects
   const ruleParams = new Map<string, readonly string[]>();
   for (const [name, rule] of Object.entries(def.rules)) {
     if (rule.params && rule.params.length > 0) {
@@ -327,7 +161,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
           ),
         );
       }
-      if (ruleNameSet.has(expr.name)) {
+      if (ruleValidation.names.has(expr.name)) {
         refs.add(expr.name);
       }
 
@@ -398,7 +232,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   if (def.top) {
     const reachable = new Set<string>();
     traverse(def.top, references, reachable);
-    for (const name of ruleNameSet) {
+    for (const name of ruleValidation.names) {
       if (name === def.top) continue;
       if (!reachable.has(name)) {
         issues.push(
@@ -428,6 +262,217 @@ function issue(
 function finalize(issues: ValidationIssue[]): ValidationResult {
   const ok = issues.every((item) => item.level !== "error");
   return { ok, issues };
+}
+
+function validateTokens(
+  tokens: readonly TokenDef[],
+  prefix: string,
+  declaredDialects: Set<string>,
+): NameValidationResult {
+  const issues: ValidationIssue[] = [];
+  const names = new Set<string>();
+  const counts = new Map<string, number>();
+
+  for (const token of tokens) {
+    counts.set(token.name, (counts.get(token.name) || 0) + 1);
+    if (!isIdentifier(token.name)) {
+      issues.push(
+        issue(
+          "token.invalidName",
+          `Invalid ${prefix === "localTokens" ? "local " : ""}token name '${token.name}'.`,
+          `${prefix}.${token.name}`,
+          "error",
+        ),
+      );
+      continue;
+    }
+    names.add(token.name);
+
+    if (token.dialect && !declaredDialects.has(token.dialect)) {
+      issues.push(
+        issue(
+          "dialect.unknown",
+          `Unknown dialect '${token.dialect}' for ${prefix === "localTokens" ? "local " : ""}token '${token.name}'.`,
+          `${prefix}.${token.name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
+  for (const [name, count] of counts) {
+    if (count > 1) {
+      issues.push(
+        issue(
+          "token.duplicate",
+          `Duplicate ${prefix === "localTokens" ? "local " : ""}token name '${name}'.`,
+          `${prefix}.${name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
+  return { names, issues };
+}
+
+function validateRules(
+  ruleNames: string[],
+  declaredDialects: Set<string>,
+): NameValidationResult {
+  const issues: ValidationIssue[] = [];
+  const names = new Set<string>();
+
+  for (const name of ruleNames) {
+    if (!isIdentifier(name)) {
+      issues.push(
+        issue(
+          "rule.invalidName",
+          `Invalid rule name '${name}'.`,
+          `rules.${name}`,
+          "error",
+        ),
+      );
+    }
+    if (RESERVED_NAMES.has(name)) {
+      issues.push(
+        issue(
+          "rule.reservedName",
+          `Rule name '${name}' is reserved.`,
+          `rules.${name}`,
+          "error",
+        ),
+      );
+    }
+    names.add(name);
+  }
+
+  return { names, issues };
+}
+
+function validateExternals(
+  externals: readonly string[],
+  globalTokenNames: Set<string>,
+  localTokenNames: Set<string>,
+  ruleNames: Set<string>,
+): NameValidationResult {
+  const issues: ValidationIssue[] = [];
+  const names = new Set<string>();
+  const counts = new Map<string, number>();
+
+  for (const name of externals) {
+    counts.set(name, (counts.get(name) || 0) + 1);
+  }
+
+  for (const [name, count] of counts) {
+    if (count > 1) {
+      issues.push(
+        issue(
+          "external.duplicate",
+          `Duplicate external name '${name}'.`,
+          `externals.${name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
+  for (const name of externals) {
+    if (!isIdentifier(name)) {
+      issues.push(
+        issue(
+          "external.invalidName",
+          `Invalid external name '${name}'.`,
+          `externals.${name}`,
+          "error",
+        ),
+      );
+    }
+    if (
+      ruleNames.has(name) ||
+      globalTokenNames.has(name) ||
+      localTokenNames.has(name)
+    ) {
+      issues.push(
+        issue(
+          "external.duplicate",
+          `External name '${name}' conflicts with a rule or token.`,
+          `externals.${name}`,
+          "error",
+        ),
+      );
+    }
+    names.add(name);
+  }
+
+  return { names, issues };
+}
+
+function checkNameConflicts(
+  globalTokens: Set<string>,
+  localTokens: Set<string>,
+  rules: Set<string>,
+  externals: Set<string>,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+
+  for (const name of globalTokens) {
+    if (RESERVED_NAMES.has(name)) {
+      issues.push(
+        issue(
+          "token.reservedName",
+          `Token name '${name}' is reserved.`,
+          `tokens.${name}`,
+          "error",
+        ),
+      );
+    }
+    if (rules.has(name)) {
+      issues.push(
+        issue(
+          "name.duplicate",
+          `Name '${name}' is used by both a token and a rule.`,
+          `tokens.${name}`,
+          "error",
+        ),
+      );
+    }
+    if (localTokens.has(name)) {
+      issues.push(
+        issue(
+          "name.duplicate",
+          `Name '${name}' is used by both a global and local token.`,
+          `tokens.${name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
+  for (const name of localTokens) {
+    if (RESERVED_NAMES.has(name)) {
+      issues.push(
+        issue(
+          "token.reservedName",
+          `Local token name '${name}' is reserved.`,
+          `localTokens.${name}`,
+          "error",
+        ),
+      );
+    }
+    if (rules.has(name)) {
+      issues.push(
+        issue(
+          "name.duplicate",
+          `Name '${name}' is used by both a local token and a rule.`,
+          `localTokens.${name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
+  return issues;
 }
 
 function isIdentifier(name: string): boolean {

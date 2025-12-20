@@ -21,29 +21,31 @@ const DEFAULT_DEPTH_LIMIT = 1000;
  * This is a best-effort conversion for common patterns.
  */
 function convertRegexToLezer(pattern: string): string {
-  // Common substitutions
   let result = pattern;
 
-  // Quote @ that is not followed by a letter
+  // Step 1: Handle special characters that need quoting
+  // Quote literal @ not followed by a letter (to avoid interfering with Lezer builtins)
   result = result.replace(/@(?![a-zA-Z])/g, '"@"');
 
+  // Quote escaped parentheses and braces to treat them as literals
+  result = result.replace(/\\([(){}])/g, '"$1"');
+
+  // Step 2: Simplify regex constructs
   // Remove non-capturing groups: (?:...) -> (...)
   result = result.replace(/\(\?:/g, "(");
 
-  // Replace escaped parentheses and braces with quoted literals
-  result = result.replace(/\\([(){}])/g, '"$1"');
-
-  // Replace \d with @digit before processing character classes
+  // Step 3: Convert common character classes to Lezer builtins
+  // Must do \d before [0-9] to avoid double conversion
   result = result.replace(/\\d/g, "@digit");
-
-  // Replace common character classes with Lezer equivalents
   result = result.replace(/\[0-9\]/g, "@digit");
   result = result.replace(/\[a-zA-Z\]/g, "@asciiLetter");
 
-  // Handle negated character classes: [^...] -> ![...]
+  // Step 4: Handle negated character classes
+  // [^...] -> ![...]
   result = result.replace(/\[\^([^\]]+)\]/g, "![$1]");
 
-  // Wrap remaining character classes in $[...]
+  // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
+  // Skip already negated ones (lookbehind for !)
   result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
 
   return result;
@@ -193,101 +195,56 @@ function serializePattern(
   expr: PatternExpression,
   depthLimit = DEFAULT_DEPTH_LIMIT,
 ): string {
-  const parts: string[] = [];
-  const stack: Array<
-    | { type: "expr"; expr: PatternExpression; depth: number }
-    | { type: "text"; text: string }
-  > = [{ type: "expr", expr, depth: 0 }];
+  return serializeExpr(expr, 0, depthLimit);
+}
 
-  while (stack.length > 0) {
-    const frame = stack.pop()!;
-    if (frame.type === "text") {
-      parts.push(frame.text);
-      continue;
-    }
-
-    const current = frame.expr;
-    if (frame.depth > depthLimit) {
-      throw new Error("Pattern expression exceeds depth limit.");
-    }
-    switch (current.type) {
-      case "literal":
-        parts.push(JSON.stringify(current.value));
-        break;
-      case "regex": {
-        const pattern =
-          typeof current.pattern === "string"
-            ? current.pattern
-            : current.pattern.source;
-        parts.push(convertRegexToLezer(pattern));
-        break;
-      }
-      case "raw":
-        parts.push(current.content);
-        break;
-      case "ref":
-        parts.push(current.name);
-        if (current.args && current.args.length > 0) {
-          parts.push(`<${current.args.join(", ")}>`);
-        }
-        break;
-      case "seq": {
-        for (let i = current.elements.length - 1; i >= 0; i--) {
-          if (i < current.elements.length - 1) {
-            stack.push({ type: "text", text: " " });
-          }
-          stack.push({
-            type: "expr",
-            expr: current.elements[i]!,
-            depth: frame.depth + 1,
-          });
-        }
-        break;
-      }
-      case "choice": {
-        for (let i = current.alternatives.length - 1; i >= 0; i--) {
-          if (i < current.alternatives.length - 1) {
-            stack.push({ type: "text", text: " | " });
-          }
-          stack.push({
-            type: "expr",
-            expr: current.alternatives[i]!,
-            depth: frame.depth + 1,
-          });
-        }
-        break;
-      }
-      case "repeat":
-        stack.push({ type: "text", text: current.kind });
-        stack.push({
-          type: "expr",
-          expr: current.expr,
-          depth: frame.depth + 1,
-        });
-        break;
-      case "optional":
-        stack.push({ type: "text", text: "?" });
-        stack.push({
-          type: "expr",
-          expr: current.expr,
-          depth: frame.depth + 1,
-        });
-        break;
-      case "group":
-        stack.push({ type: "text", text: ")" });
-        stack.push({
-          type: "expr",
-          expr: current.expr,
-          depth: frame.depth + 1,
-        });
-        stack.push({ type: "text", text: "(" });
-        break;
-      default: {
-        const neverExpr: never = current;
-        throw new Error(`Unknown pattern type: ${String(neverExpr)}`);
-      }
-    }
+function serializeExpr(
+  expr: PatternExpression,
+  depth: number,
+  limit: number,
+): string {
+  if (depth > limit) {
+    throw new Error("Pattern expression exceeds depth limit.");
   }
 
-  return parts.join("");
+  switch (expr.type) {
+    case "literal":
+      return JSON.stringify(expr.value);
+    case "regex": {
+      const pattern =
+        typeof expr.pattern === "string" ? expr.pattern : expr.pattern.source;
+      return convertRegexToLezer(pattern);
+    }
+    case "raw":
+      return expr.content;
+    case "ref": {
+      let result = expr.name;
+      if (expr.args && expr.args.length > 0) {
+        result += `<${expr.args.join(", ")}>`;
+      }
+      return result;
+    }
+    case "seq": {
+      const parts = expr.elements.map((e) =>
+        serializeExpr(e, depth + 1, limit),
+      );
+      return parts.join(" ");
+    }
+    case "choice": {
+      const parts = expr.alternatives.map((e) =>
+        serializeExpr(e, depth + 1, limit),
+      );
+      return parts.join(" | ");
+    }
+    case "repeat":
+      return serializeExpr(expr.expr, depth + 1, limit) + expr.kind;
+    case "optional":
+      return serializeExpr(expr.expr, depth + 1, limit) + "?";
+    case "group":
+      return "(" + serializeExpr(expr.expr, depth + 1, limit) + ")";
+    default: {
+      const neverExpr: never = expr;
+      throw new Error(`Unknown pattern type: ${String(neverExpr)}`);
+    }
+  }
 }
