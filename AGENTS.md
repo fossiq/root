@@ -93,7 +93,22 @@ Working on between operator in kql-lezer.
 
 ### Documentation (After Any Feature)
 - Mark checklists complete.
-- Add discovered patterns/gotchas to guides.
+Add discovered patterns/gotchas to guides.
+
+## HIGH: MCP Servers
+
+Available MCP (Model Context Protocol) servers for enhanced functionality:
+
+- **vibe-check-mcp**: Use `vibe_check` to analyze code quality, style, or overall "vibe" of code snippets. Useful for code reviews or improvements.
+- **taskmanager**: Use `add_tasks_to_request` to break down complex tasks, `approve_request_completion` to track progress. Helps manage multi-step development tasks.
+- **sequential-thinking**: Use `sequentialthinking` for step-by-step reasoning and problem-solving. Ideal for debugging or complex logic analysis.
+- **basic-memory**: Use `basic-memory_fetch` to retrieve stored information, `create_memory_project` for organizing project-related memories. Provides persistent context across sessions.
+- **ESLint**: Use `lint-files` to run ESLint on specific files or directories. Integrates linting directly into workflows.
+- **mcp-server-github**: Use for GitHub API interactions, such as fetching issues, PRs, or repository data. Enhances GitHub workflow integration.
+- **bun-docs-mcp**: Use `SearchBun` to query Bun runtime documentation. Essential for Bun-specific questions or API lookups.
+- **mcp-server-context7**: Use `get-library-docs` to retrieve documentation and code examples for libraries, `resolve-library-id` to find compatible library identifiers. Critical for researching external libraries and APIs.
+
+Always prefer MCP servers over manual searches when available, especially for documentation (context7), linting (ESLint), and task management (taskmanager).
 
 ## MEDIUM: Tool Usage
 - Limit file reads; pipe large outputs (`head`, `tail`, `rg`).

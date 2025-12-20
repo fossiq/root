@@ -98,12 +98,40 @@ Before implementing, review the [Lezer documentation](https://lezer.codemirror.n
 - Update README.md if the change affects public API
 - Add JSDoc comments for new public APIs
 
-## Debugging Tips
+## Implementation Insights from Recent Features
+
+### @skip Blocks
+- **Model**: Added `skip?: PatternExpression` to `GrammarDefinition` and `RuleDef`.
+- **Serialization**: Global skip as `@skip { pattern }`; per-rule as `@skip { pattern } {\n  rule\n}`.
+- **Validation**: Check references in skip patterns against symbol table.
+- **Tests**: Cover global/per-rule serialization and invalid references.
+
+### @detectDelim
+- **Model**: Added `detectDelim?: boolean` to `GrammarDefinition`.
+- **Serialization**: Output `@detectDelim` if true, placed after precedence.
+- **Validation**: None required (Lezer handles detection).
+- **Tests**: Simple directive presence check.
+
+### @dialects
+- **Model**: Added `dialects?: readonly string[]` to `GrammarDefinition`; `dialect?: string` to `TokenDef` and `RuleDef`.
+- **Serialization**: `@dialects { sorted list }`; tokens as `name[@dialect=value] { pattern }`; rules with `[@dialect=value]` (unquoted, special handling in `formatProps`).
+- **Validation**: Ensure dialects referenced in tokens/rules are declared.
+- **Tests**: Directive, token/rule props, unknown dialect errors.
+
+### General Patterns
+- **Serialization Order**: Tokens → Externals → Dialects → Precedence → DetectDelim → Skip → Top → Rules.
+- **Props Handling**: Use `formatProps` for consistency; special-case pseudo-props like `@dialect` to avoid unwanted quoting.
+- **Regex Conversion**: `convertRegexToLezer` handles common patterns (e.g., `[0-9]` → `@digit`); test with RegExp.source.
+- **Validation**: Traverse expressions with `walkExpressions`; check against symbol table (rules + tokens + externals).
+- **Testing**: Isolate features; expect exact substrings; run full suite for regressions.
+
 
 ### Common Issues
-- **Type errors**: Check `model.ts` for correct type definitions
-- **Serialization issues**: Verify `serialize.ts` handles all cases of the new feature
-- **Validation failures**: Check `validate.ts` for correct validation logic
+- **Type errors**: Check `model.ts` for correct type definitions; ensure new props are optional for backward compatibility.
+- **Serialization issues**: Verify `serialize.ts` handles all cases (e.g., ordering, special props); test output manually if needed.
+- **Validation failures**: Check `validate.ts` for traversal logic; ensure symbol table includes all references.
+- **Regex serialization**: Use RegExp objects in tests; `convertRegexToLezer` may alter patterns—verify output.
+- **Props quoting**: Pseudo-props (e.g., `@dialect`) should not be quoted; handle in `formatProps` or `formatPropValue`.
 
 ### Testing Strategy
 - Write tests that isolate specific functionality
@@ -144,6 +172,8 @@ Current status (as of last update):
 - ✅ Rule properties (skip, contextual, etc.)
 - ✅ External tokens
 - ✅ `@skip` blocks
+- ✅ `@detectDelim`
+- ✅ `@dialects`
 - ⚠️ Some advanced features may need implementation
 
 ## Quick Reference
@@ -168,16 +198,14 @@ Current status (as of last update):
 
 The following Lezer grammar features are not yet supported. Agents should work on these tasks and remove them from this list once implemented:
 
-1. **`@detectDelim`**: Automatic detection of delimiter tokens and generation of `openedBy`/`closedBy` props
-2. **`@dialects`**: Support for conditional grammar dialects (e.g., `@dialects { comments }` and `Comment[@dialect=comments]`)
-3. **`@local tokens`**: Local token groups for context-specific tokenization (e.g., within string parsing)
-4. **`@extend` operator**: Token extension (allowing both base and specialized tokens to be valid)
-5. **Token properties**: Support for adding properties to tokens (e.g., `#[@name=value]`)
-6. **Precedence markers**: Support for `!name` markers in pattern expressions to resolve conflicts
-7. **`@cut` precedence**: Support for `@cut` in precedence declarations for forced precedence
-8. **External specializers**: Support for `@external specialize` declarations
-9. **External props**: Support for `@external prop` declarations
-10. **Built-in character sets**: Full support for all Lezer built-in character sets (`@whitespace`, `@space`, `@newline`, etc.)
+1. **`@local tokens`**: Local token groups for context-specific tokenization (e.g., within string parsing)
+2. **`@extend` operator**: Token extension (allowing both base and specialized tokens to be valid)
+3. **Token properties**: Support for adding properties to tokens (e.g., `#[@name=value]`)
+4. **Precedence markers**: Support for `!name` markers in pattern expressions to resolve conflicts
+5. **`@cut` precedence**: Support for `@cut` in precedence declarations for forced precedence
+6. **External specializers**: Support for `@external specialize` declarations
+7. **External props**: Support for `@external prop` declarations
+8. **Built-in character sets**: Full support for all Lezer built-in character sets (`@whitespace`, `@space`, `@newline`, etc.)
 
 **Instructions for Agents**:
 - When implementing a feature, remove it from this TODO list.

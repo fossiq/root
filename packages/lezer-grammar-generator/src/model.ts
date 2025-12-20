@@ -16,6 +16,7 @@ export interface RuleDef {
   readonly params?: readonly string[];
   readonly props?: Readonly<Record<string, string | number | boolean>>;
   readonly skip?: PatternExpression;
+  readonly dialect?: string;
 }
 
 /** Macro definition with optional params. */
@@ -28,6 +29,7 @@ export interface MacroDef {
 export interface TokenDef {
   readonly name: string;
   readonly pattern: PatternExpression;
+  readonly dialect?: string;
 }
 
 /** Precedence line entry for the @precedence block. */
@@ -41,6 +43,8 @@ export interface GrammarDefinition {
   readonly name?: string;
   readonly top?: string;
   readonly skip?: PatternExpression;
+  readonly detectDelim?: boolean;
+  readonly dialects?: readonly string[];
   readonly tokens?: readonly TokenDef[];
   readonly macros?: Readonly<Record<string, MacroDef>>;
   readonly rules: Readonly<Record<string, RuleDef>>;

@@ -48,6 +48,20 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
     }
   }
 
+  const declaredDialects = new Set(def.dialects ?? []);
+  for (const token of def.tokens ?? []) {
+    if (token.dialect && !declaredDialects.has(token.dialect)) {
+      issues.push(
+        issue(
+          "dialect.unknown",
+          `Unknown dialect '${token.dialect}' for token '${token.name}'.`,
+          `tokens.${token.name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
   const ruleNameSet = new Set<string>();
   for (const name of ruleNames) {
     if (!isIdentifier(name)) {
@@ -203,6 +217,16 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   for (const [name, rule] of Object.entries(def.rules)) {
     if (rule.params && rule.params.length > 0) {
       ruleParams.set(name, rule.params);
+    }
+    if (rule.dialect && !declaredDialects.has(rule.dialect)) {
+      issues.push(
+        issue(
+          "dialect.unknown",
+          `Unknown dialect '${rule.dialect}' for rule '${name}'.`,
+          `rules.${name}`,
+          "error",
+        ),
+      );
     }
   }
 

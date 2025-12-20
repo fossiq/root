@@ -61,8 +61,16 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
     sections.push(renderExternals(def.externals));
   }
 
+  if (def.dialects && def.dialects.length > 0) {
+    sections.push(renderDialects(def.dialects));
+  }
+
   if (def.precedence && def.precedence.length > 0) {
     sections.push(renderPrecedence(def.precedence));
+  }
+
+  if (def.detectDelim) {
+    sections.push("@detectDelim");
   }
 
   if (def.skip) {
@@ -80,9 +88,11 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
 
 function renderTokens(tokens: readonly TokenDef[]): string {
   const sorted = [...tokens].sort((a, b) => a.name.localeCompare(b.name));
-  const lines = sorted.map(
-    (token) => `  ${token.name} { ${serializePattern(token.pattern)} }`,
-  );
+  const lines = sorted.map((token) => {
+    const pattern = serializePattern(token.pattern);
+    const props = token.dialect ? `[@dialect=${token.dialect}]` : "";
+    return `  ${token.name}${props} { ${pattern} }`;
+  });
   return `@tokens {\n${lines.join("\n")}\n}`;
 }
 
@@ -90,6 +100,11 @@ function renderExternals(externals: readonly string[]): string {
   const sorted = [...externals].sort((a, b) => a.localeCompare(b));
   const lines = sorted.map((name) => `  ${name}`);
   return `@external tokens {\n${lines.join("\n")}\n}`;
+}
+
+function renderDialects(dialects: readonly string[]): string {
+  const sorted = [...dialects].sort((a, b) => a.localeCompare(b));
+  return `@dialects { ${sorted.join(", ")} }`;
 }
 
 function renderPrecedence(precedence: readonly PrecedenceLevel[]): string {
@@ -121,7 +136,7 @@ function renderRules(
 function renderRule(name: string, rule: RuleDef): string {
   const params =
     rule.params && rule.params.length > 0 ? `<${rule.params.join(", ")}>` : "";
-  const props = formatProps(rule.props);
+  const props = formatProps(rule.props, rule.dialect);
   const expr = serializePattern(rule.expression);
   const ruleText = `${name}${params}${props} { ${expr} }`;
 
@@ -132,11 +147,27 @@ function renderRule(name: string, rule: RuleDef): string {
   return ruleText;
 }
 
-function formatProps(props: RuleDef["props"]): string {
-  if (!props) return "";
-  const keys = Object.keys(props).sort((a, b) => a.localeCompare(b));
-  const entries = keys.map((key) => `${key}=${formatPropValue(props[key])}`);
-  return entries.length > 0 ? `[${entries.join(", ")}]` : "";
+function formatProps(props: RuleDef["props"], dialect?: string): string {
+  const allProps: Record<string, string | number | boolean> = { ...props };
+  if (!allProps || Object.keys(allProps).length === 0) {
+    if (dialect) return `[@dialect=${dialect}]`;
+    return "";
+  }
+  const keys = Object.keys(allProps).sort((a, b) => a.localeCompare(b));
+  const entries = keys.map((key) => {
+    const value = allProps[key];
+    if (key === "@dialect") {
+      return `${key}=${value}`;
+    }
+    return `${key}=${formatPropValue(value)}`;
+  });
+  const propStr = entries.length > 0 ? `[${entries.join(", ")}]` : "";
+  if (dialect) {
+    return propStr
+      ? `${propStr.slice(0, -1)}, @dialect=${dialect}]`
+      : `[@dialect=${dialect}]`;
+  }
+  return propStr;
 }
 
 function formatPropValue(value: string | number | boolean): string {
