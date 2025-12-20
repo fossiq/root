@@ -5,7 +5,6 @@ import type { GrammarGeneratorConfig } from "../src/types.js";
 describe("lezer-grammar-generator validation", () => {
   test("rejects invalid grammarName", () => {
     const config: GrammarGeneratorConfig = {
-      // @ts-expect-error - intentional invalid input
       grammarName: "123Bad",
       astTypes: {
         statement: {
@@ -19,7 +18,7 @@ describe("lezer-grammar-generator validation", () => {
     const result = generateGrammar(config);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors.join("\n")).toContain(
-      "`grammarName` must be a valid identifier"
+      "`grammarName` must be a valid identifier",
     );
   });
 
@@ -33,7 +32,7 @@ describe("lezer-grammar-generator validation", () => {
 
     const result = generateGrammar(config);
     expect(result.errors.join("\n")).toContain(
-      "at least one `astTypes` entry must have `isRule: true`"
+      "at least one `astTypes` entry must have `isRule: true`",
     );
   });
 
@@ -72,7 +71,7 @@ describe("lezer-grammar-generator validation", () => {
 
     const result = generateGrammar(config);
     expect(result.errors.join("\n")).toContain(
-      "`precedence` references unknown token 'DoesNotExist'"
+      "`precedence` references unknown token 'DoesNotExist'",
     );
   });
 
@@ -98,7 +97,7 @@ describe("lezer-grammar-generator validation", () => {
     const result = generateGrammar(config);
     expect(result.errors).toEqual([]);
     expect(result.grammar).toContain(
-      'MySpecial { @specialize[@name=MySpecial]<Identifier, "myspecial"> }'
+      'MySpecial { @specialize[@name=MySpecial]<Identifier, "myspecial"> }',
     );
   });
 
