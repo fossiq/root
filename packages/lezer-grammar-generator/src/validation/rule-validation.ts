@@ -1,4 +1,8 @@
-import type { ValidationIssue, ValidationErrorCode } from "../model.js";
+import type {
+  ValidationIssue,
+  ValidationErrorCode,
+  RuleDef,
+} from "../model.js";
 
 interface NameValidationResult {
   names: Set<string>;
@@ -42,7 +46,7 @@ export function validateRules(ruleNames: string[]): NameValidationResult {
 
 /** Validate rule properties like dialects and collect parameters. */
 export function validateRuleProperties(
-  rules: Record<string, any>,
+  rules: Record<string, RuleDef>,
   declaredDialects: Set<string>,
 ): { ruleParams: Map<string, readonly string[]>; issues: ValidationIssue[] } {
   const issues: ValidationIssue[] = [];

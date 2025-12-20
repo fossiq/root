@@ -38,6 +38,7 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - Organize related code in subdirectories.
 - Handle errors descriptively.
 - Run `bun run lint` to check.
+- Avoid 'any' types; use ESLint ignores (@typescript-eslint/no-explicit-any) only when stronger typing is impossible, with explanatory comments.
 - No planning terms (e.g., "phase1") in names/comments—use descriptive/feature names.
 - Avoid barrel files (index.ts files that re-export everything); import directly from specific modules.
 

@@ -2,11 +2,12 @@ import type {
   PatternExpression,
   ValidationIssue,
   ValidationErrorCode,
+  RuleDef,
 } from "../model.js";
 
 /** Validate references in expressions against the symbol table. */
 export function validateReferences(
-  rules: Record<string, any>,
+  rules: Record<string, RuleDef>,
   symbolTable: Set<string>,
   ruleParams: Map<string, readonly string[]>,
   ruleNames: Set<string>,
@@ -111,7 +112,7 @@ export function validateGlobalSkip(
 
 /** Find cycles in rule references and check reachability. */
 export function validateCyclesAndReachability(
-  rules: Record<string, any>,
+  rules: Record<string, RuleDef>,
   top: string | undefined,
   ruleNames: Set<string>,
 ): ValidationIssue[] {
