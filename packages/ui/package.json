@@ -36,8 +36,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": false,
-    "registry": "https://npm.pkg.github.com"
+    "provenance": true
   },
   "scripts": {
     "dev": "vite",

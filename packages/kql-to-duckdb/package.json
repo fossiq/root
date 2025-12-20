@@ -17,8 +17,7 @@
     "test:coverage": "bun test tests --coverage",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
@@ -26,6 +25,6 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "provenance": true
   }
 }

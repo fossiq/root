@@ -1,77 +1,76 @@
 {
-    "name": "@fossiq/kql-lezer",
-    "version": "1.2.0",
-    "description": "Lezer-based KQL parser for CodeMirror with syntax highlighting support",
-    "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
-    "files": [
-        "dist",
-        "src",
-        "README.md"
-    ],
-    "keywords": [
-        "kql",
-        "kusto",
-        "lezer",
-        "codemirror",
-        "syntax-highlighting",
-        "parser"
-    ],
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/fossiq/root.git",
-        "directory": "packages/kql-lezer"
+  "name": "@fossiq/kql-lezer",
+  "version": "1.2.0",
+  "description": "Lezer-based KQL parser for CodeMirror with syntax highlighting support",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "keywords": [
+    "kql",
+    "kusto",
+    "lezer",
+    "codemirror",
+    "syntax-highlighting",
+    "parser"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fossiq/root.git",
+    "directory": "packages/kql-lezer"
+  },
+  "bugs": {
+    "url": "https://github.com/fossiq/root/issues"
+  },
+  "homepage": "https://github.com/fossiq/root/tree/main/packages/kql-lezer#readme",
+  "author": "Sushruth Sastry",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.3.0",
+    "node": ">=24.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "dependencies": {
+    "@fossiq/kql-ast": "workspace:*",
+    "@lezer/common": "1.4.0",
+    "@lezer/highlight": "1.2.3",
+    "@lezer/lr": "1.4.5"
+  },
+  "peerDependencies": {
+    "@codemirror/language": "6.11.3",
+    "@codemirror/state": "6.5.2",
+    "@codemirror/view": "6.39.4"
+  },
+  "peerDependenciesMeta": {
+    "@codemirror/language": {
+      "optional": true
     },
-    "bugs": {
-        "url": "https://github.com/fossiq/root/issues"
+    "@codemirror/state": {
+      "optional": true
     },
-    "homepage": "https://github.com/fossiq/root/tree/main/packages/kql-lezer#readme",
-    "author": "Sushruth Sastry",
-    "license": "MIT",
-    "engines": {
-        "bun": ">=1.3.0",
-        "node": ">=24.0.0"
-    },
-    "publishConfig": {
-        "access": "public",
-        "provenance": false,
-        "registry": "https://npm.pkg.github.com"
-    },
-    "dependencies": {
-        "@fossiq/kql-ast": "workspace:*",
-        "@lezer/common": "1.4.0",
-        "@lezer/highlight": "1.2.3",
-        "@lezer/lr": "1.4.5"
-    },
-    "peerDependencies": {
-        "@codemirror/language": "6.11.3",
-        "@codemirror/state": "6.5.2",
-        "@codemirror/view": "6.39.4"
-    },
-    "peerDependenciesMeta": {
-        "@codemirror/language": {
-            "optional": true
-        },
-        "@codemirror/state": {
-            "optional": true
-        },
-        "@codemirror/view": {
-            "optional": true
-        }
-    },
-    "devDependencies": {
-        "@fossiq/lezer-grammar-generator": "workspace:*",
-        "@lezer/generator": "1.8.0",
-        "@types/node": "catalog:",
-        "@types/bun": "catalog:",
-        "typescript": "catalog:"
-    },
-    "scripts": {
-        "build": "bun run build:grammar && tsc",
-        "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && bun scripts/fix-parser-types.ts",
-        "test": "bun test tests",
-        "test:coverage": "bun test tests --coverage",
-        "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
+    "@codemirror/view": {
+      "optional": true
     }
+  },
+  "devDependencies": {
+    "@fossiq/lezer-grammar-generator": "workspace:*",
+    "@lezer/generator": "1.8.0",
+    "@types/node": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "build": "bun run build:grammar && tsc",
+    "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && bun scripts/fix-parser-types.ts",
+    "test": "bun test tests",
+    "test:coverage": "bun test tests --coverage",
+    "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
+  }
 }
