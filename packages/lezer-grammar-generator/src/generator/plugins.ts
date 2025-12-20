@@ -1,13 +1,15 @@
+import type { ValidationIssue } from "../model.js";
 import {
   GrammarPlugin,
   PluginGrammarConfig,
   TokenDefinition,
+  ASTTypeDefinition,
 } from "../types.js";
 
 export function mergePlugins(
   plugins: GrammarPlugin[],
   config: PluginGrammarConfig,
-  errors: string[],
+  errors: ValidationIssue[],
 ): {
   tokens: TokenDefinition[];
   rules: Map<string, string>;
@@ -27,17 +29,23 @@ export function mergePlugins(
       if (skipWhitespace === undefined) {
         skipWhitespace = plugin.skipWhitespace;
       } else if (skipWhitespace !== plugin.skipWhitespace) {
-        errors.push(
-          `Conflicting skipWhitespace across plugins (found both ${String(
+        errors.push({
+          code: "plugins.skipWhitespace.conflict",
+          message: `Conflicting skipWhitespace across plugins (found both ${String(
             skipWhitespace,
           )} and ${String(plugin.skipWhitespace)}).`,
-        );
+          level: "error",
+        });
       }
     }
 
     for (const token of plugin.tokens ?? []) {
       if (tokenNames.has(token.name)) {
-        errors.push(`Duplicate token name '${token.name}' across plugins.`);
+        errors.push({
+          code: "plugins.tokens.duplicate",
+          message: `Duplicate token name '${token.name}' across plugins.`,
+          level: "error",
+        });
         continue;
       }
       tokenNames.add(token.name);
@@ -46,7 +54,11 @@ export function mergePlugins(
 
     for (const [name, rule] of Object.entries(plugin.rules ?? {})) {
       if (rules.has(name)) {
-        errors.push(`Duplicate rule name '${name}' across plugins.`);
+        errors.push({
+          code: "plugins.rules.duplicate",
+          message: `Duplicate rule name '${name}' across plugins.`,
+          level: "error",
+        });
         continue;
       }
       rules.set(name, rule);
@@ -56,7 +68,11 @@ export function mergePlugins(
       if (macros.has(name)) {
         const existing = macros.get(name);
         if (existing !== body) {
-          errors.push(`Duplicate macro name '${name}' across plugins.`);
+          errors.push({
+            code: "plugins.macros.duplicate",
+            message: `Duplicate macro name '${name}' across plugins.`,
+            level: "error",
+          });
         }
         continue;
       }
@@ -94,8 +110,10 @@ export function mergePrecedence(
   return merged.length > 0 ? merged : undefined;
 }
 
-export function rulesToAstTypes(rules: Map<string, string>) {
-  const astTypes: any = {};
+export function rulesToAstTypes(
+  rules: Map<string, string>,
+): Record<string, ASTTypeDefinition> {
+  const astTypes: Record<string, ASTTypeDefinition> = {};
   for (const [name, grammarFields] of rules) {
     astTypes[name] = {
       grammarName: name,
@@ -108,17 +126,25 @@ export function rulesToAstTypes(rules: Map<string, string>) {
 
 export function orderPlugins(
   plugins: GrammarPlugin[],
-  errors: string[],
+  errors: ValidationIssue[],
 ): GrammarPlugin[] {
   const byName = new Map<string, GrammarPlugin>();
 
   for (const plugin of plugins) {
     if (!plugin.name || typeof plugin.name !== "string") {
-      errors.push("All plugins must have a non-empty `name`.");
+      errors.push({
+        code: "plugins.name.missing",
+        message: "All plugins must have a non-empty `name`.",
+        level: "error",
+      });
       continue;
     }
     if (byName.has(plugin.name)) {
-      errors.push(`Duplicate plugin name '${plugin.name}'.`);
+      errors.push({
+        code: "plugins.name.duplicate",
+        message: `Duplicate plugin name '${plugin.name}'.`,
+        level: "error",
+      });
       continue;
     }
     byName.set(plugin.name, plugin);
@@ -131,7 +157,11 @@ export function orderPlugins(
   const visit = (name: string) => {
     if (visited.has(name)) return;
     if (visiting.has(name)) {
-      errors.push(`Cyclic plugin dependency detected at '${name}'.`);
+      errors.push({
+        code: "plugins.dependency.cyclic",
+        message: `Cyclic plugin dependency detected at '${name}'.`,
+        level: "error",
+      });
       return;
     }
     const plugin = byName.get(name);
@@ -140,7 +170,11 @@ export function orderPlugins(
     visiting.add(name);
     for (const dep of plugin.dependsOn ?? []) {
       if (!byName.has(dep)) {
-        errors.push(`Plugin '${name}' depends on missing plugin '${dep}'.`);
+        errors.push({
+          code: "plugins.dependency.missing",
+          message: `Plugin '${name}' depends on missing plugin '${dep}'.`,
+          level: "error",
+        });
         continue;
       }
       visit(dep);

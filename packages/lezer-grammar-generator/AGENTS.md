@@ -17,12 +17,14 @@ The package does NOT include:
 ## Key Files and Their Purposes
 
 ### Core Implementation
-- `src/model.ts`: Contains the `GrammarDefinition` and `PatternExpression` type definitions. This is the central type system for grammar definitions.
+- `src/model.ts`: Contains the `GrammarDefinition`, `PatternExpression`, and `ValidationErrorCode` type definitions. This is the central type system for grammar definitions with comprehensive type safety.
 - `src/serialize.ts`: Implements `generateLezerGrammar` function for deterministic serialization of grammar objects to Lezer `.grammar` text.
-- `src/validate.ts`: Contains `validateGrammar` function that performs shape validation and reference checking, returning structured issues (errors vs warnings).
+- `src/validate.ts`: Contains `validateGrammar` function that performs shape validation and reference checking, returning structured `ValidationIssue` objects (errors vs warnings).
 - `src/generator.ts`: Legacy AST-based generator and plugin merging logic. This is maintained for backward compatibility.
 - `src/helpers.ts`: PatternExpression helper constructors for creating grammar patterns in a type-safe manner.
 - `src/legacy-helpers.ts`: Legacy string helpers exported under the `legacy` namespace. Use these only when working with older code.
+- `src/type-guards.ts`: Runtime type guard functions for validating identifiers and AST type definitions.
+- `src/branded-types.ts`: Branded types for domain objects (GrammarName, RuleName, TokenName, etc.) to prevent type confusion at compile time.
 
 ### Tests
 - `tests/`: Contains Bun test files. All new features must have corresponding tests.
@@ -66,7 +68,15 @@ The validation function returns a structured result with:
 - `valid`: Boolean indicating if the grammar is valid
 
 ### Type Safety
-The type system in `model.ts` is designed to catch common mistakes at compile time. When adding new features, ensure type definitions remain accurate and comprehensive.
+The type system in `model.ts` provides comprehensive compile-time safety with:
+- Branded types for domain objects to prevent mixing similar string types
+- Discriminated unions (e.g., `TokenDefinition`, `PatternExpression`) for precise type narrowing
+- Structured validation errors with typed error codes (`ValidationErrorCode`)
+- Runtime type guards for dynamic validation
+- No `any` usage; all types are strictly defined
+- Backward compatibility maintained for public APIs while internal code uses advanced types
+
+When adding new features, ensure type definitions remain accurate, comprehensive, and leverage TypeScript's advanced type features for maximum safety.
 
 ## Adding New Features
 
@@ -118,20 +128,30 @@ Before implementing, review the [Lezer documentation](https://lezer.codemirror.n
 - **Validation**: Ensure dialects referenced in tokens/rules are declared.
 - **Tests**: Directive, token/rule props, unknown dialect errors.
 
+### Type Safety Improvements
+- **Branded Types**: Implemented branded types (`GrammarName`, `RuleName`, `TokenName`, etc.) in `src/branded-types.ts` to prevent compile-time mixing of similar string types.
+- **Discriminated Unions**: Converted `TokenDefinition` to a discriminated union for better type safety and narrowing.
+- **Structured Errors**: Replaced string arrays with `ValidationIssue[]` containing typed error codes (`ValidationErrorCode` union).
+- **Type Guards**: Added runtime type guards in `src/type-guards.ts` for dynamic validation.
+- **Eliminated `any`**: Removed all `any` usage, ensuring strict typing throughout.
+- **Validation System**: Enhanced with comprehensive error codes and structured issue reporting.
+
 ### General Patterns
 - **Serialization Order**: Tokens → Externals → Dialects → Precedence → DetectDelim → Skip → Top → Rules.
 - **Props Handling**: Use `formatProps` for consistency; special-case pseudo-props like `@dialect` to avoid unwanted quoting.
 - **Regex Conversion**: `convertRegexToLezer` handles common patterns (e.g., `[0-9]` → `@digit`); test with RegExp.source.
 - **Validation**: Traverse expressions with `walkExpressions`; check against symbol table (rules + tokens + externals).
-- **Testing**: Isolate features; expect exact substrings; run full suite for regressions.
+- **Type Safety**: Use branded types for domain objects; leverage discriminated unions; ensure all error codes are typed.
+- **Testing**: Isolate features; expect exact substrings; run full suite for regressions; verify type safety.
 
 
 ### Common Issues
-- **Type errors**: Check `model.ts` for correct type definitions; ensure new props are optional for backward compatibility.
+- **Type errors**: Check `model.ts` and `branded-types.ts` for correct type definitions; ensure new props are optional for backward compatibility; use branded types to prevent mixing similar types.
 - **Serialization issues**: Verify `serialize.ts` handles all cases (e.g., ordering, special props); test output manually if needed.
-- **Validation failures**: Check `validate.ts` for traversal logic; ensure symbol table includes all references.
+- **Validation failures**: Check `validate.ts` for traversal logic; ensure symbol table includes all references; verify structured error codes.
 - **Regex serialization**: Use RegExp objects in tests; `convertRegexToLezer` may alter patterns—verify output.
 - **Props quoting**: Pseudo-props (e.g., `@dialect`) should not be quoted; handle in `formatProps` or `formatPropValue`.
+- **Type Safety Issues**: Ensure discriminated unions are properly handled; use type guards for runtime checks; avoid `any` usage.
 
 ### Testing Strategy
 - Write tests that isolate specific functionality
@@ -175,7 +195,8 @@ Current status (as of last update):
 - ✅ `@detectDelim`
 - ✅ `@dialects`
 - ✅ `@local tokens`
-- ⚠️ Some advanced features may need implementation
+- ✅ Advanced type safety (branded types, discriminated unions, structured errors)
+- ⚠️ Some advanced Lezer features may need implementation
 
 ## Quick Reference
 

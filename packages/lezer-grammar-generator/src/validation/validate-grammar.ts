@@ -1,6 +1,7 @@
 import type {
   GrammarDefinition,
   ValidationIssue,
+  ValidationErrorCode,
   ValidationResult,
 } from "../model.js";
 import { validateTokens } from "./token-validation.js";
@@ -141,7 +142,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
 }
 
 function issue(
-  code: string,
+  code: ValidationErrorCode,
   message: string,
   path: string | undefined,
   level: "error" | "warning",

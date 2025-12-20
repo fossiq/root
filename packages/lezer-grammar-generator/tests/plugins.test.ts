@@ -46,7 +46,7 @@ describe("lezer-grammar-generator plugins", () => {
       plugins: [plugin],
     });
 
-    expect(result.errors.join("\n")).toContain(
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
       "depends on missing plugin 'nope'",
     );
   });
@@ -66,7 +66,7 @@ describe("lezer-grammar-generator plugins", () => {
       plugins: [a, b],
     });
 
-    expect(result.errors.join("\n")).toContain(
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
       "Duplicate rule name 'query' across plugins.",
     );
   });
@@ -88,7 +88,7 @@ describe("lezer-grammar-generator plugins", () => {
       plugins: [a, b],
     });
 
-    expect(result.errors.join("\n")).toContain(
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
       "Cyclic plugin dependency detected",
     );
   });

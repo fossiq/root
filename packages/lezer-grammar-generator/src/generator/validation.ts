@@ -1,27 +1,49 @@
 import { GrammarGeneratorConfig } from "../types.js";
+import type { ValidationIssue } from "../model.js";
 import { defaultTokenNames } from "./sections.js";
 
-export function validateConfig(config: GrammarGeneratorConfig): string[] {
-  const errors: string[] = [];
+export function validateConfig(
+  config: GrammarGeneratorConfig,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
   const validationMode = config.validation?.mode ?? "basic";
   const allowUnknown = new Set(config.validation?.allowUnknown ?? []);
 
   if (!config.grammarName || typeof config.grammarName !== "string") {
-    errors.push("`grammarName` is required.");
+    issues.push({
+      code: "config.grammarName.missing",
+      message: "`grammarName` is required.",
+      path: "grammarName",
+      level: "error",
+    });
   } else if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(config.grammarName)) {
-    errors.push(
-      "`grammarName` must be a valid identifier (letters, digits, underscore; cannot start with a digit).",
-    );
+    issues.push({
+      code: "config.grammarName.invalid",
+      message:
+        "`grammarName` must be a valid identifier (letters, digits, underscore; cannot start with a digit).",
+      path: "grammarName",
+      level: "error",
+    });
   }
 
   if (!config.astTypes || typeof config.astTypes !== "object") {
-    errors.push("`astTypes` is required.");
-    return errors;
+    issues.push({
+      code: "config.astTypes.missing",
+      message: "`astTypes` is required.",
+      path: "astTypes",
+      level: "error",
+    });
+    return issues;
   }
 
   const astTypeDefs = Object.values(config.astTypes);
   if (astTypeDefs.length === 0) {
-    errors.push("`astTypes` must include at least one type definition.");
+    issues.push({
+      code: "config.astTypes.empty",
+      message: "`astTypes` must include at least one type definition.",
+      path: "astTypes",
+      level: "error",
+    });
   }
 
   const ruleNameCounts = new Map<string, number>();
@@ -29,22 +51,33 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
 
   for (const def of astTypeDefs) {
     if (!def.grammarName || typeof def.grammarName !== "string") {
-      errors.push("All `astTypes` entries must include `grammarName`.");
+      issues.push({
+        code: "config.astTypes.grammarName.missing",
+        message: "All `astTypes` entries must include `grammarName`.",
+        path: "astTypes",
+        level: "error",
+      });
       continue;
     }
     if (!def.grammarFields || typeof def.grammarFields !== "string") {
-      errors.push(
-        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`,
-      );
+      issues.push({
+        code: "config.astTypes.grammarFields.missing",
+        message: `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`,
+        path: `astTypes.${def.grammarName}.grammarFields`,
+        level: "error",
+      });
     } else if (def.grammarFields.trim().length === 0) {
-      errors.push(
-        `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`,
-      );
+      issues.push({
+        code: "config.astTypes.grammarFields.empty",
+        message: `Rule '${def.grammarName}': \`grammarFields\` must be a non-empty string.`,
+        path: `astTypes.${def.grammarName}.grammarFields`,
+        level: "error",
+      });
     } else if (validationMode !== "off") {
       validatePassthrough(
         `Rule '${def.grammarName}': grammarFields`,
         def.grammarFields,
-        errors,
+        issues,
       );
     }
 
@@ -57,14 +90,23 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
 
   for (const [name, count] of ruleNameCounts) {
     if (count > 1) {
-      errors.push(`Duplicate rule name '${name}' in \`astTypes\`.`);
+      issues.push({
+        code: "config.astTypes.duplicate",
+        message: `Duplicate rule name '${name}' in \`astTypes\`.`,
+        path: "astTypes",
+        level: "error",
+      });
     }
   }
 
   if (!hasRule) {
-    errors.push(
-      "No rules found: at least one `astTypes` entry must have `isRule: true`.",
-    );
+    issues.push({
+      code: "config.astTypes.noRules",
+      message:
+        "No rules found: at least one `astTypes` entry must have `isRule: true`.",
+      path: "astTypes",
+      level: "error",
+    });
   }
 
   const tokens = config.tokens || [];
@@ -73,34 +115,48 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
     tokenNameCounts.set(token.name, (tokenNameCounts.get(token.name) || 0) + 1);
 
     if (!token.name || typeof token.name !== "string") {
-      errors.push("All `tokens` entries must include `name`.");
+      issues.push({
+        code: "config.tokens.name.missing",
+        message: "All `tokens` entries must include `name`.",
+        path: "tokens",
+        level: "error",
+      });
       continue;
     }
-    if (token.specialized) {
+    if ("specialized" in token) {
       if (
         !token.specialized.base ||
         typeof token.specialized.base !== "string" ||
         !token.specialized.term ||
         typeof token.specialized.term !== "string"
       ) {
-        errors.push(
-          `Token '${token.name}': \`specialized\` must include non-empty \`base\` and \`term\`.`,
-        );
+        issues.push({
+          code: "config.tokens.specialized.invalid",
+          message: `Token '${token.name}': \`specialized\` must include non-empty \`base\` and \`term\`.`,
+          path: `tokens.${token.name}.specialized`,
+          level: "error",
+        });
       }
     } else {
       if (!token.pattern || typeof token.pattern !== "string") {
-        errors.push(
-          `Token '${token.name}': \`pattern\` must be a non-empty string.`,
-        );
+        issues.push({
+          code: "config.tokens.pattern.missing",
+          message: `Token '${token.name}': \`pattern\` must be a non-empty string.`,
+          path: `tokens.${token.name}.pattern`,
+          level: "error",
+        });
       } else if (token.pattern.trim().length === 0) {
-        errors.push(
-          `Token '${token.name}': \`pattern\` must be a non-empty string.`,
-        );
+        issues.push({
+          code: "config.tokens.pattern.empty",
+          message: `Token '${token.name}': \`pattern\` must be a non-empty string.`,
+          path: `tokens.${token.name}.pattern`,
+          level: "error",
+        });
       } else if (validationMode !== "off") {
         validateTokenPattern(
           `Token '${token.name}': pattern`,
           token.pattern,
-          errors,
+          issues,
         );
       }
     }
@@ -108,7 +164,12 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
 
   for (const [name, count] of tokenNameCounts) {
     if (count > 1) {
-      errors.push(`Duplicate token name '${name}' in \`tokens\`.`);
+      issues.push({
+        code: "config.tokens.duplicate",
+        message: `Duplicate token name '${name}' in \`tokens\`.`,
+        path: "tokens",
+        level: "error",
+      });
     }
   }
 
@@ -119,19 +180,28 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
 
   for (const token of tokens) {
     if (
-      token.specialized?.base &&
+      "specialized" in token &&
+      token.specialized.base &&
       !availableTokens.has(token.specialized.base)
     ) {
-      errors.push(
-        `Token '${token.name}': specialized base '${token.specialized.base}' is not a known token.`,
-      );
+      issues.push({
+        code: "config.tokens.specialized.unknownBase",
+        message: `Token '${token.name}': specialized base '${token.specialized.base}' is not a known token.`,
+        path: `tokens.${token.name}.specialized.base`,
+        level: "error",
+      });
     }
   }
 
   if (config.precedence) {
     for (const tokenName of config.precedence) {
       if (!availableTokens.has(tokenName)) {
-        errors.push(`\`precedence\` references unknown token '${tokenName}'.`);
+        issues.push({
+          code: "config.precedence.unknownToken",
+          message: `\`precedence\` references unknown token '${tokenName}'.`,
+          path: "precedence",
+          level: "error",
+        });
       }
     }
   }
@@ -150,7 +220,7 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
         `Rule '${def.grammarName}': grammarFields`,
         def.grammarFields,
         macroNames,
-        errors,
+        issues,
       );
     }
 
@@ -174,39 +244,73 @@ export function validateConfig(config: GrammarGeneratorConfig): string[] {
           if (ref === "_") continue;
           if (allowUnknown.has(ref)) continue;
           if (!known.has(ref)) {
-            errors.push(
-              `Rule '${def.grammarName}': grammarFields references unknown identifier '${ref}'.`,
-            );
+            issues.push({
+              code: "config.astTypes.unknownReference",
+              message: `Rule '${def.grammarName}': grammarFields references unknown identifier '${ref}'.`,
+              path: `astTypes.${def.grammarName}.grammarFields`,
+              level: "error",
+            });
           }
         }
       }
     }
   }
 
-  return errors;
+  return issues;
 }
 
-function validatePassthrough(label: string, input: string, errors: string[]) {
+function validatePassthrough(
+  label: string,
+  input: string,
+  issues: ValidationIssue[],
+) {
   const problems = findBalanceProblems(input);
-  for (const p of problems) errors.push(`${label}: ${p}`);
+  for (const p of problems)
+    issues.push({
+      code: "config.passthrough.unbalanced",
+      message: `${label}: ${p}`,
+      level: "error",
+    });
 
   const tokenBalanceProblems = findDelimiterTokenBalanceProblems(input);
-  for (const p of tokenBalanceProblems) errors.push(`${label}: ${p}`);
+  for (const p of tokenBalanceProblems)
+    issues.push({
+      code: "config.passthrough.tokenUnbalanced",
+      message: `${label}: ${p}`,
+      level: "error",
+    });
 
   if (/\|\s*\|/.test(input)) {
-    errors.push(`${label}: contains empty alternative ('||').`);
+    issues.push({
+      code: "config.passthrough.emptyAlternative",
+      message: `${label}: contains empty alternative ('||').`,
+      level: "error",
+    });
   }
 }
 
-function validateTokenPattern(label: string, input: string, errors: string[]) {
+function validateTokenPattern(
+  label: string,
+  input: string,
+  issues: ValidationIssue[],
+) {
   // Token patterns frequently contain quoted strings (and sometimes single-quoted
   // fragments) that we don't try to fully parse here. Keep checks limited to
   // delimiter-token balance and obvious empty alternatives.
   const tokenBalanceProblems = findDelimiterTokenBalanceProblems(input);
-  for (const p of tokenBalanceProblems) errors.push(`${label}: ${p}`);
+  for (const p of tokenBalanceProblems)
+    issues.push({
+      code: "config.tokenPattern.tokenUnbalanced",
+      message: `${label}: ${p}`,
+      level: "error",
+    });
 
   if (/\|\s*\|/.test(input)) {
-    errors.push(`${label}: contains empty alternative ('||').`);
+    issues.push({
+      code: "config.tokenPattern.emptyAlternative",
+      message: `${label}: contains empty alternative ('||').`,
+      level: "error",
+    });
   }
 }
 
@@ -214,14 +318,16 @@ function validateMacroInvocations(
   label: string,
   input: string,
   macroNames: Set<string>,
-  errors: string[],
+  issues: ValidationIssue[],
 ) {
   const invocations = extractMacroInvocations(input);
   for (const name of invocations) {
     if (!macroNames.has(name)) {
-      errors.push(
-        `${label}: uses macro '${name}<...>' but no such macro is defined in config.macros.`,
-      );
+      issues.push({
+        code: "config.macros.undefined",
+        message: `${label}: uses macro '${name}<...>' but no such macro is defined in config.macros.`,
+        level: "error",
+      });
     }
   }
 }

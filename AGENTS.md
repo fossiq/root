@@ -20,6 +20,7 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - Never suppress, hide, or eliminate issues (e.g., silence warnings/errors, delete logs, modify configs to hide problems). Always ask user instead.
 
 ## HIGH: Communication & Output
+- **C4 Rule (Most Important)**: All content creation and thoughts must be Clear, Concise, Correct, Complete, and Confident/Assertive.
 - Keep responses very concise; avoid redundancy.
 - No large summaries or excessive apologies.
 - Use markdown with code blocks, e.g., `path/to/file.ts#L1-10`.

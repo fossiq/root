@@ -1,3 +1,5 @@
+import type { ValidationIssue } from "./model.js";
+
 /**
  * Configuration for generating Lezer grammar
  */
@@ -76,7 +78,7 @@ export interface PluginGrammarConfig {
  */
 export interface ASTTypeDefinition {
   /**
-   * Type name in the grammar
+   * Rule name in the grammar
    */
   grammarName: string;
 
@@ -100,25 +102,32 @@ export interface ASTTypeDefinition {
 /**
  * Token definition
  */
-export interface TokenDefinition {
-  /**
-   * Token name
-   */
-  name: string;
+export type TokenDefinition =
+  | {
+      /**
+       * Token name
+       */
+      name: string;
 
-  /**
-   * Token pattern in Lezer grammar format
-   */
-  pattern: string;
+      /**
+       * Token pattern in Lezer grammar format
+       */
+      pattern: string;
+    }
+  | {
+      /**
+       * Token name
+       */
+      name: string;
 
-  /**
-   * Whether this is a specialized token (like @specialize)
-   */
-  specialized?: {
-    base: string;
-    term: string;
-  };
-}
+      /**
+       * Whether this is a specialized token (like @specialize)
+       */
+      specialized: {
+        base: string;
+        term: string;
+      };
+    };
 
 /**
  * Generated grammar result
@@ -126,5 +135,5 @@ export interface TokenDefinition {
 export interface GeneratedGrammar {
   grammar: string;
   imports: string[];
-  errors: string[];
+  errors: readonly ValidationIssue[];
 }

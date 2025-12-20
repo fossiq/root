@@ -1,4 +1,4 @@
-import type { ValidationIssue } from "../model.js";
+import type { ValidationIssue, ValidationErrorCode } from "../model.js";
 
 const RESERVED_NAMES = new Set(["@tokens", "@precedence", "@top"]);
 
@@ -71,7 +71,7 @@ export function checkNameConflicts(
 }
 
 function issue(
-  code: string,
+  code: ValidationErrorCode,
   message: string,
   path: string | undefined,
   level: "error" | "warning",

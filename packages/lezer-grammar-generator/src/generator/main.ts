@@ -1,9 +1,8 @@
+import type { ValidationIssue } from "../model.js";
 import {
   GrammarGeneratorConfig,
-  GrammarPlugin,
   GeneratedGrammar,
   PluginGrammarConfig,
-  TokenDefinition,
 } from "../types.js";
 import { validateConfig } from "./validation.js";
 import {
@@ -70,7 +69,7 @@ ${macrosSection}
 export function generateGrammarFromPlugins(
   config: PluginGrammarConfig,
 ): GeneratedGrammar {
-  const pluginErrors: string[] = [];
+  const pluginErrors: ValidationIssue[] = [];
   const orderedPlugins = orderPlugins(config.plugins, pluginErrors);
 
   const merged = mergePlugins(orderedPlugins, config, pluginErrors);

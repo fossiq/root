@@ -65,7 +65,7 @@ export function generateTokensSection(tokens: TokenDefinition[]): string {
     tokenLines.push("");
     tokenLines.push("  // Custom tokens");
     tokens.forEach((token) => {
-      if (token.specialized) {
+      if ("specialized" in token) {
         tokenLines.push(
           `  ${token.name} { @specialize[@name=${token.name}]<${
             token.specialized.base

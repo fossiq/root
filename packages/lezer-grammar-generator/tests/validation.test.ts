@@ -17,7 +17,7 @@ describe("lezer-grammar-generator validation", () => {
 
     const result = generateGrammar(config);
     expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.errors.join("\n")).toContain(
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
       "`grammarName` must be a valid identifier",
     );
   });
@@ -31,7 +31,7 @@ describe("lezer-grammar-generator validation", () => {
     };
 
     const result = generateGrammar(config);
-    expect(result.errors.join("\n")).toContain(
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
       "at least one `astTypes` entry must have `isRule: true`",
     );
   });
@@ -53,7 +53,9 @@ describe("lezer-grammar-generator validation", () => {
     };
 
     const result = generateGrammar(config);
-    expect(result.errors.join("\n")).toContain("Duplicate token name 'X'");
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
+      "Duplicate token name 'X'",
+    );
   });
 
   test("detects precedence referencing unknown token", () => {
@@ -70,7 +72,7 @@ describe("lezer-grammar-generator validation", () => {
     };
 
     const result = generateGrammar(config);
-    expect(result.errors.join("\n")).toContain(
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
       "`precedence` references unknown token 'DoesNotExist'",
     );
   });
@@ -115,7 +117,9 @@ describe("lezer-grammar-generator validation", () => {
     };
 
     const result = generateGrammar(config);
-    expect(result.errors.join("\n")).toContain("unbalanced paren tokens");
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
+      "unbalanced paren tokens",
+    );
   });
 
   test("basic mode detects missing macro definitions", () => {
@@ -133,7 +137,9 @@ describe("lezer-grammar-generator validation", () => {
     };
 
     const result = generateGrammar(config);
-    expect(result.errors.join("\n")).toContain("uses macro 'kw<...>'");
+    expect(result.errors.map((e) => e.message).join("\n")).toContain(
+      "uses macro 'kw<...>'",
+    );
   });
 
   test("strict mode detects unknown identifiers (with allowlist)", () => {

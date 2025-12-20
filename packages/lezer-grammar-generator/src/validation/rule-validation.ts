@@ -1,4 +1,4 @@
-import type { ValidationIssue } from "../model.js";
+import type { ValidationIssue, ValidationErrorCode } from "../model.js";
 
 interface NameValidationResult {
   names: Set<string>;
@@ -68,7 +68,7 @@ export function validateRuleProperties(
 }
 
 function issue(
-  code: string,
+  code: ValidationErrorCode,
   message: string,
   path: string | undefined,
   level: "error" | "warning",

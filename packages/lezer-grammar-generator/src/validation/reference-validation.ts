@@ -1,4 +1,8 @@
-import type { PatternExpression, ValidationIssue } from "../model.js";
+import type {
+  PatternExpression,
+  ValidationIssue,
+  ValidationErrorCode,
+} from "../model.js";
 
 /** Validate references in expressions against the symbol table. */
 export function validateReferences(
@@ -239,7 +243,7 @@ function traverse(
 }
 
 function issue(
-  code: string,
+  code: ValidationErrorCode,
   message: string,
   path: string | undefined,
   level: "error" | "warning",
