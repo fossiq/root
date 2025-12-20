@@ -42,6 +42,13 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - No planning terms (e.g., "phase1") in names/comments—use descriptive/feature names.
 - Avoid barrel files (index.ts files that re-export everything); import directly from specific modules.
 
+### Template Usage (Eta.js)
+- **Whitespace Control**: Eta templates preserve all whitespace, including newlines. Use `<%- %>` to trim whitespace before/after tags for precise output control.
+- **Template Loading**: Load and compile templates once at module initialization; cache for performance.
+- **Section-Based Rendering**: For complex outputs, split into separate templates per section and join results in TypeScript to maintain control over separators.
+- **Error Handling**: Template compilation/rendering errors should be caught and reported descriptively.
+- **Separation of Concerns**: Keep logic in TypeScript; use templates only for string formatting and iteration.
+
 ### Architecture
 - Monorepo with `packages/` workspaces.
 - Clear package boundaries; separate concerns.

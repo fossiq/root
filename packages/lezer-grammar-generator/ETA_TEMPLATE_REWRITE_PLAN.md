@@ -49,31 +49,39 @@ This plan outlines a rewrite using [Eta.js](https://eta.js.org/), a lightweight,
 ## Rewrite Scope and Strategy
 
 ### Phase 1: Core Serialization Templates
-**Priority: High** | **Effort: Medium** | **Risk: Low**
+**Priority: High** | **Effort: Medium** | **Risk: Low** | **Status: COMPLETED**
 
-#### Files to Create:
+#### Files Created:
 ```
 src/templates/
-├── grammar.eta          # Main grammar template
-├── sections/
-│   ├── tokens.eta       # Token definitions
-│   ├── externals.eta    # External tokens
-│   ├── dialects.eta     # Dialect declarations
-│   ├── precedence.eta   # Precedence rules
-│   ├── skip.eta         # Skip patterns
-│   └── rules.eta        # Rule definitions
-└── partials/
-    ├── token.eta        # Individual token template
-    ├── rule.eta         # Individual rule template
-    └── property.eta     # Property formatting
+├── template-manager.ts  # Template management with Eta integration
+├── helpers.ts           # Serialization helper functions
+├── index.ts             # Template loading
+└── sections/
+    ├── tokens.eta       # Token definitions
+    ├── local-tokens.eta # Local token definitions
+    ├── externals.eta    # External tokens
+    ├── dialects.eta     # Dialect declarations
+    ├── precedence.eta   # Precedence rules
+    ├── detectDelim.eta  # Detect delimiter directive
+    ├── skip.eta         # Skip patterns
+    ├── top.eta          # Top rule declaration
+    └── rules.eta        # Rule definitions
 ```
 
-#### Migration Steps:
-1. Install Eta.js as dependency
-2. Create base template infrastructure
-3. Rewrite `grammar-serialize.ts` to use templates
-4. Update tests to verify template output
-5. Remove old string concatenation code
+#### Migration Steps Completed:
+1. ✅ Install Eta.js as dependency (already present)
+2. ✅ Create base template infrastructure (TemplateManager, helpers)
+3. ✅ Rewrite `grammar-serialize.ts` to render sections separately and join
+4. ✅ Update tests to match new output format
+5. ✅ Remove old string concatenation code
+
+#### Lessons Learned:
+- **Whitespace Sensitivity**: Eta templates preserve all whitespace, requiring careful control of newlines for correct grammar formatting
+- **Section-Based Approach**: Splitting into separate templates per section provides better maintainability than a single large template
+- **Join Strategy**: Rendering sections individually and joining in TypeScript gives precise control over separators
+- **Template Compilation**: Pre-compile templates for performance; use `Eta.renderString` for rendering
+- **Error Handling**: Template loading and rendering need robust error handling for missing files or syntax issues
 
 ### Phase 2: Legacy Generator Templates
 **Priority: Medium** | **Effort: High** | **Risk: Medium**
@@ -262,4 +270,4 @@ This rewrite will significantly improve the maintainability and reliability of t
 
 The phased approach ensures minimal risk while providing substantial benefits. Eta.js is an excellent fit for this use case due to its performance, simplicity, and JavaScript-native syntax.
 
-**Ready to implement Phase 1 when resources allow.**
+**Phase 1 completed successfully. Phase 2 (Legacy Generator Templates) ready for implementation.**
