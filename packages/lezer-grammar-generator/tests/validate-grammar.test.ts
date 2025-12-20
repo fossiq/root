@@ -61,4 +61,54 @@ describe("validateGrammar", () => {
     expect(errors.map((e) => e.code)).toContain("rule.invalidName");
     expect(errors.map((e) => e.code)).toContain("token.invalidName");
   });
+
+  test("validates local tokens", () => {
+    const def: GrammarDefinition = {
+      tokens: [{ name: "GlobalToken", pattern: regex("g") }],
+      localTokens: [
+        { name: "LocalToken", pattern: regex("l") },
+        { name: "123Bad", pattern: regex("b") }, // invalid name
+        { name: "LocalToken", pattern: regex("dup") }, // duplicate
+      ],
+      dialects: ["dialect1"],
+      rules: {
+        start: { expression: ref("GlobalToken") },
+      },
+    };
+
+    const result = validateGrammar(def);
+    const errors = result.issues.filter((issue) => issue.level === "error");
+
+    expect(errors.map((e) => e.code)).toContain("token.invalidName");
+    expect(errors.map((e) => e.code)).toContain("token.duplicate");
+  });
+
+  test("detects local token name conflicts", () => {
+    const def: GrammarDefinition = {
+      tokens: [{ name: "Conflict", pattern: regex("c") }],
+      localTokens: [{ name: "Conflict", pattern: regex("l") }],
+      rules: {
+        start: { expression: ref("Conflict") },
+      },
+    };
+
+    const result = validateGrammar(def);
+    const errors = result.issues.filter((issue) => issue.level === "error");
+
+    expect(errors.map((e) => e.code)).toContain("name.duplicate");
+  });
+
+  test("validates local token dialects", () => {
+    const def: GrammarDefinition = {
+      localTokens: [{ name: "Local", pattern: regex("l"), dialect: "unknown" }],
+      rules: {
+        start: { expression: ref("Local") },
+      },
+    };
+
+    const result = validateGrammar(def);
+    const errors = result.issues.filter((issue) => issue.level === "error");
+
+    expect(errors.map((e) => e.code)).toContain("dialect.unknown");
+  });
 });

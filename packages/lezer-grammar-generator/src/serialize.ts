@@ -57,6 +57,10 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
     sections.push(renderTokens(def.tokens));
   }
 
+  if (def.localTokens && def.localTokens.length > 0) {
+    sections.push(renderLocalTokens(def.localTokens));
+  }
+
   if (def.externals && def.externals.length > 0) {
     sections.push(renderExternals(def.externals));
   }
@@ -94,6 +98,16 @@ function renderTokens(tokens: readonly TokenDef[]): string {
     return `  ${token.name}${props} { ${pattern} }`;
   });
   return `@tokens {\n${lines.join("\n")}\n}`;
+}
+
+function renderLocalTokens(tokens: readonly TokenDef[]): string {
+  const sorted = [...tokens].sort((a, b) => a.name.localeCompare(b.name));
+  const lines = sorted.map((token) => {
+    const pattern = serializePattern(token.pattern);
+    const props = token.dialect ? `[@dialect=${token.dialect}]` : "";
+    return `  ${token.name}${props} { ${pattern} }`;
+  });
+  return `@local tokens {\n${lines.join("\n")}\n}`;
 }
 
 function renderExternals(externals: readonly string[]): string {

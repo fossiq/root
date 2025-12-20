@@ -48,6 +48,39 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
     }
   }
 
+  const localTokenNames = new Set<string>();
+  const localTokenCounts = new Map<string, number>();
+  for (const token of def.localTokens ?? []) {
+    localTokenCounts.set(
+      token.name,
+      (localTokenCounts.get(token.name) || 0) + 1,
+    );
+    if (!isIdentifier(token.name)) {
+      issues.push(
+        issue(
+          "token.invalidName",
+          `Invalid local token name '${token.name}'.`,
+          `localTokens.${token.name}`,
+          "error",
+        ),
+      );
+      continue;
+    }
+    localTokenNames.add(token.name);
+  }
+  for (const [name, count] of localTokenCounts) {
+    if (count > 1) {
+      issues.push(
+        issue(
+          "token.duplicate",
+          `Duplicate local token name '${name}'.`,
+          `localTokens.${name}`,
+          "error",
+        ),
+      );
+    }
+  }
+
   const declaredDialects = new Set(def.dialects ?? []);
   for (const token of def.tokens ?? []) {
     if (token.dialect && !declaredDialects.has(token.dialect)) {
@@ -56,6 +89,18 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
           "dialect.unknown",
           `Unknown dialect '${token.dialect}' for token '${token.name}'.`,
           `tokens.${token.name}`,
+          "error",
+        ),
+      );
+    }
+  }
+  for (const token of def.localTokens ?? []) {
+    if (token.dialect && !declaredDialects.has(token.dialect)) {
+      issues.push(
+        issue(
+          "dialect.unknown",
+          `Unknown dialect '${token.dialect}' for local token '${token.name}'.`,
+          `localTokens.${token.name}`,
           "error",
         ),
       );
@@ -108,6 +153,38 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
         ),
       );
     }
+    if (localTokenNames.has(tokenName)) {
+      issues.push(
+        issue(
+          "name.duplicate",
+          `Name '${tokenName}' is used by both a global and local token.`,
+          `tokens.${tokenName}`,
+          "error",
+        ),
+      );
+    }
+  }
+  for (const tokenName of localTokenNames) {
+    if (RESERVED_NAMES.has(tokenName)) {
+      issues.push(
+        issue(
+          "token.reservedName",
+          `Local token name '${tokenName}' is reserved.`,
+          `localTokens.${tokenName}`,
+          "error",
+        ),
+      );
+    }
+    if (ruleNameSet.has(tokenName)) {
+      issues.push(
+        issue(
+          "name.duplicate",
+          `Name '${tokenName}' is used by both a local token and a rule.`,
+          `localTokens.${tokenName}`,
+          "error",
+        ),
+      );
+    }
   }
 
   const externals = new Set(def.externals ?? []);
@@ -138,7 +215,11 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
         ),
       );
     }
-    if (ruleNameSet.has(name) || tokenNames.has(name)) {
+    if (
+      ruleNameSet.has(name) ||
+      tokenNames.has(name) ||
+      localTokenNames.has(name)
+    ) {
       issues.push(
         issue(
           "external.duplicate",
@@ -194,6 +275,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   const symbolTable = new Set<string>([
     ...ruleNameSet,
     ...tokenNames,
+    ...localTokenNames,
     ...externals,
   ]);
 

@@ -57,4 +57,28 @@ statement { expr<T> }
 expr<T>[kind="expr", prec=1] { Number | Identifier }
 `);
   });
+
+  test("serializes local tokens", () => {
+    const def: GrammarDefinition = {
+      tokens: [{ name: "GlobalToken", pattern: raw('"global"') }],
+      localTokens: [
+        { name: "LocalToken", pattern: raw('"local"') },
+        { name: "AnotherLocal", pattern: regex("[a-z]+") },
+      ],
+      rules: {
+        start: { expression: choice(ref("GlobalToken"), ref("LocalToken")) },
+      },
+    };
+
+    const grammar = generateLezerGrammar(def);
+
+    expect(grammar).toContain(`@tokens {
+  GlobalToken { "global" }
+}
+
+@local tokens {
+  AnotherLocal { $[a-z]+ }
+  LocalToken { "local" }
+}`);
+  });
 });

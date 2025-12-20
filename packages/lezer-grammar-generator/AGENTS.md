@@ -174,6 +174,7 @@ Current status (as of last update):
 - ✅ `@skip` blocks
 - ✅ `@detectDelim`
 - ✅ `@dialects`
+- ✅ `@local tokens`
 - ⚠️ Some advanced features may need implementation
 
 ## Quick Reference
@@ -198,8 +199,7 @@ Current status (as of last update):
 
 The following Lezer grammar features are not yet supported. Agents should work on these tasks and remove them from this list once implemented:
 
-1. **`@local tokens`**: Local token groups for context-specific tokenization (e.g., within string parsing)
-2. **`@extend` operator**: Token extension (allowing both base and specialized tokens to be valid)
+1. **`@extend` operator**: Token extension (allowing both base and specialized tokens to be valid)
 3. **Token properties**: Support for adding properties to tokens (e.g., `#[@name=value]`)
 4. **Precedence markers**: Support for `!name` markers in pattern expressions to resolve conflicts
 5. **`@cut` precedence**: Support for `@cut` in precedence declarations for forced precedence

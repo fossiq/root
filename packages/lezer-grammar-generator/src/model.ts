@@ -46,6 +46,7 @@ export interface GrammarDefinition {
   readonly detectDelim?: boolean;
   readonly dialects?: readonly string[];
   readonly tokens?: readonly TokenDef[];
+  readonly localTokens?: readonly TokenDef[];
   readonly macros?: Readonly<Record<string, MacroDef>>;
   readonly rules: Readonly<Record<string, RuleDef>>;
   readonly precedence?: readonly PrecedenceLevel[];
