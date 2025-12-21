@@ -22,6 +22,35 @@ describe("helpers", () => {
     expect(regex("[a-z]+")).toEqual({ type: "regex", pattern: "[a-z]+" });
   });
 
+  test("regex helper with multiple patterns", () => {
+    const patterns = ["[a-z]+", "[A-Z]+", "[0-9]+"];
+    expect(regex(patterns)).toEqual({
+      type: "regex",
+      pattern: patterns,
+    });
+  });
+
+  test("regex helper with RegExp objects", () => {
+    const regexObj = /[a-z]+/;
+    expect(regex(regexObj)).toEqual({ type: "regex", pattern: regexObj });
+  });
+
+  test("regex helper with multiple RegExp objects", () => {
+    const patterns = [/[a-z]+/, /[A-Z]+/, /[0-9]+/];
+    expect(regex(patterns)).toEqual({
+      type: "regex",
+      pattern: patterns,
+    });
+  });
+
+  test("regex helper with mixed pattern types", () => {
+    const patterns = ["[a-z]+", /[A-Z]+/, "[0-9]+"];
+    expect(regex(patterns)).toEqual({
+      type: "regex",
+      pattern: patterns,
+    });
+  });
+
   test("seq and choice helpers", () => {
     const seqExpr = seq(ref("A"), ref("B"), ref("C"));
     expect(seqExpr).toEqual({

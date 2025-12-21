@@ -14,7 +14,7 @@
   NotContains { "!contains" }
   NotHas { "!has" }
   NotIn { "!in" }
-  Number { @digit+(\.@digit+)? }
+  Number { @digit+("."@digit+)? }
   OpenBracket { "[" }
   OpenParen { "(" }
   Percent { "%" }
@@ -28,9 +28,12 @@
   Semicolon { ";" }
   Slash { "/" }
   Star { "*" }
-  String { @"!["]*"|@'![']*'|h"!["]*"|h@"!["]*"|("!["\\]|\\.)*"|'(!['\\]|\\.)*' }
-  Timespan { @digit+(\.@digit+)?(d|h|m|s|ms|microsecond|tick)+ }
+  Timespan { @digit+("."@digit+)?(d|h|m|s|ms|microsecond|tick)+ }
   whitespace { $[ \t\n\r]+ }
+}
+
+@macros {
+  kw<term> { @specialize[@name={term}]<Identifier, term> }
 }
 
 @top KQL { Query }
@@ -52,6 +55,3 @@ PrimaryExpression { "(" Expression ")" | Identifier | Number | String }
 TableExpression { Identifier | "(" PipelineExpression ")" }
 
 WhereClause { kw<"where"> Expression }
-
-
-kw<term> { @specialize[@name={term}]<Identifier, term> }

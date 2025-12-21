@@ -160,13 +160,14 @@ export class CstToAstContext {
                     end: child.to,
                 };
 
-            case "OpenParen":
+            case "OpenParen": {
                 // Parenthesized expression: skip open paren, map inner expression
                 const innerExpr = child.nextSibling;
                 if (innerExpr) {
                     return this.mapScalarExpression(innerExpr);
                 }
                 return this.errorNode(node, "Empty parenthesized expression");
+            }
 
             default:
                 return this.errorNode(

@@ -51,14 +51,14 @@ Note: Agents must confirm each precedence tier against the specific KQL doc for 
 
 ### Phased dependency and parallelization windows
 
-| Phase | Scope | Blockers | Parallelizable |
-| --- | --- | --- | --- |
-| Phase 0: Benchmark + Reference | Implement core tokens + single minimal operator to prove TS-to-.grammar and CST-to-AST roundtrip | None (early) | No, single implementer to create template |
-| Phase 1: Core Infrastructure | Tokens, whitespace, comments, literals, identifiers, pipeline top-level | None after Phase 0 | No |
-| Phase 2: Scalar Expressions | Arithmetic, comparison, string ops, function calls, member/call precedence | Phase 1 complete | Yes (split sub-areas) |
-| Phase 3: Tabular Operators | Grouped plugins (filter/sort, projection, aggregation, joins, multi-table) | Phase 2 complete | Yes, use grouped plugins not one-per-operator |
-| Phase 4: CST-to-AST Mapping | Converters per operator group, error mapping, AST validation | Phase 3 complete | Yes, converters can be parallel per operator group |
-| Phase 5: Integration and CI | Tests, performance, benchmark, documentation, release | Phase 4 complete | No, integration step |
+| Phase                          | Scope                                                                                            | Blockers           | Parallelizable                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ | ------------------ | -------------------------------------------------- |
+| Phase 0: Benchmark + Reference | Implement core tokens + single minimal operator to prove TS-to-.grammar and CST-to-AST roundtrip | None (early)       | No, single implementer to create template          |
+| Phase 1: Core Infrastructure   | Tokens, whitespace, comments, literals, identifiers, pipeline top-level                          | None after Phase 0 | No                                                 |
+| Phase 2: Scalar Expressions    | Arithmetic, comparison, string ops, function calls, member/call precedence                       | Phase 1 complete   | Yes (split sub-areas)                              |
+| Phase 3: Tabular Operators     | Grouped plugins (filter/sort, projection, aggregation, joins, multi-table)                       | Phase 2 complete   | Yes, use grouped plugins not one-per-operator      |
+| Phase 4: CST-to-AST Mapping    | Converters per operator group, error mapping, AST validation                                     | Phase 3 complete   | Yes, converters can be parallel per operator group |
+| Phase 5: Integration and CI    | Tests, performance, benchmark, documentation, release                                            | Phase 4 complete   | No, integration step                               |
 
 ## Conclusion: Implementation Plan, Conventions, and Checklist
 
@@ -92,9 +92,9 @@ export const plugin: GrammarPlugin = {
   rules: {
     // Lezer-like rule strings or structured form that the generator expects
     Query: `LetStatement* PipelineExpression`,
-    PipelineExpression: `TableExpression ( "|" TabularOperator )*`
+    PipelineExpression: `TableExpression ( "|" TabularOperator )*`,
   },
-  precedence: []
+  precedence: [],
 };
 
 export default plugin;
@@ -135,7 +135,7 @@ export class CstToAstContext {
       type: "ErrorNode",
       error: msg,
       from: node.from,
-      to: node.to
+      to: node.to,
     } as AST.ErrorNode;
   }
 }
@@ -153,7 +153,7 @@ export function mapWhereOperator(node: SyntaxNode, ctx: CstToAstContext) {
   if (!expr) return ctx.errorNode(node, "Missing expression");
   return {
     type: "WhereOperator",
-    expression: ctx.mapScalarExpression(expr)
+    expression: ctx.mapScalarExpression(expr),
   };
 }
 ```
@@ -208,6 +208,23 @@ export function mapWhereOperator(node: SyntaxNode, ctx: CstToAstContext) {
 - [ ] Operator teams: implement grouped operators (2-3 days per group, parallel after scalars).
 - [ ] CST-to-AST team: implement converters per operator group in parallel with operator grammar development; validate via feature tests.
 - [ ] CI/QA: implement auto-generated tests from Feature Inventory and performance checks.
+
+## Active Tasks
+
+- [ ] Implement the remaining statement/operator/expression coverage tracked in `README.md` using grouped plugins to keep files <150 lines.
+- [ ] Auto-generate test suites from `src/kql-spec/features.ts` so each feature’s positive/negative cases gate its status.
+- [x] Fix macro and regex serialization in `@fossiq/lezer-grammar-generator` so `scripts/generate-kql-grammar.ts` can drop the post-processing hack. (Complete: macros now serialize natively.)
+- [ ] Refactor token definitions (e.g., string literals) to use the multi-pattern `regex()` helper for clearer maintenance. **Unfixed:** string literal token serialization/regeneration still breaks `lezer-generator`; open a follow-up thread dedicated to the string token bug.
+- [ ] Enforce lint/test/perf checklist items in CI before merging additional grammar plugins.
+
+### Debug Hand-off
+
+Next agent instructions for the string literal investigation:
+
+1. Re-run `bun scripts/generate-kql-grammar.ts` followed by `bun run build:grammar` inside `packages/kql-lezer`; note the `Unexpected character "\\" (src/kql.grammar 31:106)` failure.
+2. Inspect `packages/kql-lezer/src/grammar/plugins/tokens/literals.ts` and the generated `String` token in `src/kql.grammar`; the mix of `choice/seq` and `regex` is causing malformed Lezer output (`@` quoting and unescaped backslashes).
+3. Adjust the helper patterns so verbatim (`@"..."`, `@'...'`, `h@"..."`, etc.) and escape-aware strings serialize into valid Lezer regex without combining literal segments that introduce stray quotes.
+4. Once the token serializes cleanly, retry the generator + `lezer-generator` pipeline and update tests to cover the regression.
 
 ## Final decision points (enforceable)
 

@@ -5,9 +5,14 @@ export function literal(value: string): PatternExpression {
     return { type: "literal", value };
 }
 
-/** Create a regex pattern (accepts string or RegExp object). */
-export function regex(pattern: string | RegExp): PatternExpression {
-    return { type: "regex", pattern };
+/**
+ * Create a regex pattern (accepts a single pattern or multiple patterns).
+ * When multiple patterns are provided, they are joined with `|` (choice) operator.
+ */
+export function regex(
+  pattern: string | RegExp | readonly (string | RegExp)[],
+): PatternExpression {
+  return { type: "regex", pattern };
 }
 
 /** Reference a rule/token by name, optionally with args. */

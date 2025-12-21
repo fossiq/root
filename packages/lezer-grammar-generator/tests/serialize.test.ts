@@ -81,4 +81,25 @@ expr<T>[kind="expr", prec=1] { Number | Identifier }
   LocalToken { "local" }
 }`);
   });
+
+  test("serializes macros block", () => {
+    const def: GrammarDefinition = {
+      tokens: [{ name: "Identifier", pattern: regex("[A-Za-z]+") }],
+      macros: {
+        "kw<term>": {
+          params: ["term"],
+          expression: raw("@specialize[@name={term}]<Identifier, term>"),
+        },
+      },
+      rules: {
+        start: { expression: ref("Identifier") },
+      },
+    };
+
+    const grammar = generateLezerGrammar(def);
+
+    expect(grammar).toContain(`@macros {
+  kw<term> { @specialize[@name={term}]<Identifier, term> }
+}`);
+  });
 });

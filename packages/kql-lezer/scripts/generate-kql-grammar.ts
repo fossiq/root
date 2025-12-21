@@ -1,6 +1,6 @@
 import {
-    generateLezerGrammar,
-    validateGrammar,
+  generateLezerGrammar,
+  validateGrammar,
 } from "@fossiq/lezer-grammar-generator";
 import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -18,24 +18,15 @@ const def = grammarDefinition;
 // Validate the grammar definition before generation
 const validation = validateGrammar(def);
 if (!validation.ok) {
-    console.error("Grammar validation failed:");
-    for (const issue of validation.issues) {
-        console.error(`  [${issue.level}] ${issue.message}`);
-    }
-    process.exit(1);
+  console.error("Grammar validation failed:");
+  for (const issue of validation.issues) {
+    console.error(`  [${issue.level}] ${issue.message}`);
+  }
+  process.exit(1);
 }
 
 // Generate the .grammar source text
-let grammarText = generateLezerGrammar(def);
-
-// HACK: inject macros because generateLezerGrammar doesn't support them
-if ((def as any).macros) {
-    const macros = (def as any).macros;
-    const macrosText = Object.entries(macros)
-        .map(([name, body]) => `${name} { ${body} }`)
-        .join("\n\n");
-    grammarText += `\n\n${macrosText}\n`;
-}
+const grammarText = generateLezerGrammar(def);
 
 // Write the grammar file next to this script
 // Resolve __dirname for ESM and compute output path

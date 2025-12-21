@@ -1,7 +1,10 @@
 /** Expression tree used for Lezer rule/token patterns. */
 export type PatternExpression =
   | { type: "literal"; value: string }
-  | { type: "regex"; pattern: string | RegExp }
+  | {
+      type: "regex";
+      pattern: string | RegExp | readonly (string | RegExp)[];
+    }
   | { type: "ref"; name: string; args?: readonly string[] }
   | { type: "seq"; elements: readonly PatternExpression[] }
   | { type: "choice"; alternatives: readonly PatternExpression[] }

@@ -2,6 +2,52 @@ import type { PatternExpression } from "../model.js";
 
 const DEFAULT_DEPTH_LIMIT = 1000;
 
+function isEscaped(pattern: string, index: number): boolean {
+  let backslashCount = 0;
+  for (let i = index - 1; i >= 0; i--) {
+    if (pattern[i] !== "\\") break;
+    backslashCount++;
+  }
+  return backslashCount % 2 === 1;
+}
+
+function replaceLiteralDotsOutsideCharClasses(pattern: string): string {
+  let result = "";
+  let inCharClass = false;
+
+  for (let i = 0; i < pattern.length; ) {
+    const char = pattern[i];
+
+    if (char === "\\") {
+      const next = pattern[i + 1];
+      if (next === undefined) {
+        result += "\\";
+        break;
+      }
+
+      if (next === "." && !inCharClass) {
+        result += '"."';
+      } else {
+        result += `\\${next}`;
+      }
+
+      i += 2;
+      continue;
+    }
+
+    if (char === "[" && !isEscaped(pattern, i)) {
+      inCharClass = true;
+    } else if (char === "]" && inCharClass && !isEscaped(pattern, i)) {
+      inCharClass = false;
+    }
+
+    result += char;
+    i += 1;
+  }
+
+  return result;
+}
+
 /**
  * Convert a regex pattern to Lezer's native token syntax.
  *
@@ -15,11 +61,11 @@ const DEFAULT_DEPTH_LIMIT = 1000;
  * This is a best-effort conversion for common patterns.
  */
 export function convertRegexToLezer(pattern: string): string {
-  let result = pattern;
+  let result = replaceLiteralDotsOutsideCharClasses(pattern);
 
   // Step 1: Handle special characters that need quoting
-  // Quote literal @ not followed by a letter (to avoid interfering with Lezer builtins)
-  result = result.replace(/@(?![a-zA-Z])/g, '"@"');
+  // Quote literal @ not followed by a letter or quote (to avoid interfering with Lezer builtins)
+  result = result.replace(/@(?![a-zA-Z"'])/g, '"@"');
 
   // Quote escaped parentheses and braces to treat them as literals
   result = result.replace(/\\([(){}])/g, '"$1"');
@@ -45,10 +91,16 @@ export function convertRegexToLezer(pattern: string): string {
   return result;
 }
 
+function isMultiplePatterns(
+  pattern: string | RegExp | readonly (string | RegExp)[]
+): pattern is readonly (string | RegExp)[] {
+  return Array.isArray(pattern);
+}
+
 /** Serialize a PatternExpression to Lezer grammar text. */
 export function serializePattern(
   expr: PatternExpression,
-  depthLimit = DEFAULT_DEPTH_LIMIT,
+  depthLimit = DEFAULT_DEPTH_LIMIT
 ): string {
   return serializeExpr(expr, 0, depthLimit);
 }
@@ -56,7 +108,7 @@ export function serializePattern(
 function serializeExpr(
   expr: PatternExpression,
   depth: number,
-  limit: number,
+  limit: number
 ): string {
   if (depth > limit) {
     throw new Error("Pattern expression exceeds depth limit.");
@@ -66,9 +118,19 @@ function serializeExpr(
     case "literal":
       return JSON.stringify(expr.value);
     case "regex": {
-      const pattern =
-        typeof expr.pattern === "string" ? expr.pattern : expr.pattern.source;
-      return convertRegexToLezer(pattern);
+      if (isMultiplePatterns(expr.pattern)) {
+        // Multiple patterns: convert each and join with |
+        const patterns = expr.pattern.map((p) => {
+          const patternStr = typeof p === "string" ? p : p.source;
+          return convertRegexToLezer(patternStr);
+        });
+        return patterns.join(" | ");
+      } else {
+        // Single pattern (string or RegExp)
+        const pattern =
+          typeof expr.pattern === "string" ? expr.pattern : expr.pattern.source;
+        return convertRegexToLezer(pattern);
+      }
     }
     case "raw":
       return expr.content;
@@ -81,13 +143,13 @@ function serializeExpr(
     }
     case "seq": {
       const parts = expr.elements.map((e) =>
-        serializeExpr(e, depth + 1, limit),
+        serializeExpr(e, depth + 1, limit)
       );
       return parts.join(" ");
     }
     case "choice": {
       const parts = expr.alternatives.map((e) =>
-        serializeExpr(e, depth + 1, limit),
+        serializeExpr(e, depth + 1, limit)
       );
       return parts.join(" | ");
     }

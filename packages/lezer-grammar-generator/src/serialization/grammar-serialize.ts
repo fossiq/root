@@ -1,5 +1,6 @@
 import type {
   GrammarDefinition,
+  MacroDef,
   PrecedenceLevel,
   RuleDef,
   TokenDef,
@@ -38,6 +39,10 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
     sections.push(`@skip { ${serializePattern(def.skip)} }`);
   }
 
+  if (def.macros && Object.keys(def.macros).length > 0) {
+    sections.push(renderMacros(def.macros));
+  }
+
   if (def.top) {
     sections.push(renderTop(def.name, def.top));
   }
@@ -45,6 +50,19 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
   sections.push(renderRules(def.rules, def.top));
 
   return `${sections.join("\n\n")}\n`;
+}
+
+function renderMacros(macros: Readonly<Record<string, MacroDef>>): string {
+  const entries = Object.entries(macros).sort(([a], [b]) => a.localeCompare(b));
+  const lines = entries.map(([name, macro]) => {
+    const params =
+      macro.params && macro.params.length > 0
+        ? `<${macro.params.join(", ")}>`
+        : "";
+    const body = serializePattern(macro.expression);
+    return `  ${name}${params} { ${body} }`;
+  });
+  return `@macros {\n${lines.join("\n")}\n}`;
 }
 
 function renderTokens(tokens: readonly TokenDef[]): string {
@@ -95,7 +113,7 @@ function renderTop(name: string | undefined, top: string): string {
 
 function renderRules(
   rules: Readonly<Record<string, RuleDef>>,
-  top?: string,
+  top?: string
 ): string {
   const names = Object.keys(rules).sort((a, b) => a.localeCompare(b));
   const ordered =
