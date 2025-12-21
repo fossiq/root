@@ -39,9 +39,7 @@
   },
   "dependencies": {
     "@fossiq/kql-ast": "workspace:*",
-    "@lezer/common": "1.4.0",
-    "@lezer/highlight": "1.2.3",
-    "@lezer/lr": "1.4.5"
+    "chevrotain": "^11.0.3"
   },
   "peerDependencies": {
     "@codemirror/language": "6.11.3",
@@ -67,8 +65,7 @@
     "typescript": "catalog:"
   },
   "scripts": {
-    "build": "bun run build:grammar && tsc",
-    "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && bun scripts/fix-parser-types.ts",
+    "build": "tsc",
     "test": "bun test tests",
     "test:coverage": "bun test tests --coverage",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"

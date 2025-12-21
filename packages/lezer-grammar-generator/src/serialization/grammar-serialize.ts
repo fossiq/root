@@ -39,15 +39,11 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
     sections.push(`@skip { ${serializePattern(def.skip)} }`);
   }
 
-  if (def.macros && Object.keys(def.macros).length > 0) {
-    sections.push(renderMacros(def.macros));
-  }
-
   if (def.top) {
     sections.push(renderTop(def.name, def.top));
   }
 
-  sections.push(renderRules(def.rules, def.top));
+  sections.push(renderRules(def.rules, def.top, def.macros));
 
   return `${sections.join("\n\n")}\n`;
 }
@@ -113,20 +109,28 @@ function renderTop(name: string | undefined, top: string): string {
 
 function renderRules(
   rules: Readonly<Record<string, RuleDef>>,
-  top?: string
+  top?: string,
+  macros?: Readonly<Record<string, MacroDef>>
 ): string {
   const names = Object.keys(rules).sort((a, b) => a.localeCompare(b));
   const ordered =
     top && rules[top] ? [top, ...names.filter((n) => n !== top)] : names;
 
-  return ordered.map((name) => renderRule(name, rules[name]!)).join("\n\n");
+  return ordered.map((name) => renderRule(name, rules[name]!, macros)).join("\n\n");
 }
 
-function renderRule(name: string, rule: RuleDef): string {
+function renderRule(
+  name: string,
+  rule: RuleDef,
+  macros?: Readonly<Record<string, MacroDef>>
+): string {
   const params =
     rule.params && rule.params.length > 0 ? `<${rule.params.join(", ")}>` : "";
   const props = formatProps(rule.props, rule.dialect);
-  const expr = serializePattern(rule.expression);
+  let expr = serializePattern(rule.expression);
+  if (macros) {
+    expr = expandMacrosInText(expr, macros);
+  }
   const ruleText = `${name}${params}${props} { ${expr} }`;
 
   if (rule.skip) {
@@ -162,4 +166,27 @@ function formatProps(props: RuleDef["props"], dialect?: string): string {
 function formatPropValue(value: string | number | boolean): string {
   if (typeof value === "string") return JSON.stringify(value);
   return String(value);
+}
+
+function expandMacrosInText(
+  text: string,
+  macros: Readonly<Record<string, MacroDef>>
+): string {
+  return text.replace(/(\w+)<([^>]+)>/g, (match, macroName, argsStr) => {
+    const macro = macros[macroName];
+    if (!macro || !macro.params) return match;
+
+    const args = argsStr.split(",").map((arg: string) => arg.trim());
+    if (args.length !== macro.params.length) return match;
+
+    let expanded = serializePattern(macro.expression);
+    for (let i = 0; i < macro.params.length; i++) {
+      const param = macro.params[i];
+      const arg = args[i];
+      // Remove quotes if present
+      const cleanArg = arg.replace(/^"(.*)"$/, "$1");
+      expanded = expanded.replace(new RegExp(`\\{${param}\\}`, "g"), cleanArg);
+    }
+    return expanded;
+  });
 }

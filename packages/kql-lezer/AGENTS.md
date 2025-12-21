@@ -2,64 +2,68 @@
 
 ## Purpose
 
-- Lezer grammar + CodeMirror language support for KQL. Optimized for incremental editor feedback and compatible with `@fossiq/kql-ast` types.
+- Chevrotain-based parser + CodeMirror language support for KQL. Optimized for editor feedback and compatible with `@fossiq/kql-ast` types.
+
+## Parser Generator Switch
+
+Completed switch from Lezer to Chevrotain due to critical tool limitations:
+- lezer-generator doesn't support @macros or overlapping tokens, preventing complex grammars.
+- Chevrotain provides full JS control, better error handling, and easier maintenance.
+- Updated generator to expand macros instead of outputting @macros.
+- Implemented Chevrotain lexer and parser for KQL with basic tokenization and parsing.
 
 ## Structure
 
 ```
 packages/kql-lezer/
-├── src/kql.grammar     # Authoritative grammar
-├── src/parser.ts       # Generated (committed, @ts-nocheck)
-├── src/parser.terms.ts # Generated terms
-├── src/index.ts        # Language + helpers
-├── scripts/fix-parser-types.*
-├── tests/*             # 77 vitest suites
+├── src/lexer.ts        # Chevrotain token definitions and lexer
+├── src/parser.ts       # Chevrotain parser definition
+├── src/index.ts        # Parsing functions and token extraction
+├── tests/*             # Vitest suites
 └── package.json
 ```
 
 ## Commands
 
 - Install deps at repo root: `bun install`.
-- Build (generate parser + tsc): `bun run build`.
-- Grammar-only rebuild: `bun run build:grammar` (runs lezer-generator + fix parser banner).
+- Build: `bun run build` (TypeScript compilation).
 - Tests: `bun run test` (Vitest) or `bun run test --watch` while iterating.
 
 ## Workflow
 
-1. Edit `src/kql.grammar` for new syntax/operators.
-2. Run `bun run build:grammar` to regenerate `parser.ts`/`parser.terms.ts` and apply `@ts-nocheck` via `scripts/fix-parser-types.*`.
-3. Update `src/index.ts` for new exports/highlighting hooks.
+1. Edit `src/lexer.ts` for token changes.
+2. Edit `src/parser.ts` for grammar rule changes.
+3. Update `src/index.ts` for parsing/highlighting logic.
 4. Add/adjust tests under `tests/` before landing changes.
-5. Run `bun run test` to keep 77 suites passing.
+5. Run `bun run test` to ensure suites pass.
 
-## Highlights & Status (2025-12-09)
+## Highlights & Status
 
-- Phase: Grammar + CodeMirror integration complete; polishing highlighting contrast.
-- Completed: full operator coverage (where/project/extend/sort/limit/take/top/distinct/summarize), LRLanguage + `kql()` LanguageSupport, AST + highlight token extractors, `@ts-nocheck` automation.
-- In progress: Improve syntax highlight contrast.
+- Phase: Parser + CodeMirror integration in progress.
+- Completed: Switched to Chevrotain for full control over parsing.
+- In progress: Implement KQL grammar in Chevrotain, integrate with CodeMirror.
 
-## Recent Learnings (2025-12-09)
+## Learnings
 
-- Regex generator now emits literal `.` as quoted tokens and serializes macros via native `@macros`, eliminating downstream hacks in `build:grammar`.
-- `src/kql-spec/features.ts` acts as the canonical inventory for gating grammar progress; keep generator + grammar tests aligned with it.
-- `README.md` and `features-checklist.md` define the plugin roadmap; consult them before modifying grammar modules.
+- Lezer's lezer-generator has limitations with @macros and overlapping tokens, leading to Chevrotain switch.
+- Chevrotain offers better control over parsing, clearer error messages, and easier testing.
+- Updated lezer-grammar-generator to expand macros at generation time instead of outputting @macros.
+- Chevrotain requires separate lexer and parser definitions, providing more explicit control.
 
 ## Style & Constraints
 
-- Pure functional TypeScript, no classes. Keep files under ~150 lines and split helpers when necessary.
-- Keep grammar edits surgical; prefer one operator/feature per change.
-- Ensure generated files stay committed (editor consumers rely on them).
+- Follow Chevrotain conventions: separate lexer (tokens) and parser (rules).
+- Use meaningful token/rule names; keep implementations clear.
+- Test changes thoroughly; Chevrotain provides detailed error diagnostics.
 
 ## Documentation
 
-- Development guide: `packages/kql-lezer/docs/kql-lezer-dev.md`
-- Status & checklist: `packages/kql-lezer/docs/kql-lezer-status.md`
-- Record UI/editor gotchas (contrast, CodeMirror quirks) so downstream packages adjust.
+- Parser implementation: `src/parser.ts` and `src/lexer.ts`.
+- Status & checklist: `packages/kql-lezer/docs/kql-lezer-status.md`.
+- Record CodeMirror integration notes and parsing quirks.
 
 ## Coordination
 
-- Sync API or highlight tag changes with `@fossiq/ui`. Any AST structure changes must stay compatible with `@fossiq/kql-ast` consumers.
+- Sync token extraction with `@fossiq/ui` for highlighting.
+- Future: Implement CST-to-AST conversion for `@fossiq/kql-ast` compatibility.
 
-## TODO
-
-- After implementing regex backslash escaping and quote handling improvements in `@fossiq/lezer-grammar-generator`, update `packages/kql-lezer/src/grammar/plugins/tokens/literals.ts` to re-enable escaped string patterns using `regex(/"([^"\\]|\\.)*"/)` and `regex(/'([^'\\]|\\.)*'/ )` instead of limiting to verbatim strings only.

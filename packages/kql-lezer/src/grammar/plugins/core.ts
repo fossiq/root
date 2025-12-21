@@ -45,7 +45,7 @@ export const coreGrammar: GrammarDefinition = {
       params: ["term"],
       expression: {
         type: "raw",
-        content: "@specialize[@name={term}]<Identifier, term>",
+        content: "@specialize[@name={term}]<Identifier, {term}>",
       },
     },
   },

@@ -290,8 +290,6 @@ The following Lezer grammar features are not yet supported. Agents should work o
 5. **External specializers**: Support for `@external specialize` declarations
 6. **External props**: Support for `@external prop` declarations
 7. **Built-in character sets**: Full support for all Lezer built-in character sets (`@whitespace`, `@space`, `@newline`, etc.)
-8. **Regex Backslash Escaping**: Properly escape backslashes in regex patterns during serialization to prevent Lezer parser errors (e.g., convert `\\` in source to `\\\\` in output for complex patterns like escaped strings)
-9. **Regex Quote Handling**: Ensure quotes within regex patterns are properly escaped in Lezer grammar output to avoid syntax conflicts
 
 **Instructions for Agents**:
 

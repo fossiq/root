@@ -30,29 +30,22 @@ export const literalTokens: TokenDef[] = [
   // String literals - verbatim and standard strings
   // Supports:
   // - @"..." / @'...' : Verbatim strings (no escape sequences)
-  // - h"..." / h@"..." : Obfuscated strings for sensitive data
   // - "..." / '...' : Standard strings with escape sequence support (\\ escapes)
   {
     name: "String",
     pattern: choice(
       seq(literal("@"), literal('"'), regex(/[^"]*/), literal('"')),
       seq(literal("@"), literal("'"), regex(/[^']*/), literal("'")),
-      seq(literal("h"), literal('"'), regex(/[^"]*/), literal('"')),
-    seq(
-      literal("h"),
-      literal("@"),
-      literal('"'),
-      regex(/[^"]*/),
-      literal('"')
-    )
+      seq(literal('"'), regex(/[^"]*/), literal('"')),
+      seq(literal("'"), regex(/[^']*/), literal("'"))
     ),
   },
 
-  // DateTime literal: (datetime|date)(...)
-  {
-    name: "DateTimeLiteral",
-    pattern: regex(/(datetime|date)\([^)]*\)/),
-  },
+    // DateTime literal: (datetime|date)(...)
+   {
+     name: "DateTimeLiteral",
+     pattern: regex(/(datetime|date)\([^)]*\)/),
+   },
 
   // Timespan: number with time unit suffix
   {

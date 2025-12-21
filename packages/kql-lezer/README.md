@@ -1,8 +1,10 @@
 # @fossiq/kql-lezer
 
-Lezer grammar for KQL syntax highlighting and editor support.
+Chevrotain-based parser for KQL syntax highlighting and editor support.
 
-The Lezer grammar tracks the tree-sitter parser and supports project-away/keep/rename/reorder operators, tested via `tests/project-operators.test.ts`.
+Previously used Lezer, but switched to Chevrotain due to tool limitations: the lezer-generator doesn't support @macros or overlapping tokens (even with @precedence), preventing complex grammars like escaped strings or keyword specialization. Chevrotain provides full JS control over parsing without these constraints.
+
+The parser tracks the tree-sitter implementation and supports project-away/keep/rename/reorder operators, tested via `tests/project-operators.test.ts`.
 
 ## TODO (per implementation guide)
 

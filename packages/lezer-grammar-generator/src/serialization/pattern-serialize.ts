@@ -84,11 +84,19 @@ export function convertRegexToLezer(pattern: string): string {
   // [^...] -> ![...]
   result = result.replace(/\[\^([^\]]+)\]/g, "![$1]");
 
-  // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
-  // Skip already negated ones (lookbehind for !)
-  result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
+   // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
+   // Skip already negated ones (lookbehind for !)
+   result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
 
-  return result;
+   // Step 6: Escape backslashes in the output
+   result = result.replace(/\\/g, '\\\\');
+
+   // Step 7: Handle patterns containing quotes by quoting and escaping them
+   if (result.includes('"')) {
+     result = JSON.stringify(result);
+   }
+
+   return result;
 }
 
 function isMultiplePatterns(

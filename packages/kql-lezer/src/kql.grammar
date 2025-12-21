@@ -3,18 +3,18 @@
   CloseParen { ")" }
   Comma { "," }
   ComparisonOp { "==" | "!=" | ">=" | "<=" | ">" | "<" }
-  DateTimeLiteral { (datetime|date)"("![)]*")" }
+  DateTimeLiteral { "(datetime|date)\"(\"![)]*\")\"" }
   Equals { "=" }
-  GuidLiteral { guid"("$[0-9a-fA-F-]+")" }
+  GuidLiteral { "guid\"(\"$[0-9a-fA-F-]+\")\"" }
   Identifier { $[A-Za-z_]$[A-Za-z0-9_]* }
-  LineComment { "//" ![\n]* }
+  LineComment { "//" ![\\n]* }
   Minus { "-" }
   MvExpand { "mv-expand" }
   NotBetween { "!between" }
   NotContains { "!contains" }
   NotHas { "!has" }
   NotIn { "!in" }
-  Number { @digit+("."@digit+)? }
+  Number { "@digit+(\".\"@digit+)?" }
   OpenBracket { "[" }
   OpenParen { "(" }
   Percent { "%" }
@@ -28,12 +28,9 @@
   Semicolon { ";" }
   Slash { "/" }
   Star { "*" }
-  Timespan { @digit+("."@digit+)?(d|h|m|s|ms|microsecond|tick)+ }
-  whitespace { $[ \t\n\r]+ }
-}
-
-@macros {
-  kw<term> { @specialize[@name={term}]<Identifier, term> }
+  String { "@" "\"" "![\"]*" "\"" | "@" "'" ![']* "'" | "\"" "![\"]*" "\"" | "'" ![']* "'" }
+  Timespan { "@digit+(\".\"@digit+)?(d|h|m|s|ms|microsecond|tick)+" }
+  whitespace { $[ \\t\\n\\r]+ }
 }
 
 @top KQL { Query }
@@ -44,7 +41,7 @@ AdditiveExpression { AdditiveExpression ("+" | "-") MultiplicativeExpression | M
 
 Expression { AdditiveExpression }
 
-LetStatement { kw<"let"> Identifier "=" Expression ";" }
+LetStatement { @specialize[@name=let]<Identifier, let> Identifier "=" Expression ";" }
 
 MultiplicativeExpression { MultiplicativeExpression ("*" | "/" | "%") PrimaryExpression | PrimaryExpression }
 
@@ -54,4 +51,4 @@ PrimaryExpression { "(" Expression ")" | Identifier | Number | String }
 
 TableExpression { Identifier | "(" PipelineExpression ")" }
 
-WhereClause { kw<"where"> Expression }
+WhereClause { @specialize[@name=where]<Identifier, where> Expression }

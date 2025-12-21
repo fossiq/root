@@ -38,16 +38,16 @@ describe("serializePattern with multiple regex patterns", () => {
     expect(serializePattern(patterns)).toBe("@digit+ | $[A-Za-z]+");
   });
 
-  test("serializes complex patterns with multiple alternatives", () => {
-    const patterns = regex([
-      "0x[0-9a-fA-F]+",
-      "[0-9]+\\.[0-9]+",
-      "[0-9]+",
-    ]);
-    expect(serializePattern(patterns)).toBe(
-      "0x$[0-9a-fA-F]+ | @digit+\\.@digit+ | @digit+",
-    );
-  });
+   test("serializes complex patterns with multiple alternatives", () => {
+     const patterns = regex([
+       "0x[0-9a-fA-F]+",
+       "[0-9]+\\.[0-9]+",
+       "[0-9]+",
+     ]);
+     expect(serializePattern(patterns)).toBe(
+       "0x$[0-9a-fA-F]+ | \"@digit+\\\".\\\"@digit+\" | @digit+",
+     );
+   });
 
   test("handles empty array gracefully", () => {
     const patterns = regex([]);
@@ -94,5 +94,13 @@ describe("convertRegexToLezer with multiple patterns", () => {
 
   test("converts ASCII letter patterns", () => {
     expect(convertRegexToLezer("[a-zA-Z]")).toBe("@asciiLetter");
+  });
+
+  test("handles backslash escaping", () => {
+    expect(convertRegexToLezer("\\\\")).toBe("\\\\\\\\");
+  });
+
+  test("handles quotes in patterns by quoting and escaping", () => {
+    expect(convertRegexToLezer('a"b')).toBe('"a\\"b"');
   });
 });

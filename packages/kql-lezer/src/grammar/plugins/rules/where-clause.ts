@@ -5,6 +5,6 @@ import { seq, kw, ref, type RuleDef } from "@fossiq/lezer-grammar-generator";
  */
 export const whereClauseRules: Record<string, RuleDef> = {
     WhereClause: {
-        expression: seq(kw("where"), ref("Expression")),
+        expression: seq({ type: "raw", content: '@specialize[@name=where]<Identifier, where>' }, ref("Expression")),
     },
 };

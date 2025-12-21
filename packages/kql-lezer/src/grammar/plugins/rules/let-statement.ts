@@ -6,7 +6,7 @@ import { seq, kw, ref, literal, type RuleDef } from "@fossiq/lezer-grammar-gener
 export const letStatementRules: Record<string, RuleDef> = {
     LetStatement: {
         expression: seq(
-            kw("let"),
+            { type: "raw", content: '@specialize[@name=let]<Identifier, let>' },
             ref("Identifier"),
             literal("="),
             ref("Expression"),
