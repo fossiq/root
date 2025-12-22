@@ -84,23 +84,23 @@ export function convertRegexToLezer(pattern: string): string {
   // [^...] -> ![...]
   result = result.replace(/\[\^([^\]]+)\]/g, "![$1]");
 
-   // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
-   // Skip already negated ones (lookbehind for !)
-   result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
+  // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
+  // Skip already negated ones (lookbehind for !)
+  result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
 
-   // Step 6: Escape backslashes in the output
-   result = result.replace(/\\/g, '\\\\');
+  // Step 6: Escape backslashes in the output
+  result = result.replace(/\\/g, "\\\\");
 
-   // Step 7: Handle patterns containing quotes by quoting and escaping them
-   if (result.includes('"')) {
-     result = JSON.stringify(result);
-   }
+  // Step 7: Handle patterns containing quotes by quoting and escaping them
+  if (result.includes('"')) {
+    result = JSON.stringify(result);
+  }
 
-   return result;
+  return result;
 }
 
 function isMultiplePatterns(
-  pattern: string | RegExp | readonly (string | RegExp)[]
+  pattern: string | RegExp | readonly (string | RegExp)[],
 ): pattern is readonly (string | RegExp)[] {
   return Array.isArray(pattern);
 }
@@ -108,7 +108,7 @@ function isMultiplePatterns(
 /** Serialize a PatternExpression to Lezer grammar text. */
 export function serializePattern(
   expr: PatternExpression,
-  depthLimit = DEFAULT_DEPTH_LIMIT
+  depthLimit = DEFAULT_DEPTH_LIMIT,
 ): string {
   return serializeExpr(expr, 0, depthLimit);
 }
@@ -116,7 +116,7 @@ export function serializePattern(
 function serializeExpr(
   expr: PatternExpression,
   depth: number,
-  limit: number
+  limit: number,
 ): string {
   if (depth > limit) {
     throw new Error("Pattern expression exceeds depth limit.");
@@ -151,13 +151,13 @@ function serializeExpr(
     }
     case "seq": {
       const parts = expr.elements.map((e) =>
-        serializeExpr(e, depth + 1, limit)
+        serializeExpr(e, depth + 1, limit),
       );
       return parts.join(" ");
     }
     case "choice": {
       const parts = expr.alternatives.map((e) =>
-        serializeExpr(e, depth + 1, limit)
+        serializeExpr(e, depth + 1, limit),
       );
       return parts.join(" | ");
     }

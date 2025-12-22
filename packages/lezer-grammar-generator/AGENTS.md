@@ -184,11 +184,18 @@ Before implementing, review the [Lezer documentation](https://lezer.codemirror.n
 - **Escaped Dots**: Regex patterns that include `\.` outside character classes now serialize as quoted `"."` tokens so Lezer does not misinterpret them as wildcards.
 - **Future Work**: When adding more escape translations, update the same pattern conversion helper to retain deterministic behavior across all tokens.
 
-### Specification-Driven Coordination
+- **Specification-Driven Coordination**:
+  - **Roadmap Sources**: `packages/kql-lezer/README.md` and `packages/kql-lezer/features-checklist.md` define the plugin roadmap; align generator features with their milestones.
+  - **Feature Inventory**: `packages/kql-lezer/src/kql-spec/features.ts` is the machine-readable source of truth for implemented/pending KQL features; keep generator capabilities in sync so spec-driven tests remain authoritative.
 
-- **Roadmap Sources**: `packages/kql-lezer/README.md` and `packages/kql-lezer/features-checklist.md` define the plugin roadmap; align generator features with their milestones.
-- **Feature Inventory**: `packages/kql-lezer/src/kql-spec/features.ts` is the machine-readable source of truth for implemented/pending KQL features; keep generator capabilities in sync so spec-driven tests remain authoritative.
+### Eta.js Template Integration
+- **Overview**: Replaced extensive string concatenation in `generateLezerGrammar` with Eta.js templating engine to separate logic from presentation, improving maintainability, error-proneness, and readability.
+- **Benefits**: Embedded JavaScript expressions and logic in templates; reusable template components; fast compilation and rendering; minimal runtime overhead; type safety through data structures.
+- **Implementation**: Modular section templates in `src/templates/sections/` (.eta files); TemplateManager class for loading and rendering; helper functions in `src/templates/helpers.ts`; templates loaded via `src/templates/index.ts`.
+- **Lessons Learned**: Eta templates preserve all whitespace, requiring precise control of newlines for correct grammar formatting; section-based rendering with joining provides deterministic output; pre-compiled templates cached for performance; robust error handling for template loading and syntax issues.
+- **Testing**: Template output verification with snapshot-like tests; grammar validation ensures generated output parses correctly; regression tests compare old vs new outputs; edge case coverage for empty inputs and special characters.
 
+## TODO: Missing Lezer Grammar Features
 ### General Patterns
 
 - **Serialization Order**: Tokens → Externals → Dialects → Precedence → DetectDelim → Skip → Top → Rules.

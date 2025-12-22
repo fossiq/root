@@ -1,0 +1,5 @@
+@external tokens {
+<% for (const ext of it.externals) { %>
+  <%= ext %>
+<% } %>
+}

@@ -40,7 +40,8 @@
   "dependencies": {
     "@fossiq/kql-ast": "workspace:*",
     "@lezer/common": "1.4.0",
-    "@lezer/lr": "1.4.5"
+    "@lezer/lr": "1.4.5",
+    "eta": "^3.2.0"
   },
   "devDependencies": {
     "@types/bun": "catalog:",

@@ -5,188 +5,96 @@ import type {
   RuleDef,
   TokenDef,
 } from "../model.js";
-import { serializePattern } from "./pattern-serialize.js";
+import { templateManager } from "../templates/index.js";
+import { formatProps, expandMacrosInText } from "../templates/helpers.js";
+import { serializePattern } from "../serialization/pattern-serialize.js";
 
 /** Serialize a GrammarDefinition into Lezer .grammar text. */
 export function generateLezerGrammar(def: GrammarDefinition): string {
   const sections: string[] = [];
 
   if (def.tokens && def.tokens.length > 0) {
-    sections.push(renderTokens(def.tokens));
+    const sortedTokens = [...def.tokens].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    sections.push(
+      templateManager.render("tokens", {
+        tokens: sortedTokens,
+        serializePattern,
+      }),
+    );
   }
 
   if (def.localTokens && def.localTokens.length > 0) {
-    sections.push(renderLocalTokens(def.localTokens));
+    const sortedLocalTokens = [...def.localTokens].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
+    sections.push(
+      templateManager.render("local-tokens", {
+        localTokens: sortedLocalTokens,
+        serializePattern,
+      }),
+    );
   }
 
   if (def.externals && def.externals.length > 0) {
-    sections.push(renderExternals(def.externals));
+    const sortedExternals = [...def.externals].sort((a, b) =>
+      a.localeCompare(b),
+    );
+    sections.push(
+      templateManager.render("externals", { externals: sortedExternals }),
+    );
   }
 
   if (def.dialects && def.dialects.length > 0) {
-    sections.push(renderDialects(def.dialects));
+    const sortedDialects = [...def.dialects].sort((a, b) => a.localeCompare(b));
+    sections.push(
+      templateManager.render("dialects", { dialects: sortedDialects }),
+    );
   }
 
   if (def.precedence && def.precedence.length > 0) {
-    sections.push(renderPrecedence(def.precedence));
+    sections.push(
+      templateManager.render("precedence", { precedence: def.precedence }),
+    );
   }
 
   if (def.detectDelim) {
-    sections.push("@detectDelim");
+    sections.push(templateManager.render("detectDelim", {}));
   }
 
   if (def.skip) {
-    sections.push(`@skip { ${serializePattern(def.skip)} }`);
+    sections.push(
+      templateManager.render("skip", { skip: def.skip, serializePattern }),
+    );
   }
 
   if (def.top) {
-    sections.push(renderTop(def.name, def.top));
+    sections.push(
+      templateManager.render("top", { name: def.name, top: def.top }),
+    );
   }
 
-  sections.push(renderRules(def.rules, def.top, def.macros));
+  // Prepare ordered rules
+  const names = Object.keys(def.rules).sort((a, b) => a.localeCompare(b));
+  const ordered =
+    def.top && def.rules[def.top]
+      ? [def.top, ...names.filter((n) => n !== def.top)]
+      : names;
+  const orderedRules = ordered.map((name) => ({
+    name,
+    rule: def.rules[name]!,
+  }));
+
+  sections.push(
+    templateManager.render("rules", {
+      orderedRules,
+      macros: def.macros,
+      serializePattern,
+      formatProps,
+      expandMacrosInText,
+    }),
+  );
 
   return `${sections.join("\n\n")}\n`;
-}
-
-function renderMacros(macros: Readonly<Record<string, MacroDef>>): string {
-  const entries = Object.entries(macros).sort(([a], [b]) => a.localeCompare(b));
-  const lines = entries.map(([name, macro]) => {
-    const params =
-      macro.params && macro.params.length > 0
-        ? `<${macro.params.join(", ")}>`
-        : "";
-    const body = serializePattern(macro.expression);
-    return `  ${name}${params} { ${body} }`;
-  });
-  return `@macros {\n${lines.join("\n")}\n}`;
-}
-
-function renderTokens(tokens: readonly TokenDef[]): string {
-  const sorted = [...tokens].sort((a, b) => a.name.localeCompare(b.name));
-  const lines = sorted.map((token) => {
-    const pattern = serializePattern(token.pattern);
-    const props = token.dialect ? `[@dialect=${token.dialect}]` : "";
-    return `  ${token.name}${props} { ${pattern} }`;
-  });
-  return `@tokens {\n${lines.join("\n")}\n}`;
-}
-
-function renderLocalTokens(tokens: readonly TokenDef[]): string {
-  const sorted = [...tokens].sort((a, b) => a.name.localeCompare(b.name));
-  const lines = sorted.map((token) => {
-    const pattern = serializePattern(token.pattern);
-    const props = token.dialect ? `[@dialect=${token.dialect}]` : "";
-    return `  ${token.name}${props} { ${pattern} }`;
-  });
-  return `@local tokens {\n${lines.join("\n")}\n}`;
-}
-
-function renderExternals(externals: readonly string[]): string {
-  const sorted = [...externals].sort((a, b) => a.localeCompare(b));
-  const lines = sorted.map((name) => `  ${name}`);
-  return `@external tokens {\n${lines.join("\n")}\n}`;
-}
-
-function renderDialects(dialects: readonly string[]): string {
-  const sorted = [...dialects].sort((a, b) => a.localeCompare(b));
-  return `@dialects { ${sorted.join(", ")} }`;
-}
-
-function renderPrecedence(precedence: readonly PrecedenceLevel[]): string {
-  const lines = precedence.map((level) => {
-    const assoc = level.associativity ? `${level.associativity} ` : "";
-    return `  ${assoc}${level.name};`;
-  });
-  return `@precedence {\n${lines.join("\n")}\n}`;
-}
-
-function renderTop(name: string | undefined, top: string): string {
-  if (!name) {
-    return `@top { ${top} }`;
-  }
-  return `@top ${name} { ${top} }`;
-}
-
-function renderRules(
-  rules: Readonly<Record<string, RuleDef>>,
-  top?: string,
-  macros?: Readonly<Record<string, MacroDef>>
-): string {
-  const names = Object.keys(rules).sort((a, b) => a.localeCompare(b));
-  const ordered =
-    top && rules[top] ? [top, ...names.filter((n) => n !== top)] : names;
-
-  return ordered.map((name) => renderRule(name, rules[name]!, macros)).join("\n\n");
-}
-
-function renderRule(
-  name: string,
-  rule: RuleDef,
-  macros?: Readonly<Record<string, MacroDef>>
-): string {
-  const params =
-    rule.params && rule.params.length > 0 ? `<${rule.params.join(", ")}>` : "";
-  const props = formatProps(rule.props, rule.dialect);
-  let expr = serializePattern(rule.expression);
-  if (macros) {
-    expr = expandMacrosInText(expr, macros);
-  }
-  const ruleText = `${name}${params}${props} { ${expr} }`;
-
-  if (rule.skip) {
-    return `@skip { ${serializePattern(rule.skip)} } {\n  ${ruleText}\n}`;
-  }
-
-  return ruleText;
-}
-
-function formatProps(props: RuleDef["props"], dialect?: string): string {
-  const allProps: Record<string, string | number | boolean> = { ...props };
-  if (!allProps || Object.keys(allProps).length === 0) {
-    if (dialect) return `[@dialect=${dialect}]`;
-    return "";
-  }
-  const keys = Object.keys(allProps).sort((a, b) => a.localeCompare(b));
-  const entries = keys.map((key) => {
-    const value = allProps[key];
-    if (key === "@dialect") {
-      return `${key}=${value}`;
-    }
-    return `${key}=${formatPropValue(value)}`;
-  });
-  const propStr = entries.length > 0 ? `[${entries.join(", ")}]` : "";
-  if (dialect) {
-    return propStr
-      ? `${propStr.slice(0, -1)}, @dialect=${dialect}]`
-      : `[@dialect=${dialect}]`;
-  }
-  return propStr;
-}
-
-function formatPropValue(value: string | number | boolean): string {
-  if (typeof value === "string") return JSON.stringify(value);
-  return String(value);
-}
-
-function expandMacrosInText(
-  text: string,
-  macros: Readonly<Record<string, MacroDef>>
-): string {
-  return text.replace(/(\w+)<([^>]+)>/g, (match, macroName, argsStr) => {
-    const macro = macros[macroName];
-    if (!macro || !macro.params) return match;
-
-    const args = argsStr.split(",").map((arg: string) => arg.trim());
-    if (args.length !== macro.params.length) return match;
-
-    let expanded = serializePattern(macro.expression);
-    for (let i = 0; i < macro.params.length; i++) {
-      const param = macro.params[i];
-      const arg = args[i];
-      // Remove quotes if present
-      const cleanArg = arg.replace(/^"(.*)"$/, "$1");
-      expanded = expanded.replace(new RegExp(`\\{${param}\\}`, "g"), cleanArg);
-    }
-    return expanded;
-  });
 }

@@ -1,0 +1,17 @@
+<% for (const [index, ruleData] of it.orderedRules.entries()) { %>
+<% if (index > 0) { %>
+
+<% } %>
+<% const params = ruleData.rule.params && ruleData.rule.params.length > 0 ? '<' + ruleData.rule.params.join(", ") + '>' : ""; %>
+<% const props = it.formatProps(ruleData.rule.props, ruleData.rule.dialect); %>
+<% let expr = it.serializePattern(ruleData.rule.expression); %>
+<% if (it.macros) { expr = it.expandMacrosInText(expr, it.macros); } %>
+<% const ruleText = ruleData.name + params + props + ' { ' + expr + ' }'; %>
+<% if (ruleData.rule.skip) { %>
+@skip { <%- it.serializePattern(ruleData.rule.skip) %> } {
+  <%- ruleText %>
+}
+<% } else { %>
+<%- ruleText %>
+<% } %>
+<% } %>

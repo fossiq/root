@@ -1,0 +1,4 @@
+<% for (const [index, rule] of it.rules.entries()) { %><%= rule %><% if (index < it.rules.length - 1) { %>
+
+
+<% } %><% } %>

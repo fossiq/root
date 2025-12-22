@@ -1,0 +1,48 @@
+  // Delimiters
+<% for (const token of it.defaultTokens.delimiters) { %>
+  <%= token.line %>
+<% } %>
+<% if (it.defaultTokens.delimiters.length > 0) { %>
+
+<% } %>
+  // Math operators
+<% for (const token of it.defaultTokens.math) { %>
+  <%= token.line %>
+<% } %>
+<% if (it.defaultTokens.math.length > 0) { %>
+
+<% } %>
+  // Comparison operators
+<% for (const token of it.defaultTokens.comparison) { %>
+  <%= token.line %>
+<% } %>
+<% if (it.defaultTokens.comparison.length > 0) { %>
+
+<% } %>
+  // Basic tokens
+<% for (const token of it.defaultTokens.basic) { %>
+  <%= token.line %>
+<% } %>
+<% if (!it.overridden.has("String")) { %>
+  String {
+    // Standard double quoted
+    """ (!["\\\n] | "\\" _)* """ |
+    // Standard single quoted
+    "\'" (![\'\\\n] | "\\" _)* "\'"
+  }
+<% } %>
+<% if (it.defaultTokens.basic.length > 0 || !it.overridden.has("String")) { %>
+
+<% } %>
+  // Comments
+<% for (const token of it.defaultTokens.comments) { %>
+  <%= token.line %>
+<% } %>
+
+<% if (it.customTokens.length > 0) { %>
+
+  // Custom tokens
+<% for (const token of it.customTokens) { %>
+  <%= token.line %>
+<% } %>
+<% } %>
