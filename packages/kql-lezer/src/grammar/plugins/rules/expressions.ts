@@ -1,10 +1,10 @@
 import {
-    seq,
-    ref,
-    choice,
-    literal,
-    type RuleDef,
-    group,
+  seq,
+  ref,
+  choice,
+  type RuleDef,
+  group,
+  optional,
 } from "@fossiq/lezer-grammar-generator";
 
 /**
@@ -12,36 +12,43 @@ import {
  * Includes arithmetic and comparison operators.
  */
 export const expressionRules: Record<string, RuleDef> = {
-    Expression: {
-        expression: ref("AdditiveExpression"),
-    },
+  Expression: {
+    expression: ref("ComparisonExpression"),
+  },
 
-    AdditiveExpression: {
-        expression: choice(
-            seq(
-                ref("AdditiveExpression"),
-                group(choice(literal("+"), literal("-"))),
-                ref("MultiplicativeExpression"),
-            ),
-            ref("MultiplicativeExpression"),
-        ),
-    },
+  ComparisonExpression: {
+    expression: seq(
+      ref("AdditiveExpression"),
+      optional(seq(ref("ComparisonOp"), ref("AdditiveExpression")))
+    ),
+  },
 
-    MultiplicativeExpression: {
-        expression: choice(
-            seq(
-                ref("MultiplicativeExpression"),
-                group(choice(literal("*"), literal("/"), literal("%"))),
-                ref("PrimaryExpression"),
-            ),
-            ref("PrimaryExpression"),
-        ),
-    },
+  AdditiveExpression: {
+    expression: choice(
+      seq(
+        ref("AdditiveExpression"),
+        group(choice(ref("Plus"), ref("Minus"))),
+        ref("MultiplicativeExpression")
+      ),
+      ref("MultiplicativeExpression")
+    ),
+  },
 
-    PrimaryExpression: {
-        expression: choice(
-            seq(literal("("), ref("Expression"), literal(")")),
-            choice(ref("Identifier"), ref("Number"), ref("String")),
-        ),
-    },
+  MultiplicativeExpression: {
+    expression: choice(
+      seq(
+        ref("MultiplicativeExpression"),
+        group(choice(ref("Star"), ref("Slash"), ref("Percent"))),
+        ref("PrimaryExpression")
+      ),
+      ref("PrimaryExpression")
+    ),
+  },
+
+  PrimaryExpression: {
+    expression: choice(
+      seq(ref("OpenParen"), ref("Expression"), ref("CloseParen")),
+      choice(ref("Identifier"), ref("Number"), ref("String"))
+    ),
+  },
 };

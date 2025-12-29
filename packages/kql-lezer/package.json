@@ -66,6 +66,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:grammar": "bun x lezer-generator src/kql.grammar -o src/parser.ts",
     "test": "bun test tests",
     "test:coverage": "bun test tests --coverage",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"

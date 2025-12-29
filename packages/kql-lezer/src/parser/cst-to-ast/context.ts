@@ -8,253 +8,430 @@ import type * as AST from "@fossiq/kql-ast";
  * to typed AST nodes from @fossiq/kql-ast.
  */
 export class CstToAstContext {
-    constructor(private text: string) {}
+  constructor(private text: string) {}
 
-    /**
-     * Extract the text content of a syntax node.
-     */
-    slice(node: SyntaxNode): string {
-        return this.text.slice(node.from, node.to);
+  /**
+   * Extract the text content of a syntax node.
+   */
+  slice(node: SyntaxNode): string {
+    return this.text.slice(node.from, node.to);
+  }
+
+  /**
+   * Create an error node for malformed or unexpected CST nodes.
+   */
+  errorNode(node: SyntaxNode, message: string): AST.ErrorNode {
+    return {
+      type: "ErrorNode",
+      error: message,
+      from: node.from,
+      to: node.to,
+    };
+  }
+
+  /**
+   * Map a scalar expression node to an AST Expression.
+   * Dispatches to appropriate handlers based on node type.
+   */
+  mapScalarExpression(node: SyntaxNode): AST.Expression {
+    switch (node.type.name) {
+      case "Expression":
+      case "OrExpression":
+      case "AndExpression":
+      case "NotExpression":
+      case "ComparisonExpression":
+        return this.mapLogicalOrComparisonExpression(node);
+      case "AdditiveExpression":
+        return this.mapAdditiveExpression(node);
+      case "MultiplicativeExpression":
+        return this.mapMultiplicativeExpression(node);
+      case "UnaryExpression":
+        return this.mapUnaryExpression(node);
+      case "PrimaryExpression":
+        return this.mapPrimaryExpression(node);
+      default:
+        return this.errorNode(
+          node,
+          `Unsupported expression type: ${node.type.name}`
+        );
+    }
+  }
+
+  /**
+   * Map logical (or/and/not) and comparison expressions.
+   */
+  private mapLogicalOrComparisonExpression(node: SyntaxNode): AST.Expression {
+    const children = this.collectChildren(node);
+
+    if (children.length === 1) {
+      return this.mapScalarExpression(children[0]);
     }
 
-    /**
-     * Create an error node for malformed or unexpected CST nodes.
-     */
-    errorNode(node: SyntaxNode, message: string): AST.ErrorNode {
+    // Look for operators
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      const name = child.type.name;
+
+      if (name === "not") {
+        const operand = children[i + 1];
         return {
-            type: "ErrorNode",
-            error: message,
-            from: node.from,
-            to: node.to,
+          type: "UnaryExpression",
+          operator: "not",
+          operand: this.mapScalarExpression(operand),
+          start: node.from,
+          end: node.to,
         };
-    }
+      }
 
-    /**
-     * Map a scalar expression node to an AST Expression.
-     * Dispatches to appropriate handlers based on node type.
-     */
-    mapScalarExpression(node: SyntaxNode): AST.Expression {
-        switch (node.type.name) {
-            case "AdditiveExpression":
-                return this.mapAdditiveExpression(node);
-            case "MultiplicativeExpression":
-                return this.mapMultiplicativeExpression(node);
-            case "PrimaryExpression":
-                return this.mapPrimaryExpression(node);
-            case "Expression":
-                if (node.firstChild) {
-                    return this.mapScalarExpression(node.firstChild);
-                }
-                return this.errorNode(node, "Empty expression");
-            default:
-                return this.errorNode(
-                    node,
-                    `Unsupported expression type: ${node.type.name}`,
-                );
-        }
-    }
+      if (name === "or" || name === "and") {
+        const leftNode = children[i - 1];
+        const rightNode = children[i + 1];
+        if (!leftNode || !rightNode) continue;
+        const left = this.mapScalarExpression(leftNode);
+        const right = this.mapScalarExpression(rightNode);
+        return {
+          type: "BinaryExpression",
+          operator: name,
+          left,
+          right,
+          start: node.from,
+          end: node.to,
+        };
+      }
 
-    /**
-     * Map an additive expression (+ or -).
-     */
-    private mapAdditiveExpression(node: SyntaxNode): AST.Expression {
-        const children = this.collectChildren(node);
+      if (name === "ComparisonOp" || name === "StringOp") {
+        const leftNode = children[i - 1];
+        const rightNode = children[i + 1];
+        if (!leftNode || !rightNode) continue;
+        const left = this.mapScalarExpression(leftNode);
+        const right = this.mapScalarExpression(rightNode);
+        return {
+          type: "BinaryExpression",
+          operator: this.slice(child),
+          left,
+          right,
+          start: node.from,
+          end: node.to,
+        };
+      }
 
-        // If there's only one child, it's just a multiplicative expression
-        if (children.length === 1) {
-            return this.mapScalarExpression(children[0]);
-        }
+      if (name === "BetweenOp") {
+        const left = this.mapScalarExpression(children[i - 1]);
+        const op = this.slice(child);
+        let rangeStart: AST.Expression | null = null;
+        let rangeEnd: AST.Expression | null = null;
 
-        // Build left-associative binary expression tree
-        let left = this.mapScalarExpression(children[0]);
-        let i = 1;
-
-        while (i < children.length) {
-            const opNode = children[i];
-            const op = this.slice(opNode);
-            const right = this.mapScalarExpression(children[i + 1]);
-
-            left = {
-                type: "BinaryExpression",
-                operator: op as "+" | "-",
-                left,
-                right,
-                start: node.from,
-                end: node.to,
-            };
-
-            i += 2;
-        }
-
-        return left;
-    }
-
-    /**
-     * Map a multiplicative expression (*, /, %).
-     */
-    private mapMultiplicativeExpression(node: SyntaxNode): AST.Expression {
-        const children = this.collectChildren(node);
-
-        // If there's only one child, it's just a primary expression
-        if (children.length === 1) {
-            return this.mapScalarExpression(children[0]);
-        }
-
-        // Build left-associative binary expression tree
-        let left = this.mapScalarExpression(children[0]);
-        let i = 1;
-
-        while (i < children.length) {
-            const opNode = children[i];
-            const op = this.slice(opNode);
-            const right = this.mapScalarExpression(children[i + 1]);
-
-            left = {
-                type: "BinaryExpression",
-                operator: op as "*" | "/" | "%",
-                left,
-                right,
-                start: node.from,
-                end: node.to,
-            };
-
-            i += 2;
-        }
-
-        return left;
-    }
-
-    /**
-     * Map a primary expression (literal, identifier, or parenthesized).
-     */
-    private mapPrimaryExpression(node: SyntaxNode): AST.Expression {
-        const child = node.firstChild;
-        if (!child) {
-            return this.errorNode(node, "Empty primary expression");
-        }
-
-        switch (child.type.name) {
-            case "Number":
-                return {
-                    type: "NumberLiteral",
-                    value: parseFloat(this.slice(child)),
-                    raw: this.slice(child),
-                    start: child.from,
-                    end: child.to,
-                };
-
-            case "String":
-                return {
-                    type: "StringLiteral",
-                    value: this.parseStringLiteral(this.slice(child)),
-                    raw: this.slice(child),
-                    start: child.from,
-                    end: child.to,
-                };
-
-            case "Identifier":
-                return {
-                    type: "Identifier",
-                    name: this.slice(child),
-                    start: child.from,
-                    end: child.to,
-                };
-
-            case "OpenParen": {
-                // Parenthesized expression: skip open paren, map inner expression
-                const innerExpr = child.nextSibling;
-                if (innerExpr) {
-                    return this.mapScalarExpression(innerExpr);
-                }
-                return this.errorNode(node, "Empty parenthesized expression");
+        for (let j = i + 1; j < children.length; j++) {
+          if (children[j].type.name === "Expression") {
+            if (!rangeStart) rangeStart = this.mapScalarExpression(children[j]);
+            else if (!rangeEnd) {
+              rangeEnd = this.mapScalarExpression(children[j]);
+              break;
             }
-
-            default:
-                return this.errorNode(
-                    child,
-                    `Unsupported primary expression: ${child.type.name}`,
-                );
+          }
         }
+
+        return {
+          type: "BinaryExpression",
+          operator: op,
+          left,
+          right: {
+            type: "BinaryExpression",
+            operator: "..",
+            left: rangeStart || this.errorNode(node, "Missing range start"),
+            right: rangeEnd || this.errorNode(node, "Missing range end"),
+            start: node.from,
+            end: node.to,
+          },
+          start: node.from,
+          end: node.to,
+        };
+      }
     }
 
-    /**
-     * Parse a KQL string literal, removing quotes and handling escape sequences.
-     */
-    private parseStringLiteral(raw: string): string {
-        // Handle verbatim strings @"..." or @'...'
-        if (raw.startsWith('@"') && raw.endsWith('"')) {
-            return raw.slice(2, -1);
-        }
-        if (raw.startsWith("@'") && raw.endsWith("'")) {
-            return raw.slice(2, -1);
-        }
-
-        // Handle obfuscated strings h"..." or h@"..."
-        if (raw.startsWith('h@"') && raw.endsWith('"')) {
-            return raw.slice(3, -1);
-        }
-        if (raw.startsWith('h"') && raw.endsWith('"')) {
-            return raw.slice(2, -1);
-        }
-
-        // Handle regular strings "..." or '...'
-        if (
-            (raw.startsWith('"') && raw.endsWith('"')) ||
-            (raw.startsWith("'") && raw.endsWith("'"))
-        ) {
-            // Simple unescape (handle \", \', \\, \n, \t, \r)
-            return raw
-                .slice(1, -1)
-                .replace(/\\"/g, '"')
-                .replace(/\\'/g, "'")
-                .replace(/\\\\/g, "\\")
-                .replace(/\\n/g, "\n")
-                .replace(/\\t/g, "\t")
-                .replace(/\\r/g, "\r");
-        }
-
-        return raw;
+    if (children.length > 0) {
+      return this.mapScalarExpression(children[0]);
     }
 
-    /**
-     * Collect all direct children of a node as an array.
-     */
-    private collectChildren(node: SyntaxNode): SyntaxNode[] {
-        const children: SyntaxNode[] = [];
-        let child = node.firstChild;
-        while (child) {
-            children.push(child);
-            child = child.nextSibling;
-        }
-        return children;
+    return this.errorNode(node, "Empty logical/comparison expression");
+  }
+
+  /**
+   * Map a unary expression.
+   */
+  private mapUnaryExpression(node: SyntaxNode): AST.Expression {
+    const children = this.collectChildren(node);
+
+    if (children.length >= 2 && children[0].type.name === "Minus") {
+      return {
+        type: "UnaryExpression",
+        operator: "-",
+        operand: this.mapScalarExpression(children[1]),
+        start: node.from,
+        end: node.to,
+      };
     }
 
-    /**
-     * Find a child node by type name.
-     */
-    getChild(node: SyntaxNode, typeName: string): SyntaxNode | null {
-        let child = node.firstChild;
-        while (child) {
-            if (child.type.name === typeName) {
-                return child;
-            }
-            child = child.nextSibling;
-        }
-        return null;
+    if (children.length === 1) {
+      return this.mapScalarExpression(children[0]);
     }
 
-    /**
-     * Find all children of a given type.
-     */
-    getChildren(node: SyntaxNode, typeName: string): SyntaxNode[] {
-        const children: SyntaxNode[] = [];
-        let child = node.firstChild;
-        while (child) {
-            if (child.type.name === typeName) {
-                children.push(child);
-            }
-            child = child.nextSibling;
-        }
-        return children;
+    return this.errorNode(node, "Invalid unary expression");
+  }
+
+  /**
+   * Map an additive expression (+ or -).
+   */
+  private mapAdditiveExpression(node: SyntaxNode): AST.Expression {
+    const children = this.collectChildren(node);
+
+    // If there's only one child, it's just a multiplicative expression
+    if (children.length === 1) {
+      return this.mapScalarExpression(children[0]);
     }
+
+    // Build left-associative binary expression tree
+    let left = this.mapScalarExpression(children[0]);
+    let i = 1;
+
+    while (i < children.length) {
+      const opNode = children[i];
+      const op = this.slice(opNode);
+      const right = this.mapScalarExpression(children[i + 1]);
+
+      left = {
+        type: "BinaryExpression",
+        operator: op as "+" | "-",
+        left,
+        right,
+        start: node.from,
+        end: node.to,
+      };
+
+      i += 2;
+    }
+
+    return left;
+  }
+
+  /**
+   * Map a multiplicative expression (*, /, %).
+   */
+  private mapMultiplicativeExpression(node: SyntaxNode): AST.Expression {
+    const children = this.collectChildren(node);
+
+    // If there's only one child, it's just a primary expression
+    if (children.length === 1) {
+      return this.mapScalarExpression(children[0]);
+    }
+
+    // Build left-associative binary expression tree
+    let left = this.mapScalarExpression(children[0]);
+    let i = 1;
+
+    while (i < children.length) {
+      const opNode = children[i];
+      const op = this.slice(opNode);
+      const right = this.mapScalarExpression(children[i + 1]);
+
+      left = {
+        type: "BinaryExpression",
+        operator: op as "*" | "/" | "%",
+        left,
+        right,
+        start: node.from,
+        end: node.to,
+      };
+
+      i += 2;
+    }
+
+    return left;
+  }
+
+  /**
+   * Map a primary expression (literal, identifier, or parenthesized).
+   */
+  private mapPrimaryExpression(node: SyntaxNode): AST.Expression {
+    const child = node.firstChild;
+    if (!child) {
+      return this.errorNode(node, "Empty primary expression");
+    }
+
+    switch (child.type.name) {
+      case "Number":
+        return {
+          type: "NumberLiteral",
+          value: parseFloat(this.slice(child)),
+          raw: this.slice(child),
+          start: child.from,
+          end: child.to,
+        };
+
+      case "String":
+        return {
+          type: "StringLiteral",
+          value: this.parseStringLiteral(this.slice(child)),
+          raw: this.slice(child),
+          start: child.from,
+          end: child.to,
+        };
+
+      case "Identifier":
+        return {
+          type: "Identifier",
+          name: this.slice(child),
+          start: child.from,
+          end: child.to,
+        };
+
+      case "Timespan":
+        return {
+          type: "Literal",
+          value: this.slice(child),
+          raw: this.slice(child),
+          start: child.from,
+          end: child.to,
+        };
+
+      case "BracketedIdentifier": {
+        const stringNode = this.getChild(child, "String");
+        const name = stringNode
+          ? this.parseStringLiteral(this.slice(stringNode))
+          : this.slice(child);
+        return {
+          type: "Identifier",
+          name,
+          start: child.from,
+          end: child.to,
+        };
+      }
+
+      case "FunctionCall":
+        return this.mapFunctionCall(child);
+
+      case "OpenParen": {
+        // Parenthesized expression: skip open paren, map inner expression
+        const innerExpr = child.nextSibling;
+        if (innerExpr) {
+          return this.mapScalarExpression(innerExpr);
+        }
+        return this.errorNode(node, "Empty parenthesized expression");
+      }
+
+      default:
+        return this.errorNode(
+          child,
+          `Unsupported primary expression: ${child.type.name}`
+        );
+    }
+  }
+
+  /**
+   * Map a FunctionCall node.
+   */
+  private mapFunctionCall(node: SyntaxNode): AST.FunctionCall | AST.ErrorNode {
+    const identNode = this.getChild(node, "Identifier");
+    if (!identNode) {
+      return this.errorNode(node, "FunctionCall missing identifier");
+    }
+
+    const args: AST.Expression[] = [];
+    const argListNode = this.getChild(node, "ArgumentList");
+    if (argListNode) {
+      const exprs = this.getChildren(argListNode, "Expression");
+      for (const expr of exprs) {
+        args.push(this.mapScalarExpression(expr));
+      }
+    }
+
+    return {
+      type: "FunctionCall",
+      name: this.slice(identNode),
+      args,
+      start: node.from,
+      end: node.to,
+    };
+  }
+
+  /**
+   * Parse a KQL string literal, removing quotes and handling escape sequences.
+   */
+  parseStringLiteral(raw: string): string {
+    // Handle verbatim strings @"..." or @'...'
+    if (raw.startsWith('@"') && raw.endsWith('"')) {
+      return raw.slice(2, -1);
+    }
+    if (raw.startsWith("@'") && raw.endsWith("'")) {
+      return raw.slice(2, -1);
+    }
+
+    // Handle obfuscated strings h"..." or h@"..."
+    if (raw.startsWith('h@"') && raw.endsWith('"')) {
+      return raw.slice(3, -1);
+    }
+    if (raw.startsWith('h"') && raw.endsWith('"')) {
+      return raw.slice(2, -1);
+    }
+
+    // Handle regular strings "..." or '...'
+    if (
+      (raw.startsWith('"') && raw.endsWith('"')) ||
+      (raw.startsWith("'") && raw.endsWith("'"))
+    ) {
+      // Simple unescape (handle \", \', \\, \n, \t, \r)
+      return raw
+        .slice(1, -1)
+        .replace(/\\"/g, '"')
+        .replace(/\\'/g, "'")
+        .replace(/\\\\/g, "\\")
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t")
+        .replace(/\\r/g, "\r");
+    }
+
+    return raw;
+  }
+
+  /**
+   * Collect all direct children of a node as an array.
+   */
+  private collectChildren(node: SyntaxNode): SyntaxNode[] {
+    const children: SyntaxNode[] = [];
+    let child = node.firstChild;
+    while (child) {
+      children.push(child);
+      child = child.nextSibling;
+    }
+    return children;
+  }
+
+  /**
+   * Find a child node by type name.
+   */
+  getChild(node: SyntaxNode, typeName: string): SyntaxNode | null {
+    let child = node.firstChild;
+    while (child) {
+      if (child.type.name === typeName) {
+        return child;
+      }
+      child = child.nextSibling;
+    }
+    return null;
+  }
+
+  /**
+   * Find all children of a given type.
+   */
+  getChildren(node: SyntaxNode, typeName: string): SyntaxNode[] {
+    const children: SyntaxNode[] = [];
+    let child = node.firstChild;
+    while (child) {
+      if (child.type.name === typeName) {
+        children.push(child);
+      }
+      child = child.nextSibling;
+    }
+    return children;
+  }
 }

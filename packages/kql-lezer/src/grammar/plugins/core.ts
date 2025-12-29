@@ -1,4 +1,8 @@
-import type { GrammarDefinition } from "@fossiq/lezer-grammar-generator";
+import {
+  choice,
+  ref,
+  type GrammarDefinition,
+} from "@fossiq/lezer-grammar-generator";
 import { allTokens } from "./tokens";
 import { allRules } from "./rules";
 
@@ -38,6 +42,8 @@ export const coreGrammar: GrammarDefinition = {
   name: "KQL",
   top: "Query",
   tokens: allTokens,
+  tokenPrecedence: ["LineComment", "Slash", "String", "Identifier"],
+  skip: choice(ref("whitespace"), ref("LineComment")),
   rules: allRules,
   precedence: [],
   macros: {
@@ -45,7 +51,7 @@ export const coreGrammar: GrammarDefinition = {
       params: ["term"],
       expression: {
         type: "raw",
-        content: "@specialize[@name={term}]<Identifier, {term}>",
+        content: '@specialize[@name={term}]<Identifier, "{term}">',
       },
     },
   },

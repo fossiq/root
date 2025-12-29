@@ -1,8 +1,7 @@
 import {
   choice,
-  literal,
+  raw,
   regex,
-  seq,
   type TokenDef,
 } from "@fossiq/lezer-grammar-generator";
 
@@ -28,24 +27,24 @@ export const literalTokens: TokenDef[] = [
   },
 
   // String literals - verbatim and standard strings
-  // Supports:
-  // - @"..." / @'...' : Verbatim strings (no escape sequences)
-  // - "..." / '...' : Standard strings with escape sequence support (\\ escapes)
+  // Supports verbatim, escaped, and obfuscated forms.
   {
     name: "String",
     pattern: choice(
-      seq(literal("@"), literal('"'), regex(/[^"]*/), literal('"')),
-      seq(literal("@"), literal("'"), regex(/[^']*/), literal("'")),
-      seq(literal('"'), regex(/[^"]*/), literal('"')),
-      seq(literal("'"), regex(/[^']*/), literal("'"))
+      raw(String.raw`"@" "\"" !["]* "\""`),
+      raw(String.raw`"@" "'" ![']* "'"`),
+      raw(String.raw`"h" "\"" !["\n]* "\""`),
+      raw(String.raw`"h" "@" "\"" !["]* "\""`),
+      raw(String.raw`"\"" (!["\\] | "\\" _)* "\""`),
+      raw(String.raw`"'" (!['\\] | "\\" _)* "'"`)
     ),
   },
 
-    // DateTime literal: (datetime|date)(...)
-   {
-     name: "DateTimeLiteral",
-     pattern: regex(/(datetime|date)\([^)]*\)/),
-   },
+  // DateTime literal: (datetime|date)(...)
+  {
+    name: "DateTimeLiteral",
+    pattern: regex(/(datetime|date)\([^)]*\)/),
+  },
 
   // Timespan: number with time unit suffix
   {
