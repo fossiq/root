@@ -50,6 +50,7 @@ export interface GrammarDefinition {
   readonly dialects?: readonly string[];
   readonly tokens?: readonly TokenDef[];
   readonly localTokens?: readonly TokenDef[];
+  readonly tokenPrecedence?: readonly string[];
   readonly macros?: Readonly<Record<string, MacroDef>>;
   readonly rules: Readonly<Record<string, RuleDef>>;
   readonly precedence?: readonly PrecedenceLevel[];
@@ -75,6 +76,7 @@ export type ValidationErrorCode =
   | "config.tokens.duplicate"
   | "config.tokens.specialized.unknownBase"
   | "config.precedence.unknownToken"
+  | "config.tokenPrecedence.unknownToken"
   | "config.astTypes.unknownReference"
   | "config.passthrough.unbalanced"
   | "config.passthrough.tokenUnbalanced"

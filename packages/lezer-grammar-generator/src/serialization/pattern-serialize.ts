@@ -64,9 +64,6 @@ export function convertRegexToLezer(pattern: string): string {
   let result = replaceLiteralDotsOutsideCharClasses(pattern);
 
   // Step 1: Handle special characters that need quoting
-  // Quote literal @ not followed by a letter or quote (to avoid interfering with Lezer builtins)
-  result = result.replace(/@(?![a-zA-Z"'])/g, '"@"');
-
   // Quote escaped parentheses and braces to treat them as literals
   result = result.replace(/\\([(){}])/g, '"$1"');
 
@@ -88,19 +85,11 @@ export function convertRegexToLezer(pattern: string): string {
   // Skip already negated ones (lookbehind for !)
   result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
 
-  // Step 6: Escape backslashes in the output
-  result = result.replace(/\\/g, "\\\\");
-
-  // Step 7: Handle patterns containing quotes by quoting and escaping them
-  if (result.includes('"')) {
-    result = JSON.stringify(result);
-  }
-
   return result;
 }
 
 function isMultiplePatterns(
-  pattern: string | RegExp | readonly (string | RegExp)[],
+  pattern: string | RegExp | readonly (string | RegExp)[]
 ): pattern is readonly (string | RegExp)[] {
   return Array.isArray(pattern);
 }
@@ -108,7 +97,7 @@ function isMultiplePatterns(
 /** Serialize a PatternExpression to Lezer grammar text. */
 export function serializePattern(
   expr: PatternExpression,
-  depthLimit = DEFAULT_DEPTH_LIMIT,
+  depthLimit = DEFAULT_DEPTH_LIMIT
 ): string {
   return serializeExpr(expr, 0, depthLimit);
 }
@@ -116,7 +105,7 @@ export function serializePattern(
 function serializeExpr(
   expr: PatternExpression,
   depth: number,
-  limit: number,
+  limit: number
 ): string {
   if (depth > limit) {
     throw new Error("Pattern expression exceeds depth limit.");
@@ -151,13 +140,13 @@ function serializeExpr(
     }
     case "seq": {
       const parts = expr.elements.map((e) =>
-        serializeExpr(e, depth + 1, limit),
+        serializeExpr(e, depth + 1, limit)
       );
       return parts.join(" ");
     }
     case "choice": {
       const parts = expr.alternatives.map((e) =>
-        serializeExpr(e, depth + 1, limit),
+        serializeExpr(e, depth + 1, limit)
       );
       return parts.join(" | ");
     }

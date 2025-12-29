@@ -8,10 +8,10 @@
 <% if (it.macros) { expr = it.expandMacrosInText(expr, it.macros); } %>
 <% const ruleText = ruleData.name + params + props + ' { ' + expr + ' }'; %>
 <% if (ruleData.rule.skip) { %>
-@skip { <%- it.serializePattern(ruleData.rule.skip) %> } {
-  <%- ruleText %>
+@skip { <%= it.serializePattern(ruleData.rule.skip) %> } {
+  <%= ruleText %>
 }
 <% } else { %>
-<%- ruleText %>
+<%= ruleText %>
 <% } %>
 <% } %>

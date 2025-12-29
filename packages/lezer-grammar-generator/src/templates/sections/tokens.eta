@@ -1,5 +1,8 @@
 @tokens {
 <% for (const token of it.tokens) { %>
-  <%= token.name %><% if (token.dialect) { %>[@dialect=<%= token.dialect %>]<% } %> { <%- it.serializePattern(token.pattern) %> }
+  <%= token.name %><% if (token.dialect) { %>[@dialect=<%= token.dialect %>]<% } %> { <%= it.serializePattern(token.pattern) %> }
+<% } %>
+<% if (it.tokenPrecedence && it.tokenPrecedence.length > 0) { %>
+  @precedence { <%= it.tokenPrecedence.join(", ") %> }
 <% } %>
 }

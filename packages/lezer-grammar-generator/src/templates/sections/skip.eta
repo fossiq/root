@@ -1,1 +1,1 @@
-@skip { <%- it.serializePattern(it.skip) %> }
+@skip { <%= it.serializePattern(it.skip) %> }

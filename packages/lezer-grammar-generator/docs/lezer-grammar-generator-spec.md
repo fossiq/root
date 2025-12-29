@@ -31,6 +31,7 @@ The primary surface is:
 - `name?: string`
 - `top?: string`
 - `tokens?: Array<{ name; pattern }>`
+- `tokenPrecedence?: string[]` (order matters, first has higher precedence)
 - `rules: Record<string, RuleDef>`
 - `precedence?: Array<{ name; associativity? }>`
 - `externals?: string[]`
@@ -60,6 +61,17 @@ Formatting:
 - Two-space indent in blocks
 - Unix newlines
 - Blank line between sections
+
+Token precedence:
+
+- `tokenPrecedence` is rendered inside `@tokens` as:
+  - `@precedence { TokenA, TokenB }`
+  - Earlier entries take precedence over later ones.
+
+Template output:
+
+- Use `<%= ... %>` to emit serialized content in Eta templates.
+  `<%- ... %>` does not output in the current generator setup.
 
 ## Validation
 

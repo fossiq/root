@@ -1,22 +1,22 @@
 import { TemplateManager } from "./template-manager.js";
 
 // Import serialization templates
-import tokensTemplate from "./sections/tokens.eta?raw";
-import localTokensTemplate from "./sections/local-tokens.eta?raw";
-import externalsTemplate from "./sections/externals.eta?raw";
-import dialectsTemplate from "./sections/dialects.eta?raw";
-import precedenceTemplate from "./sections/precedence.eta?raw";
-import detectDelimTemplate from "./sections/detectDelim.eta?raw";
-import skipTemplate from "./sections/skip.eta?raw";
-import topTemplate from "./sections/top.eta?raw";
-import rulesTemplate from "./sections/rules.eta?raw";
+import tokensTemplate from "./sections/tokens.eta" with { type: "text" };
+import localTokensTemplate from "./sections/local-tokens.eta" with { type: "text" };
+import externalsTemplate from "./sections/externals.eta" with { type: "text" };
+import dialectsTemplate from "./sections/dialects.eta" with { type: "text" };
+import precedenceTemplate from "./sections/precedence.eta" with { type: "text" };
+import detectDelimTemplate from "./sections/detectDelim.eta" with { type: "text" };
+import skipTemplate from "./sections/skip.eta" with { type: "text" };
+import topTemplate from "./sections/top.eta" with { type: "text" };
+import rulesTemplate from "./sections/rules.eta" with { type: "text" };
 
 // Import generator templates
-import configTemplate from "./generator/config.eta?raw";
-import tokenSectionTemplate from "./generator/token-section.eta?raw";
-import ruleSectionTemplate from "./generator/rule-section.eta?raw";
-import precedenceSectionTemplate from "./generator/precedence-section.eta?raw";
-import macroSectionTemplate from "./generator/macro-section.eta?raw";
+import configTemplate from "./generator/config.eta" with { type: "text" };
+import tokenSectionTemplate from "./generator/token-section.eta" with { type: "text" };
+import ruleSectionTemplate from "./generator/rule-section.eta" with { type: "text" };
+import precedenceSectionTemplate from "./generator/precedence-section.eta" with { type: "text" };
+import macroSectionTemplate from "./generator/macro-section.eta" with { type: "text" };
 
 /**
  * Global TemplateManager instance for grammar generation.

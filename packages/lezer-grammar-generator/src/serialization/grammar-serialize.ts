@@ -1,10 +1,4 @@
-import type {
-  GrammarDefinition,
-  MacroDef,
-  PrecedenceLevel,
-  RuleDef,
-  TokenDef,
-} from "../model.js";
+import type { GrammarDefinition } from "../model.js";
 import { templateManager } from "../templates/index.js";
 import { formatProps, expandMacrosInText } from "../templates/helpers.js";
 import { serializePattern } from "../serialization/pattern-serialize.js";
@@ -15,47 +9,48 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
 
   if (def.tokens && def.tokens.length > 0) {
     const sortedTokens = [...def.tokens].sort((a, b) =>
-      a.name.localeCompare(b.name),
+      a.name.localeCompare(b.name)
     );
     sections.push(
       templateManager.render("tokens", {
         tokens: sortedTokens,
+        tokenPrecedence: def.tokenPrecedence,
         serializePattern,
-      }),
+      })
     );
   }
 
   if (def.localTokens && def.localTokens.length > 0) {
     const sortedLocalTokens = [...def.localTokens].sort((a, b) =>
-      a.name.localeCompare(b.name),
+      a.name.localeCompare(b.name)
     );
     sections.push(
       templateManager.render("local-tokens", {
         localTokens: sortedLocalTokens,
         serializePattern,
-      }),
+      })
     );
   }
 
   if (def.externals && def.externals.length > 0) {
     const sortedExternals = [...def.externals].sort((a, b) =>
-      a.localeCompare(b),
+      a.localeCompare(b)
     );
     sections.push(
-      templateManager.render("externals", { externals: sortedExternals }),
+      templateManager.render("externals", { externals: sortedExternals })
     );
   }
 
   if (def.dialects && def.dialects.length > 0) {
     const sortedDialects = [...def.dialects].sort((a, b) => a.localeCompare(b));
     sections.push(
-      templateManager.render("dialects", { dialects: sortedDialects }),
+      templateManager.render("dialects", { dialects: sortedDialects })
     );
   }
 
   if (def.precedence && def.precedence.length > 0) {
     sections.push(
-      templateManager.render("precedence", { precedence: def.precedence }),
+      templateManager.render("precedence", { precedence: def.precedence })
     );
   }
 
@@ -65,13 +60,13 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
 
   if (def.skip) {
     sections.push(
-      templateManager.render("skip", { skip: def.skip, serializePattern }),
+      templateManager.render("skip", { skip: def.skip, serializePattern })
     );
   }
 
   if (def.top) {
     sections.push(
-      templateManager.render("top", { name: def.name, top: def.top }),
+      templateManager.render("top", { name: def.name, top: def.top })
     );
   }
 
@@ -93,7 +88,7 @@ export function generateLezerGrammar(def: GrammarDefinition): string {
       serializePattern,
       formatProps,
       expandMacrosInText,
-    }),
+    })
   );
 
   return `${sections.join("\n\n")}\n`;

@@ -30,7 +30,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   const globalTokens = validateTokens(
     def.tokens ?? [],
     "tokens",
-    declaredDialects,
+    declaredDialects
   );
   issues.push(...globalTokens.issues);
 
@@ -38,9 +38,25 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   const localTokens = validateTokens(
     def.localTokens ?? [],
     "localTokens",
-    declaredDialects,
+    declaredDialects
   );
   issues.push(...localTokens.issues);
+
+  if (def.tokenPrecedence && def.tokenPrecedence.length > 0) {
+    const tokenNames = new Set(globalTokens.names);
+    for (const tokenName of def.tokenPrecedence) {
+      if (!tokenNames.has(tokenName)) {
+        issues.push(
+          issue(
+            "config.tokenPrecedence.unknownToken",
+            `\`tokenPrecedence\` references unknown token '${tokenName}'.`,
+            "tokenPrecedence",
+            "error"
+          )
+        );
+      }
+    }
+  }
 
   // Validate rules
   const ruleValidation = validateRules(ruleNames);
@@ -51,7 +67,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
     def.externals ?? [],
     globalTokens.names,
     localTokens.names,
-    ruleValidation.names,
+    ruleValidation.names
   );
   issues.push(...externals.issues);
 
@@ -61,8 +77,8 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
       globalTokens.names,
       localTokens.names,
       ruleValidation.names,
-      externals.names,
-    ),
+      externals.names
+    )
   );
 
   if (def.top) {
@@ -72,8 +88,8 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
           "top.unknown",
           `Top rule '${def.top}' is not defined.`,
           "top",
-          "error",
-        ),
+          "error"
+        )
       );
     }
     if (!def.name) {
@@ -82,8 +98,8 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
           "top.missingName",
           "Grammar name is required when top is set.",
           "name",
-          "error",
-        ),
+          "error"
+        )
       );
     } else if (!isIdentifier(def.name)) {
       issues.push(
@@ -91,8 +107,8 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
           "name.invalid",
           `Invalid grammar name '${def.name}'.`,
           "name",
-          "error",
-        ),
+          "error"
+        )
       );
     }
   } else if (def.name && !isIdentifier(def.name)) {
@@ -101,8 +117,8 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
         "name.invalid",
         `Invalid grammar name '${def.name}'.`,
         "name",
-        "error",
-      ),
+        "error"
+      )
     );
   }
 
@@ -119,7 +135,7 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
   // Validate rule properties and get params
   const { ruleParams, issues: rulePropIssues } = validateRuleProperties(
     def.rules,
-    declaredDialects,
+    declaredDialects
   );
   issues.push(...rulePropIssues);
 
@@ -129,13 +145,13 @@ export function validateGrammar(def: GrammarDefinition): ValidationResult {
       def.rules,
       symbolTable,
       ruleParams,
-      ruleValidation.names,
-    ),
+      ruleValidation.names
+    )
   );
 
   // Validate cycles and reachability
   issues.push(
-    ...validateCyclesAndReachability(def.rules, def.top, ruleValidation.names),
+    ...validateCyclesAndReachability(def.rules, def.top, ruleValidation.names)
   );
 
   return finalize(issues);
@@ -145,7 +161,7 @@ function issue(
   code: ValidationErrorCode,
   message: string,
   path: string | undefined,
-  level: "error" | "warning",
+  level: "error" | "warning"
 ): ValidationIssue {
   return { code, message, path, level };
 }
