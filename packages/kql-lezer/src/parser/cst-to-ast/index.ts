@@ -58,34 +58,53 @@ function mapQuery(
     return ctx.errorNode(node, "Query missing QueryExpression");
   }
 
-  // QueryExpression contains one of: PipelineExpression, UnionExpression, etc.
-  const pipelineNode = ctx.getChild(queryExprNode, "PipelineExpression");
-  if (pipelineNode) {
-    const pipeline = mapPipelineExpression(pipelineNode, ctx);
-    if (pipeline.type === "ErrorNode") {
-      return pipeline;
-    }
-
-    return {
-      type: "Query",
-      letStatements,
-      pipeline,
-      start: node.from,
-      end: node.to,
-    };
-  }
-
-  // TODO: Handle UnionExpression, SearchExpression, FindExpression
-  // For now, return an error for unsupported query types
+  // Determine the type of the inner expression
   const firstChild = queryExprNode.firstChild;
-  if (firstChild) {
-    return ctx.errorNode(
-      firstChild,
-      `Unsupported query expression type: ${firstChild.type.name}`
-    );
+  if (!firstChild) {
+    return ctx.errorNode(queryExprNode, "Empty QueryExpression");
   }
 
-  return ctx.errorNode(queryExprNode, "Empty QueryExpression");
+  let expression: AST.QueryExpression | AST.ErrorNode;
+
+  switch (firstChild.type.name) {
+    case "PipelineExpression":
+      expression = mapPipelineExpression(firstChild, ctx);
+      break;
+    case "UnionExpression":
+      expression = mapUnionExpression(firstChild, ctx);
+      break;
+    case "SearchExpression":
+      expression = mapSearchExpression(firstChild, ctx);
+      break;
+    case "FindExpression":
+      expression = mapFindExpression(firstChild, ctx);
+      break;
+    default:
+      return ctx.errorNode(
+        firstChild,
+        `Unsupported query expression type: ${firstChild.type.name}`
+      );
+  }
+
+  if (expression.type === "ErrorNode") {
+    return expression as AST.ErrorNode;
+  }
+
+  // Construct the Query object
+  // For backward compatibility, if it's a pipeline, we also set the pipeline field
+  const query: AST.Query = {
+    type: "Query",
+    letStatements,
+    expression: expression as AST.QueryExpression,
+    start: node.from,
+    end: node.to,
+  };
+
+  if (expression.type === "PipelineExpression") {
+    query.pipeline = expression as AST.PipelineExpression;
+  }
+
+  return query;
 }
 
 /**
@@ -156,6 +175,70 @@ function mapPipelineExpression(
     type: "PipelineExpression",
     source,
     operators,
+    start: node.from,
+    end: node.to,
+  };
+}
+
+/**
+ * Map a UnionExpression node (top-level).
+ * Grammar: UnionExpression { kw<"union"> UnionModifiers? TableList }
+ */
+function mapUnionExpression(
+  node: SyntaxNode,
+  ctx: CstToAstContext
+): AST.UnionExpression | AST.ErrorNode {
+  const tableList = ctx.getChild(node, "TableList");
+  if (!tableList) {
+    return ctx.errorNode(node, "UnionExpression missing table list");
+  }
+
+  const tables: (AST.TableReference | AST.PipelineExpression)[] = [];
+  const tableNodes = ctx.getChildren(tableList, "TableExpression");
+
+  for (const tableNode of tableNodes) {
+    const table = mapTableExpression(tableNode, ctx);
+    if (table.type === "ErrorNode") {
+      return table;
+    }
+    tables.push(table);
+  }
+
+  return {
+    type: "UnionExpression",
+    tables,
+    start: node.from,
+    end: node.to,
+  };
+}
+
+/**
+ * Map a SearchExpression node.
+ * Grammar: SearchExpression { kw<"search"> ... }
+ */
+function mapSearchExpression(
+  node: SyntaxNode,
+  ctx: CstToAstContext
+): AST.SearchExpression | AST.ErrorNode {
+  // Placeholder implementation
+  return {
+    type: "SearchExpression",
+    start: node.from,
+    end: node.to,
+  };
+}
+
+/**
+ * Map a FindExpression node.
+ * Grammar: FindExpression { kw<"find"> ... }
+ */
+function mapFindExpression(
+  node: SyntaxNode,
+  ctx: CstToAstContext
+): AST.FindExpression | AST.ErrorNode {
+  // Placeholder implementation
+  return {
+    type: "FindExpression",
     start: node.from,
     end: node.to,
   };
@@ -453,6 +536,7 @@ function mapSortClause(
     for (const item of items) {
       const exprNode = ctx.getChild(item, "Expression");
       const dirNode = ctx.getChild(item, "SortDirection");
+      const nullsNode = ctx.getChild(item, "NullsPosition");
 
       expressions.push({
         type: "SortExpression",
@@ -460,6 +544,7 @@ function mapSortClause(
           ? ctx.mapScalarExpression(exprNode)
           : ctx.errorNode(item, "Missing sort expression"),
         direction: dirNode ? ctx.slice(dirNode) : undefined,
+        nulls: nullsNode ? ctx.slice(nullsNode) : undefined,
         start: item.from,
         end: item.to,
       });
@@ -508,12 +593,15 @@ function mapTopClause(
     for (const item of items) {
       const itemExpr = ctx.getChild(item, "Expression");
       const dirNode = ctx.getChild(item, "SortDirection");
+      const nullsNode = ctx.getChild(item, "NullsPosition");
+
       byExpressions.push({
         type: "SortExpression",
         expression: itemExpr
           ? ctx.mapScalarExpression(itemExpr)
           : ctx.errorNode(item, "Missing sort expression"),
         direction: dirNode ? ctx.slice(dirNode) : undefined,
+        nulls: nullsNode ? ctx.slice(nullsNode) : undefined,
         start: item.from,
         end: item.to,
       });

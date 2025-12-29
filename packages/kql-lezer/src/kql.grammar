@@ -23,30 +23,56 @@
 
   // Identifiers and literals
   Identifier { $[A-Za-z_]$[A-Za-z0-9_]* }
-  Number { @digit+ ("." @digit+)? }
+  Number { @digit+ (".." @digit+)? }
 
   // Timespan literals: 1d, 30m, 12h, 500ms, etc.
-  Timespan { @digit+ ("." @digit+)? ($[dhms] | "ms" | "us" | "ns" | "tick" | "ticks") }
+  // Supports combined forms like 1d12h, 1h30m
+  Timespan { (@digit+ (".." @digit+)? ($[dhms] | "ms" | "us" | "ns" | "tick" | "ticks"))+ }
 
   // String literals (various KQL forms)
   String {
-    "@" "\"" !["]* "\"" |           // Verbatim @"..."
+    "@" "\"" ![\\"]* "\"" |           // Verbatim @"..."
     "@" "'" ![']* "'" |             // Verbatim @'...'
-    "h" "\"" !["\n]* "\"" |         // Obfuscated h"..."
-    "h" "@" "\"" !["]* "\"" |       // Obfuscated verbatim h@"..."
-    "\"" (!["\\] | "\\" _)* "\"" |  // Regular "..."
+    "h" "\"" ![\"\n]* "\"" |         // Obfuscated h"..."
+    "h" "@" "\"" ![\"]* "\"" |       // Obfuscated verbatim h@"..."
+    "\"" (![\"\\] | "\\" _)* "\"" |  // Regular "..."
     "'" (!['\\] | "\\" _)* "'"      // Regular '...'
   }
 
+  // Explicit keywords that contain special chars or need precedence
+  ProjectAway { "project-away" }
+  ProjectKeep { "project-keep" }
+  ProjectRename { "project-rename" }
+  ProjectReorder { "project-reorder" }
+  MvExpand { "mv-expand" }
+
+  // Negated operators (cannot use kw<> because of '!')
+  NotBetween { "!between" }
+  NotContains { "!contains" }
+  NotContainsCs { "!contains_cs" }
+  NotStartsWith { "!startswith" }
+  NotStartsWithCs { "!startswith_cs" }
+  NotEndsWith { "!endswith" }
+  NotEndsWithCs { "!endswith_cs" }
+  NotHas { "!has" }
+  NotHasCs { "!has_cs" }
+  NotHasPrefix { "!hasprefix" }
+  NotHasSuffix { "!hassuffix" }
+
   // Comments
-  LineComment { "//" ![\n]* }
+  LineComment { "//" ![
+]* }
 
   // Whitespace
   whitespace { $[ \t\n\r]+ }
 
   // Precedence to resolve ambiguities
-  @precedence { Timespan, Number, LineComment, Slash, String, Identifier }
-}
+    @precedence {
+      ProjectAway, ProjectKeep, ProjectRename, ProjectReorder, MvExpand,
+      NotBetween, NotContains, NotContainsCs, NotStartsWith, NotStartsWithCs,
+      NotEndsWith, NotEndsWithCs, NotHas, NotHasCs, NotHasPrefix, NotHasSuffix,
+      Timespan, Number, LineComment, Slash, String, Identifier
+    }}
 
 @skip { whitespace | LineComment }
 
@@ -111,10 +137,10 @@ ProjectExpressionList { ProjectExpressionItem (Comma ProjectExpressionItem)* }
 ProjectExpressionItem { (Identifier Equals)? Expression }
 
 // Project variants
-ProjectAwayClause { kw<"project-away"> IdentifierList }
-ProjectKeepClause { kw<"project-keep"> IdentifierList }
-ProjectRenameClause { kw<"project-rename"> ProjectRenameList }
-ProjectReorderClause { kw<"project-reorder"> IdentifierList }
+ProjectAwayClause { ProjectAway IdentifierList }
+ProjectKeepClause { ProjectKeep IdentifierList }
+ProjectRenameClause { ProjectRename ProjectRenameList }
+ProjectReorderClause { ProjectReorder IdentifierList }
 
 ProjectRenameList { ProjectRenameItem (Comma ProjectRenameItem)* }
 ProjectRenameItem { Identifier Equals Identifier }
@@ -149,7 +175,7 @@ AggregationItem { (Identifier Equals)? FunctionCall }
 GroupByList { Expression (Comma Expression)* }
 
 // mv-expand clause
-MvExpandClause { kw<"mv-expand"> IdentifierList }
+MvExpandClause { MvExpand IdentifierList }
 
 // Union as initial query expression
 UnionExpression {
@@ -214,17 +240,17 @@ ComparisonExpression {
 
 // String comparison operators
 StringOp {
-  kw<"contains"> | kw<"!contains"> | kw<"contains_cs"> | kw<"!contains_cs"> |
-  kw<"startswith"> | kw<"!startswith"> | kw<"startswith_cs"> | kw<"!startswith_cs"> |
-  kw<"endswith"> | kw<"!endswith"> | kw<"endswith_cs"> | kw<"!endswith_cs"> |
-  kw<"has"> | kw<"!has"> | kw<"has_cs"> | kw<"!has_cs"> |
-  kw<"hasprefix"> | kw<"!hasprefix"> |
-  kw<"hassuffix"> | kw<"!hassuffix"> |
+  kw<"contains"> | NotContains | kw<"contains_cs"> | NotContainsCs |
+  kw<"startswith"> | NotStartsWith | kw<"startswith_cs"> | NotStartsWithCs |
+  kw<"endswith"> | NotEndsWith | kw<"endswith_cs"> | NotEndsWithCs |
+  kw<"has"> | NotHas | kw<"has_cs"> | NotHasCs |
+  kw<"hasprefix"> | NotHasPrefix |
+  kw<"hassuffix"> | NotHasSuffix |
   kw<"matches"> | kw<"regex">
 }
 
 // Between operator
-BetweenOp { kw<"between"> | kw<"!between"> }
+BetweenOp { kw<"between"> | NotBetween }
 
 AdditiveExpression {
   AdditiveExpression (Plus | Minus) MultiplicativeExpression |

@@ -34,6 +34,15 @@ export class CstToAstContext {
    * Dispatches to appropriate handlers based on node type.
    */
   mapScalarExpression(node: SyntaxNode): AST.Expression {
+    if (!node) {
+      return {
+        type: "ErrorNode",
+        error: "Undefined node in mapScalarExpression",
+        from: 0,
+        to: 0,
+      } as unknown as AST.Expression; // Cast to satisfy type system
+    }
+
     switch (node.type.name) {
       case "Expression":
       case "OrExpression":
@@ -50,10 +59,82 @@ export class CstToAstContext {
       case "PrimaryExpression":
         return this.mapPrimaryExpression(node);
       default:
+        // Fallback for nodes that might be directly passed (like Number, String)
+        // This can happen if mapPrimaryExpression unwraps too eagerly or we pass a child directly
+        if (
+          [
+            "Number",
+            "String",
+            "Identifier",
+            "Timespan",
+            "FunctionCall",
+            "BracketedIdentifier",
+          ].includes(node.type.name)
+        ) {
+          // Treat as primary expression content
+          // We need to wrap it or handle it.
+          // mapPrimaryExpression expects a wrapper node "PrimaryExpression" usually,
+          // but let's see if we can reuse it logic if we fake a wrapper?
+          // Better: just handle the types directly here.
+          return this.mapDirectPrimitive(node);
+        }
+
         return this.errorNode(
           node,
           `Unsupported expression type: ${node.type.name}`
         );
+    }
+  }
+
+  private mapDirectPrimitive(node: SyntaxNode): AST.Expression {
+    switch (node.type.name) {
+      case "Number":
+        return {
+          type: "NumberLiteral",
+          value: parseFloat(this.slice(node)),
+          raw: this.slice(node),
+          start: node.from,
+          end: node.to,
+        };
+      case "String":
+        return {
+          type: "StringLiteral",
+          value: this.parseStringLiteral(this.slice(node)),
+          raw: this.slice(node),
+          start: node.from,
+          end: node.to,
+        };
+      case "Identifier":
+        return {
+          type: "Identifier",
+          name: this.slice(node),
+          start: node.from,
+          end: node.to,
+        };
+      case "Timespan":
+        return {
+          type: "Literal",
+          value: this.slice(node),
+          raw: this.slice(node),
+          start: node.from,
+          end: node.to,
+        };
+      case "FunctionCall":
+        return this.mapFunctionCall(node);
+      case "BracketedIdentifier": {
+        const stringNode = this.getChild(node, "String");
+        const name = stringNode
+          ? this.parseStringLiteral(this.slice(stringNode))
+          : this.slice(node);
+        return {
+          type: "Identifier",
+          name,
+          start: node.from,
+          end: node.to,
+        };
+      }
+      default:
+        return this.errorNode(node, `Unknown primitive: ${node.type.name}`);
     }
   }
 
@@ -74,6 +155,7 @@ export class CstToAstContext {
 
       if (name === "not") {
         const operand = children[i + 1];
+        if (!operand) return this.errorNode(node, "Missing operand for 'not'");
         return {
           type: "UnaryExpression",
           operator: "not",
@@ -118,17 +200,32 @@ export class CstToAstContext {
       if (name === "BetweenOp") {
         const left = this.mapScalarExpression(children[i - 1]);
         const op = this.slice(child);
-        let rangeStart: AST.Expression | null = null;
-        let rangeEnd: AST.Expression | null = null;
 
+        // Find range expressions
+        // Structure: ... BetweenOp OpenParen Expression DotDot Expression CloseParen ...
+        // We scan forward for Expressions.
+        const rangeParts: AST.Expression[] = [];
         for (let j = i + 1; j < children.length; j++) {
-          if (children[j].type.name === "Expression") {
-            if (!rangeStart) rangeStart = this.mapScalarExpression(children[j]);
-            else if (!rangeEnd) {
-              rangeEnd = this.mapScalarExpression(children[j]);
-              break;
-            }
+          const nextChild = children[j];
+          // We accept Expression, PrimaryExpression, or primitives if the tree is flat/different
+          if (
+            nextChild.type.name === "Expression" ||
+            nextChild.type.name === "PrimaryExpression" ||
+            nextChild.type.name === "Number" ||
+            nextChild.type.name === "String" ||
+            nextChild.type.name === "Timespan" ||
+            nextChild.type.name === "FunctionCall"
+          ) {
+            rangeParts.push(this.mapScalarExpression(nextChild));
+            if (rangeParts.length === 2) break;
           }
+        }
+
+        if (rangeParts.length < 2) {
+          return this.errorNode(
+            node,
+            "Between operator requires 2 range values"
+          );
         }
 
         return {
@@ -138,8 +235,8 @@ export class CstToAstContext {
           right: {
             type: "BinaryExpression",
             operator: "..",
-            left: rangeStart || this.errorNode(node, "Missing range start"),
-            right: rangeEnd || this.errorNode(node, "Missing range end"),
+            left: rangeParts[0],
+            right: rangeParts[1],
             start: node.from,
             end: node.to,
           },
@@ -196,8 +293,11 @@ export class CstToAstContext {
 
     while (i < children.length) {
       const opNode = children[i];
+      const rightNode = children[i + 1];
+      if (!rightNode) break; // Safety
+
       const op = this.slice(opNode);
-      const right = this.mapScalarExpression(children[i + 1]);
+      const right = this.mapScalarExpression(rightNode);
 
       left = {
         type: "BinaryExpression",
@@ -231,8 +331,11 @@ export class CstToAstContext {
 
     while (i < children.length) {
       const opNode = children[i];
+      const rightNode = children[i + 1];
+      if (!rightNode) break;
+
       const op = this.slice(opNode);
-      const right = this.mapScalarExpression(children[i + 1]);
+      const right = this.mapScalarExpression(rightNode);
 
       left = {
         type: "BinaryExpression",
@@ -258,73 +361,8 @@ export class CstToAstContext {
       return this.errorNode(node, "Empty primary expression");
     }
 
-    switch (child.type.name) {
-      case "Number":
-        return {
-          type: "NumberLiteral",
-          value: parseFloat(this.slice(child)),
-          raw: this.slice(child),
-          start: child.from,
-          end: child.to,
-        };
-
-      case "String":
-        return {
-          type: "StringLiteral",
-          value: this.parseStringLiteral(this.slice(child)),
-          raw: this.slice(child),
-          start: child.from,
-          end: child.to,
-        };
-
-      case "Identifier":
-        return {
-          type: "Identifier",
-          name: this.slice(child),
-          start: child.from,
-          end: child.to,
-        };
-
-      case "Timespan":
-        return {
-          type: "Literal",
-          value: this.slice(child),
-          raw: this.slice(child),
-          start: child.from,
-          end: child.to,
-        };
-
-      case "BracketedIdentifier": {
-        const stringNode = this.getChild(child, "String");
-        const name = stringNode
-          ? this.parseStringLiteral(this.slice(stringNode))
-          : this.slice(child);
-        return {
-          type: "Identifier",
-          name,
-          start: child.from,
-          end: child.to,
-        };
-      }
-
-      case "FunctionCall":
-        return this.mapFunctionCall(child);
-
-      case "OpenParen": {
-        // Parenthesized expression: skip open paren, map inner expression
-        const innerExpr = child.nextSibling;
-        if (innerExpr) {
-          return this.mapScalarExpression(innerExpr);
-        }
-        return this.errorNode(node, "Empty parenthesized expression");
-      }
-
-      default:
-        return this.errorNode(
-          child,
-          `Unsupported primary expression: ${child.type.name}`
-        );
-    }
+    // Delegate to direct primitive mapper for consistency
+    return this.mapDirectPrimitive(child);
   }
 
   /**
@@ -333,7 +371,10 @@ export class CstToAstContext {
   private mapFunctionCall(node: SyntaxNode): AST.FunctionCall | AST.ErrorNode {
     const identNode = this.getChild(node, "Identifier");
     if (!identNode) {
-      return this.errorNode(node, "FunctionCall missing identifier");
+      return this.errorNode(
+        node,
+        "FunctionCall missing identifier"
+      ) as unknown as AST.FunctionCall;
     }
 
     const args: AST.Expression[] = [];
@@ -383,7 +424,7 @@ export class CstToAstContext {
       return raw
         .slice(1, -1)
         .replace(/\\"/g, '"')
-        .replace(/\\'/g, "'")
+        .replace(/\'/g, "'")
         .replace(/\\\\/g, "\\")
         .replace(/\\n/g, "\n")
         .replace(/\\t/g, "\t")
