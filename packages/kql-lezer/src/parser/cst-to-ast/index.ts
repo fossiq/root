@@ -744,7 +744,7 @@ function mapFunctionCall(
   return {
     type: "FunctionCall",
     name: ctx.slice(identNode),
-    arguments: args,
+    args,
     start: node.from,
     end: node.to,
   };

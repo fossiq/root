@@ -64,12 +64,12 @@ export function createMapperContext(text: string): MapperContext {
         // Simple unescape (handle \", \', \\, \n, \t, \r)
         return raw
           .slice(1, -1)
-          .replace(/\\"/g, '"')
-          .replace(/\'/g, "'")
-          .replace(/\\\\/g, "\\")
-          .replace(/\\n/g, "\n")
-          .replace(/\\t/g, "\t")
-          .replace(/\\r/g, "\r");
+          .replace(`\\"`, '"')
+          .replace(`\\'`, "'")
+          .replace(`\\\\`, "\\")
+          .replace(`\\n`, "\n")
+          .replace(`\\t`, "\t")
+          .replace(`\\r`, "\r");
       }
 
       return raw;

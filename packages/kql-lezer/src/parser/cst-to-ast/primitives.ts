@@ -90,7 +90,7 @@ export function mapFunctionCall(
   return {
     type: "FunctionCall",
     name: slice(identNode),
-    arguments: args,
+    args,
     start: node.from,
     end: node.to,
   };
