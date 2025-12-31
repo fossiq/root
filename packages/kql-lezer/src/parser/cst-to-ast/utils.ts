@@ -38,21 +38,20 @@ export function parseStringLiteral(raw: string): string {
   }
 
   // Handle regular strings "..." or '...'
-  if (
-    (raw.startsWith('"') && raw.endsWith('"')) ||
-    (raw.startsWith("'") && raw.endsWith("'"))
-  ) {
-    // Simple unescape (handle \", \', \\, \n, \t, \r)
-    return raw
-      .slice(1, -1)
-      .replace(/\\"/g, '"')
-      .replace(/\'/g, "'")
-      .replace(/\\\\/g, "\\")
-      .replace(/\\n/g, "\n")
-      .replace(/\\t/g, "\t")
-      .replace(/\\r/g, "\r");
-  }
-
+      if (
+      (raw.startsWith('"') && raw.endsWith('"')) ||
+      (raw.startsWith("'") && raw.endsWith("'"))
+    ) {
+      // Simple unescape (handle \", \', \\, \n, \t, \r)
+      return raw
+        .slice(1, -1)
+        .replace(/\\"/g, '"')
+        .replace(/'/g, "'")
+        .replace(/\\\\/g, "\\")
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t")
+        .replace(/\\r/g, "\r");
+    }
   return raw;
 }
 

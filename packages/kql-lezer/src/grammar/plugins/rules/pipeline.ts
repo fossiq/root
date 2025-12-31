@@ -20,7 +20,12 @@ export const pipelineRules: Record<string, RuleDef> = {
   TableExpression: {
     expression: choice(
       ref("Identifier"),
+      ref("BracketedIdentifier"),
       seq(ref("OpenParen"), ref("PipelineExpression"), ref("CloseParen"))
     ),
+  },
+
+  BracketedIdentifier: {
+    expression: seq(ref("OpenBracket"), ref("String"), ref("CloseBracket"))
   },
 };

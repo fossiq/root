@@ -150,10 +150,16 @@ function serializeExpr(
       );
       return parts.join(" | ");
     }
-    case "repeat":
-      return serializeExpr(expr.expr, depth + 1, limit) + expr.kind;
-    case "optional":
-      return serializeExpr(expr.expr, depth + 1, limit) + "?";
+    case "repeat": {
+      const inner = serializeExpr(expr.expr, depth + 1, limit);
+      const needsParens = expr.expr.type === "seq" || expr.expr.type === "choice";
+      return (needsParens ? "(" + inner + ")" : inner) + expr.kind;
+    }
+    case "optional": {
+      const inner = serializeExpr(expr.expr, depth + 1, limit);
+      const needsParens = expr.expr.type === "seq" || expr.expr.type === "choice";
+      return (needsParens ? "(" + inner + ")" : inner) + "?";
+    }
     case "group":
       return "(" + serializeExpr(expr.expr, depth + 1, limit) + ")";
     default: {

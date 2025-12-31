@@ -44,6 +44,23 @@ function getTokenType(tokenName: string): TokenType | null {
     case "distinct":
     case "summarize":
     case "mv-expand":
+    case "make-series":
+    case "join":
+    case "lookup":
+    case "parse":
+    case "datatable":
+    case "print":
+    case "evaluate":
+    case "partition":
+    case "sample":
+    case "getschema":
+    case "render":
+    case "serialize":
+    case "set":
+    case "declare":
+    case "query_parameters":
+    case "with":
+    case "on":
     case "union":
     case "kind":
     case "inner":

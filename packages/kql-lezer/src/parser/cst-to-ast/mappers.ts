@@ -1,6 +1,5 @@
 import { SyntaxNode } from "@lezer/common";
 import type * as AST from "@fossiq/kql-ast";
-import { mapWhereOperator } from "./operators/where";
 
 /**
  * Pure functional versions of CST-to-AST mapping functions.
@@ -78,21 +77,20 @@ export function parseStringLiteral(raw: string): string {
   }
 
   // Handle regular strings "..." or '...'
-  if (
-    (raw.startsWith('"') && raw.endsWith('"')) ||
-    (raw.startsWith("'") && raw.endsWith("'"))
-  ) {
-    // Simple unescape (handle \", \', \\, \n, \t, \r)
-    return raw
-      .slice(1, -1)
-      .replace(/\\"/g, '"')
-      .replace(/\'/g, "'")
-      .replace(/\\\\/g, "\\")
-      .replace(/\\n/g, "\n")
-      .replace(/\\t/g, "\t")
-      .replace(/\\r/g, "\r");
-  }
-
+      if (
+      (raw.startsWith('"') && raw.endsWith('"')) ||
+      (raw.startsWith("'") && raw.endsWith("'"))
+    ) {
+      // Simple unescape (handle \", \', \\, \n, \t, \r)
+      return raw
+        .slice(1, -1)
+        .replace(/\\"/g, '"')
+        .replace(/'/g, "'")
+        .replace(/\\\\/g, "\\")
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t")
+        .replace(/\\r/g, "\r");
+    }
   return raw;
 }
 
@@ -151,6 +149,23 @@ export function mapPrimitive(
         end: node.to,
       };
     }
+    case "true":
+    case "false":
+      return {
+        type: "Literal",
+        value: node.type.name === "true",
+        raw: slice(node),
+        start: node.from,
+        end: node.to,
+      };
+    case "null":
+      return {
+        type: "Literal",
+        value: null,
+        raw: slice(node),
+        start: node.from,
+        end: node.to,
+      };
     default:
       return createErrorNode(node, `Unknown primitive: ${node.type.name}`);
   }
@@ -193,7 +208,7 @@ export function mapFunctionCall(
  */
 export function mapPrimaryExpression(
   node: SyntaxNode,
-  ctx: MapperContext
+  ctx: CstToAstContext
 ): AST.Expression {
   const child = node.firstChild;
   if (!child) {
@@ -491,20 +506,4 @@ export function mapScalarExpression(
         `Unsupported expression type: ${node.type.name}`
       );
   }
-}
-
-/**
- * Map where operator (placeholder).
- */
-export function mapWhereOperator(
-  node: SyntaxNode,
-  ctx: MapperContext
-): AST.WhereOperator | AST.ErrorNode {
-  // This should be implemented - for now just a stub
-  return {
-    type: "WhereOperator",
-    condition: createErrorNode(node, "Where operator not implemented"),
-    start: node.from,
-    end: node.to,
-  };
 }

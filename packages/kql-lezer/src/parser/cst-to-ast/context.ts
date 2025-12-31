@@ -1,4 +1,6 @@
 import { SyntaxNode } from "@lezer/common";
+import * as AST from "@fossiq/kql-ast";
+import { mapScalarExpression, mapFunctionCall } from "./mappers";
 
 /**
  * Utility functions for navigating syntax nodes.
@@ -10,15 +12,25 @@ export interface MapperContext {
   getChild: (node: SyntaxNode, typeName: string) => SyntaxNode | null;
   getChildren: (node: SyntaxNode, typeName: string) => SyntaxNode[];
   parseStringLiteral: (raw: string) => string;
+  mapScalarExpression: (node: SyntaxNode) => AST.Expression;
+  mapFunctionCall: (node: SyntaxNode) => AST.FunctionCall | AST.ErrorNode;
+  errorNode: (node: SyntaxNode, msg: string) => AST.ErrorNode;
 }
+
+// Backward compatibility alias for tests
+export type CstToAstContext = MapperContext;
 
 /**
  * Create a context object with utility functions.
  */
-export function createMapperContext(text: string): MapperContext {
-  return {
-    slice: (node: SyntaxNode) => text.slice(node.from, node.to),
-    getChild: (node: SyntaxNode, typeName: string): SyntaxNode | null => {
+export class CstToAstContext implements MapperContext {
+  constructor(private text: string) {}
+
+  slice = (node: SyntaxNode) => {
+    return this.text.slice(node.from, node.to);
+  }
+
+  getChild = (node: SyntaxNode, typeName: string): SyntaxNode | null => {
       let child = node.firstChild;
       while (child) {
         if (child.type.name === typeName) {
@@ -27,8 +39,9 @@ export function createMapperContext(text: string): MapperContext {
         child = child.nextSibling;
       }
       return null;
-    },
-    getChildren: (node: SyntaxNode, typeName: string): SyntaxNode[] => {
+  }
+
+  getChildren = (node: SyntaxNode, typeName: string): SyntaxNode[] => {
       const children: SyntaxNode[] = [];
       let child = node.firstChild;
       while (child) {
@@ -38,8 +51,9 @@ export function createMapperContext(text: string): MapperContext {
         child = child.nextSibling;
       }
       return children;
-    },
-    parseStringLiteral: (raw: string): string => {
+  }
+
+  parseStringLiteral = (raw: string): string => {
       // Handle verbatim strings @"..." or @'...'
       if (raw.startsWith('@"') && raw.endsWith('"')) {
         return raw.slice(2, -1);
@@ -64,15 +78,31 @@ export function createMapperContext(text: string): MapperContext {
         // Simple unescape (handle \", \', \\, \n, \t, \r)
         return raw
           .slice(1, -1)
-          .replace(`\\"`, '"')
-          .replace(`\\'`, "'")
-          .replace(`\\\\`, "\\")
-          .replace(`\\n`, "\n")
-          .replace(`\\t`, "\t")
-          .replace(`\\r`, "\r");
+          .replace(/\\"/g, '"')
+          .replace(/'/g, "'")
+          .replace(/\\\\/g, "\\")
+          .replace(/\\n/g, "\n")
+          .replace(/\\t/g, "\t")
+          .replace(/\\r/g, "\r");
       }
 
       return raw;
-    },
-  };
+  }
+  
+  mapScalarExpression = (node: SyntaxNode): AST.Expression => {
+      return mapScalarExpression(node, this);
+  }
+
+  mapFunctionCall = (node: SyntaxNode): AST.FunctionCall | AST.ErrorNode => {
+      return mapFunctionCall(node, this);
+  }
+
+  errorNode = (node: SyntaxNode, msg: string): AST.ErrorNode => {
+      return {
+        type: "ErrorNode",
+        error: msg,
+        from: node.from,
+        to: node.to,
+      };
+  }
 }

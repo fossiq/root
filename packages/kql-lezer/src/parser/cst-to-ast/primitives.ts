@@ -101,7 +101,7 @@ export function mapFunctionCall(
  */
 export function mapPrimaryExpression(
   node: SyntaxNode,
-  ctx: MapperContext
+  ctx: CstToAstContext
 ): AST.Expression {
   const child = node.firstChild;
   if (!child) {

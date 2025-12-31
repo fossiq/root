@@ -60,6 +60,8 @@ export type StatementType =
   | "Query"
   | "PipeStatement"
   | "LetStatement"
+  | "SetStatement"
+  | "DeclareQueryParametersStatement"
   | "TabularStatement";
 
 /**
@@ -69,6 +71,30 @@ export interface LetStatement extends ASTNode {
   type: "LetStatement";
   name: string;
   value: Expression;
+}
+
+/**
+ * Set statement for query options
+ */
+export interface SetStatement extends ASTNode {
+  type: "SetStatement";
+  name: string;
+  value: Literal | Identifier;
+}
+
+/**
+ * Declare query parameters statement
+ */
+export interface DeclareQueryParametersStatement extends ASTNode {
+  type: "DeclareQueryParametersStatement";
+  parameters: QueryParameter[];
+}
+
+export interface QueryParameter extends ASTNode {
+  type: "QueryParameter";
+  name: string;
+  paramType: string;
+  defaultValue?: Expression;
 }
 
 /**
@@ -89,7 +115,18 @@ export type TabularOperator =
   | DistinctOperator
   | SummarizeOperator
   | MvExpandOperator
-  | UnionOperator;
+  | UnionOperator
+  | JoinOperator
+  | ParseOperator
+  | EvaluateOperator
+  | MakeSeriesOperator
+  | PartitionOperator
+  | SampleOperator
+  | GetSchemaOperator
+  | RenderOperator
+  | SerializeOperator
+  | DatatableOperator
+  | PrintOperator;
 
 /**
  * Where operator for filtering
@@ -220,6 +257,104 @@ export interface UnionOperator extends ASTNode {
 }
 
 /**
+ * Join operator
+ */
+export interface JoinOperator extends ASTNode {
+  type: "JoinOperator";
+  kind?: string; // inner, outer, leftouter, etc.
+  rightTable: TableReference | PipelineExpression;
+  on: Expression[];
+}
+
+/**
+ * Parse operator
+ */
+export interface ParseOperator extends ASTNode {
+  type: "ParseOperator";
+  column: string; // The source column
+  kind?: "simple" | "regex" | "relaxed";
+  pattern: string; // The pattern string
+}
+
+/**
+ * Evaluate operator (plugins)
+ */
+export interface EvaluateOperator extends ASTNode {
+  type: "EvaluateOperator";
+  plugin: FunctionCall; // treat plugin invocation as a function call
+}
+
+/**
+ * MakeSeries operator
+ */
+export interface MakeSeriesOperator extends ASTNode {
+  type: "MakeSeriesOperator";
+  aggregations: Aggregation[];
+  on: SortExpression; // The time column
+  step: Expression; // The time step
+  by?: Expression[]; // Group by columns
+}
+
+/**
+ * Partition operator
+ */
+export interface PartitionOperator extends ASTNode {
+  type: "PartitionOperator";
+  by: string; // Partition column
+  pipeline: PipelineExpression; // Sub-query
+}
+
+/**
+ * Sample operator
+ */
+export interface SampleOperator extends ASTNode {
+  type: "SampleOperator";
+  count: Expression;
+  kind?: string; // distinct?
+}
+
+/**
+ * GetSchema operator
+ */
+export interface GetSchemaOperator extends ASTNode {
+  type: "GetSchemaOperator";
+}
+
+/**
+ * Render operator
+ */
+export interface RenderOperator extends ASTNode {
+  type: "RenderOperator";
+  chartType: string;
+  options?: Record<string, string>; // Simplification
+}
+
+/**
+ * Serialize operator
+ */
+export interface SerializeOperator extends ASTNode {
+  type: "SerializeOperator";
+  columns?: string[]; // Optional specific columns to serialize
+}
+
+/**
+ * Datatable operator
+ */
+export interface DatatableOperator extends ASTNode {
+  type: "DatatableOperator";
+  schema: { name: string; type: string }[];
+  data: Literal[][];
+}
+
+/**
+ * Print operator
+ */
+export interface PrintOperator extends ASTNode {
+  type: "PrintOperator";
+  expressions: ProjectColumn[];
+}
+
+/**
  * Table reference (source of a pipeline)
  */
 export interface TableReference extends ASTNode {
@@ -242,6 +377,8 @@ export interface PipelineExpression extends ASTNode {
 export interface Query extends ASTNode {
   type: "Query";
   letStatements: LetStatement[];
+  setStatements?: SetStatement[];
+  declareParameters?: DeclareQueryParametersStatement[];
   // Can be a simple pipeline or other query expressions (union, search, find)
   expression: QueryExpression;
   // Legacy support (optional)

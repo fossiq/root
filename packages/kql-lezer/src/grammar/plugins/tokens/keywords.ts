@@ -16,6 +16,9 @@ export const keywordTokens: TokenDef[] = [
   // Expansion operator: expands multi-value columns into separate rows
   { name: "MvExpand", pattern: literal("mv-expand") },
 
+  // Time series creation
+  { name: "MakeSeries", pattern: literal("make-series") },
+
   // Range operator: used in range expressions
   { name: "RangeDoubleDot", pattern: literal("..") },
 
@@ -24,4 +27,21 @@ export const keywordTokens: TokenDef[] = [
   { name: "NotContains", pattern: literal("!contains") },
   { name: "NotHas", pattern: literal("!has") },
   { name: "NotIn", pattern: literal("!in") },
+  
+  { name: "NotStartsWith", pattern: literal("!startswith") },
+  { name: "NotEndsWith", pattern: literal("!endswith") },
+  { name: "NotHasPrefix", pattern: literal("!hasprefix") },
+  { name: "NotHasSuffix", pattern: literal("!hassuffix") },
+  
+  { name: "ContainsCs", pattern: literal("contains_cs") },
+  { name: "NotContainsCs", pattern: literal("!contains_cs") },
+  { name: "StartsWithCs", pattern: literal("startswith_cs") },
+  { name: "NotStartsWithCs", pattern: literal("!startswith_cs") },
+  { name: "EndsWithCs", pattern: literal("endswith_cs") },
+  { name: "NotEndsWithCs", pattern: literal("!endswith_cs") },
+  { name: "HasCs", pattern: literal("has_cs") },
+  { name: "NotHasCs", pattern: literal("!has_cs") },
+  
+  { name: "InCs", pattern: literal("in~") },
+  { name: "NotInCs", pattern: literal("!in~") },
 ];

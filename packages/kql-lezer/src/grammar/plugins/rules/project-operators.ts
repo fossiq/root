@@ -11,18 +11,23 @@ import {
  * Project operator rules for column selection and renaming.
  */
 export const projectOperatorRules: Record<string, RuleDef> = {
-  TabularOperator: {
-    expression: choice(
-      ref("WhereClause"),
-      ref("ProjectAwayClause"),
-      ref("ProjectKeepClause"),
-      ref("ProjectRenameClause"),
-      ref("ProjectReorderClause"),
-    ),
+  ProjectClause: {
+    expression: seq(kw("project"), ref("ProjectExpressionList")),
   },
 
-  ProjectItemList: {
-    expression: separatedList(ref("Identifier"), ref("Comma"), { min: 1 }),
+  ProjectExpressionList: {
+    expression: separatedList(ref("ProjectExpressionItem"), ref("Comma"), { min: 1 }),
+  },
+
+  ProjectExpressionItem: {
+    expression: choice(
+        seq(ref("Identifier"), ref("Equals"), ref("Expression")),
+        ref("Expression")
+    )
+  },
+
+  IdentifierList: {
+      expression: separatedList(ref("Identifier"), ref("Comma"), { min: 1 })
   },
 
   ProjectRenameItem: {
@@ -36,18 +41,18 @@ export const projectOperatorRules: Record<string, RuleDef> = {
   },
 
   ProjectAwayClause: {
-    expression: seq(kw("project-away"), ref("ProjectItemList")),
+    expression: seq(ref("ProjectAway"), ref("IdentifierList")),
   },
 
   ProjectKeepClause: {
-    expression: seq(kw("project-keep"), ref("ProjectItemList")),
+    expression: seq(ref("ProjectKeep"), ref("IdentifierList")),
   },
 
   ProjectRenameClause: {
-    expression: seq(kw("project-rename"), ref("ProjectRenameList")),
+    expression: seq(ref("ProjectRename"), ref("ProjectRenameList")),
   },
 
   ProjectReorderClause: {
-    expression: seq(kw("project-reorder"), ref("ProjectItemList")),
+    expression: seq(ref("ProjectReorder"), ref("IdentifierList")),
   },
 };
