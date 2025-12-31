@@ -47,7 +47,10 @@ export function createMapperContext(text: string): MapperContext {
 /**
  * Create an error node.
  */
-export function createErrorNode(node: SyntaxNode, message: string): AST.ErrorNode {
+export function createErrorNode(
+  node: SyntaxNode,
+  message: string
+): AST.ErrorNode {
   return {
     type: "ErrorNode",
     error: message,
@@ -77,20 +80,20 @@ export function parseStringLiteral(raw: string): string {
   }
 
   // Handle regular strings "..." or '...'
-      if (
-      (raw.startsWith('"') && raw.endsWith('"')) ||
-      (raw.startsWith("'") && raw.endsWith("'"))
-    ) {
-      // Simple unescape (handle \", \', \\, \n, \t, \r)
-      return raw
-        .slice(1, -1)
-        .replace(/\\"/g, '"')
-        .replace(/'/g, "'")
-        .replace(/\\\\/g, "\\")
-        .replace(/\\n/g, "\n")
-        .replace(/\\t/g, "\t")
-        .replace(/\\r/g, "\r");
-    }
+  if (
+    (raw.startsWith('"') && raw.endsWith('"')) ||
+    (raw.startsWith("'") && raw.endsWith("'"))
+  ) {
+    // Simple unescape (handle \", \', \\, \n, \t, \r)
+    return raw
+      .slice(1, -1)
+      .replace(/\\"/g, '"')
+      .replace(/'/g, "'")
+      .replace(/\\\\/g, "\\")
+      .replace(/\\n/g, "\n")
+      .replace(/\\t/g, "\t")
+      .replace(/\\r/g, "\r");
+  }
   return raw;
 }
 
@@ -208,7 +211,7 @@ export function mapFunctionCall(
  */
 export function mapPrimaryExpression(
   node: SyntaxNode,
-  ctx: CstToAstContext
+  ctx: MapperContext
 ): AST.Expression {
   const child = node.firstChild;
   if (!child) {
@@ -468,7 +471,10 @@ export function mapScalarExpression(
   ctx: MapperContext
 ): AST.Expression {
   if (!node) {
-    return createErrorNode({ from: 0, to: 0 } as SyntaxNode, "Undefined node in mapScalarExpression");
+    return createErrorNode(
+      { from: 0, to: 0 } as SyntaxNode,
+      "Undefined node in mapScalarExpression"
+    );
   }
 
   switch (node.type.name) {

@@ -12,6 +12,19 @@ import {
  * Data manipulation operators (parse, datatable, print, make-series, serialize).
  */
 export const dataOperatorRules: Record<string, RuleDef> = {
+  RangeClause: {
+    expression: seq(
+      kw("range"),
+      ref("Identifier"),
+      kw("from"),
+      ref("Expression"),
+      kw("to"),
+      ref("Expression"),
+      kw("step"),
+      ref("Expression")
+    ),
+  },
+
   ParseClause: {
     expression: seq(
       kw("parse"),
@@ -24,10 +37,10 @@ export const dataOperatorRules: Record<string, RuleDef> = {
 
   ParseKind: {
     expression: choice(
-        seq(kw("kind"), ref("Equals"), kw("simple")),
-        seq(kw("kind"), ref("Equals"), kw("regex")),
-        seq(kw("kind"), ref("Equals"), kw("relaxed"))
-    )
+      seq(kw("kind"), ref("Equals"), kw("simple")),
+      seq(kw("kind"), ref("Equals"), kw("regex")),
+      seq(kw("kind"), ref("Equals"), kw("relaxed"))
+    ),
   },
 
   DatatableClause: {
@@ -43,26 +56,31 @@ export const dataOperatorRules: Record<string, RuleDef> = {
   },
 
   DatatableSchema: {
-      expression: separatedList(ref("DatatableColumnDef"), ref("Comma"), { min: 1 })
+    expression: separatedList(ref("DatatableColumnDef"), ref("Comma"), {
+      min: 1,
+    }),
   },
 
   DatatableColumnDef: {
-      expression: seq(ref("Identifier"), ref("Colon"), ref("Identifier")) // Col:Type
+    expression: seq(ref("Identifier"), ref("Colon"), ref("Identifier")), // Col:Type
   },
 
   DatatableData: {
-      expression: separatedList(ref("LiteralValue"), ref("Comma"), { min: 0 })
+    expression: separatedList(ref("LiteralValue"), ref("Comma"), { min: 0 }),
   },
-  
+
   LiteralValue: {
-      expression: choice(ref("Number"), ref("String"), kw("true"), kw("false"), kw("null"))
+    expression: choice(
+      ref("Number"),
+      ref("String"),
+      kw("true"),
+      kw("false"),
+      kw("null")
+    ),
   },
 
   PrintClause: {
-    expression: seq(
-      kw("print"),
-      ref("ProjectExpressionList")
-    ),
+    expression: seq(kw("print"), ref("ProjectExpressionList")),
   },
 
   MakeSeriesClause: {
@@ -77,9 +95,6 @@ export const dataOperatorRules: Record<string, RuleDef> = {
   },
 
   SerializeClause: {
-    expression: seq(
-      kw("serialize"),
-      optional(ref("IdentifierList"))
-    ),
+    expression: seq(kw("serialize"), optional(ref("IdentifierList"))),
   },
 };

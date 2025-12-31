@@ -108,6 +108,7 @@ ProjectReorderClause { ProjectReorder IdentifierList }
 QueryExpression { PipelineExpression | UnionExpression | SearchExpression | FindExpression }
 QueryParameter { Identifier Colon Identifier (Equals Expression)? }
 QueryParameterList { QueryParameter (Comma QueryParameter)* }
+RangeClause { @specialize[@name=range]<Identifier, "range"> Identifier @specialize[@name=from]<Identifier, "from"> Expression @specialize[@name=to]<Identifier, "to"> Expression @specialize[@name=step]<Identifier, "step"> Expression }
 RangeExpression { AdditiveExpression RangeOp AdditiveExpression }
 RangeOp { RangeDoubleDot }
 RenderClause { @specialize[@name=render]<Identifier, "render"> Identifier }
@@ -120,7 +121,7 @@ SortExpressionItem { Expression (@specialize[@name=asc]<Identifier, "asc"> | @sp
 SortExpressionList { SortExpressionItem (Comma SortExpressionItem)* }
 StringOp { @specialize[@name=contains]<Identifier, "contains"> | NotContains | ContainsCs | NotContainsCs | @specialize[@name=startswith]<Identifier, "startswith"> | NotStartsWith | StartsWithCs | NotStartsWithCs | @specialize[@name=endswith]<Identifier, "endswith"> | NotEndsWith | EndsWithCs | NotEndsWithCs | @specialize[@name=has]<Identifier, "has"> | NotHas | HasCs | NotHasCs | @specialize[@name=hasprefix]<Identifier, "hasprefix"> | NotHasPrefix | @specialize[@name=hassuffix]<Identifier, "hassuffix"> | NotHasSuffix | @specialize[@name=in]<Identifier, "in"> | NotIn | InCs | NotInCs | @specialize[@name=matches]<Identifier, "matches"> | @specialize[@name=regex]<Identifier, "regex"> }
 SummarizeClause { @specialize[@name=summarize]<Identifier, "summarize"> AggregationList (@specialize[@name=by]<Identifier, "by"> GroupByList)? }
-TableExpression { Identifier | BracketedIdentifier | OpenParen PipelineExpression CloseParen }
+TableExpression { RangeClause | Identifier | BracketedIdentifier | OpenParen PipelineExpression CloseParen }
 TableList { TableExpression (Comma TableExpression)* }
 TabularOperator { WhereClause | ProjectClause | ProjectAwayClause | ProjectKeepClause | ProjectRenameClause | ProjectReorderClause | ExtendClause | SortClause | LimitClause | TakeClause | TopClause | DistinctClause | SummarizeClause | MvExpandClause | UnionClause | JoinClause | LookupClause | ParseClause | DatatableClause | PrintClause | EvaluateClause | MakeSeriesClause | PartitionClause | SampleClause | GetSchemaClause | RenderClause | SerializeClause | TableExpression | Number | String }
 TakeClause { @specialize[@name=take]<Identifier, "take"> Expression }

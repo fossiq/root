@@ -17,9 +17,6 @@ export interface MapperContext {
   errorNode: (node: SyntaxNode, msg: string) => AST.ErrorNode;
 }
 
-// Backward compatibility alias for tests
-export type CstToAstContext = MapperContext;
-
 /**
  * Create a context object with utility functions.
  */
@@ -28,81 +25,81 @@ export class CstToAstContext implements MapperContext {
 
   slice = (node: SyntaxNode) => {
     return this.text.slice(node.from, node.to);
-  }
+  };
 
   getChild = (node: SyntaxNode, typeName: string): SyntaxNode | null => {
-      let child = node.firstChild;
-      while (child) {
-        if (child.type.name === typeName) {
-          return child;
-        }
-        child = child.nextSibling;
+    let child = node.firstChild;
+    while (child) {
+      if (child.type.name === typeName) {
+        return child;
       }
-      return null;
-  }
+      child = child.nextSibling;
+    }
+    return null;
+  };
 
   getChildren = (node: SyntaxNode, typeName: string): SyntaxNode[] => {
-      const children: SyntaxNode[] = [];
-      let child = node.firstChild;
-      while (child) {
-        if (child.type.name === typeName) {
-          children.push(child);
-        }
-        child = child.nextSibling;
+    const children: SyntaxNode[] = [];
+    let child = node.firstChild;
+    while (child) {
+      if (child.type.name === typeName) {
+        children.push(child);
       }
-      return children;
-  }
+      child = child.nextSibling;
+    }
+    return children;
+  };
 
   parseStringLiteral = (raw: string): string => {
-      // Handle verbatim strings @"..." or @'...'
-      if (raw.startsWith('@"') && raw.endsWith('"')) {
-        return raw.slice(2, -1);
-      }
-      if (raw.startsWith("@'") && raw.endsWith("'")) {
-        return raw.slice(2, -1);
-      }
+    // Handle verbatim strings @"..." or @'...'
+    if (raw.startsWith('@"') && raw.endsWith('"')) {
+      return raw.slice(2, -1);
+    }
+    if (raw.startsWith("@'") && raw.endsWith("'")) {
+      return raw.slice(2, -1);
+    }
 
-      // Handle obfuscated strings h"..." or h@"..."
-      if (raw.startsWith('h@"') && raw.endsWith('"')) {
-        return raw.slice(3, -1);
-      }
-      if (raw.startsWith('h"') && raw.endsWith('"')) {
-        return raw.slice(2, -1);
-      }
+    // Handle obfuscated strings h"..." or h@"..."
+    if (raw.startsWith('h@"') && raw.endsWith('"')) {
+      return raw.slice(3, -1);
+    }
+    if (raw.startsWith('h"') && raw.endsWith('"')) {
+      return raw.slice(2, -1);
+    }
 
-      // Handle regular strings "..." or '...'
-      if (
-        (raw.startsWith('"') && raw.endsWith('"')) ||
-        (raw.startsWith("'") && raw.endsWith("'"))
-      ) {
-        // Simple unescape (handle \", \', \\, \n, \t, \r)
-        return raw
-          .slice(1, -1)
-          .replace(/\\"/g, '"')
-          .replace(/'/g, "'")
-          .replace(/\\\\/g, "\\")
-          .replace(/\\n/g, "\n")
-          .replace(/\\t/g, "\t")
-          .replace(/\\r/g, "\r");
-      }
+    // Handle regular strings "..." or '...'
+    if (
+      (raw.startsWith('"') && raw.endsWith('"')) ||
+      (raw.startsWith("'") && raw.endsWith("'"))
+    ) {
+      // Simple unescape (handle \", \', \\, \n, \t, \r)
+      return raw
+        .slice(1, -1)
+        .replace(/\\"/g, '"')
+        .replace(/'/g, "'")
+        .replace(/\\\\/g, "\\")
+        .replace(/\\n/g, "\n")
+        .replace(/\\t/g, "\t")
+        .replace(/\\r/g, "\r");
+    }
 
-      return raw;
-  }
-  
+    return raw;
+  };
+
   mapScalarExpression = (node: SyntaxNode): AST.Expression => {
-      return mapScalarExpression(node, this);
-  }
+    return mapScalarExpression(node, this);
+  };
 
   mapFunctionCall = (node: SyntaxNode): AST.FunctionCall | AST.ErrorNode => {
-      return mapFunctionCall(node, this);
-  }
+    return mapFunctionCall(node, this);
+  };
 
   errorNode = (node: SyntaxNode, msg: string): AST.ErrorNode => {
-      return {
-        type: "ErrorNode",
-        error: msg,
-        from: node.from,
-        to: node.to,
-      };
-  }
+    return {
+      type: "ErrorNode",
+      error: msg,
+      from: node.from,
+      to: node.to,
+    };
+  };
 }

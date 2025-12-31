@@ -2,8 +2,21 @@ import { Tree, SyntaxNode } from "@lezer/common";
 import { CstToAstContext } from "./context";
 import { mapWhereOperator } from "./operators/where";
 import { mapJoinOperator, mapLookupOperator } from "./operators/join";
-import { mapParseOperator, mapDatatableOperator, mapPrintOperator, mapMakeSeriesOperator } from "./operators/data";
-import { mapSampleOperator, mapGetSchemaOperator, mapSerializeOperator, mapRenderOperator, mapPartitionOperator, mapEvaluateOperator } from "./operators/misc";
+import {
+  mapRangeOperator,
+  mapParseOperator,
+  mapDatatableOperator,
+  mapPrintOperator,
+  mapMakeSeriesOperator,
+} from "./operators/data";
+import {
+  mapSampleOperator,
+  mapGetSchemaOperator,
+  mapSerializeOperator,
+  mapRenderOperator,
+  mapPartitionOperator,
+  mapEvaluateOperator,
+} from "./operators/misc";
 import type * as AST from "@fossiq/kql-ast";
 
 /**
@@ -56,21 +69,44 @@ function mapQuery(
     let child = n.firstChild;
     while (child) {
       if (["String", "Number", "Identifier"].includes(child.type.name)) {
-        if (child !== nameNode && child.type.name !== "set" && child.type.name !== "Equals" && child.type.name !== "Semicolon") {
+        if (
+          child !== nameNode &&
+          child.type.name !== "set" &&
+          child.type.name !== "Equals" &&
+          child.type.name !== "Semicolon"
+        ) {
           if (child.type.name === "Identifier") {
-            value = { type: "Identifier", name: ctx.slice(child), start: child.from, end: child.to };
+            value = {
+              type: "Identifier",
+              name: ctx.slice(child),
+              start: child.from,
+              end: child.to,
+            };
           } else {
             const raw = ctx.slice(child);
             let val: any = raw;
             if (child.type.name === "Number") val = parseFloat(raw);
-            else if (child.type.name === "String") val = ctx.parseStringLiteral(raw);
-            value = { type: "Literal", value: val, raw, start: child.from, end: child.to };
+            else if (child.type.name === "String")
+              val = ctx.parseStringLiteral(raw);
+            value = {
+              type: "Literal",
+              value: val,
+              raw,
+              start: child.from,
+              end: child.to,
+            };
           }
           break;
         }
       }
       if (child.type.name === "true" || child.type.name === "false") {
-        value = { type: "Literal", value: child.type.name === "true", raw: child.type.name, start: child.from, end: child.to };
+        value = {
+          type: "Literal",
+          value: child.type.name === "true",
+          raw: child.type.name,
+          start: child.from,
+          end: child.to,
+        };
         break;
       }
       child = child.nextSibling;
@@ -81,7 +117,7 @@ function mapQuery(
       name: nameNode ? ctx.slice(nameNode) : "",
       value: value as any,
       start: n.from,
-      end: n.to
+      end: n.to,
     });
   }
 
@@ -102,7 +138,7 @@ function mapQuery(
             paramType: ctx.slice(ids[1]),
             defaultValue: expr ? ctx.mapScalarExpression(expr) : undefined,
             start: p.from,
-            end: p.to
+            end: p.to,
           });
         }
       }
@@ -111,24 +147,37 @@ function mapQuery(
       type: "DeclareQueryParametersStatement",
       parameters,
       start: d.from,
-      end: d.to
+      end: d.to,
     });
   }
 
   const queryExprNode = ctx.getChild(node, "QueryExpression");
-  if (!queryExprNode) return ctx.errorNode(node, "Query missing QueryExpression");
-  
+  if (!queryExprNode)
+    return ctx.errorNode(node, "Query missing QueryExpression");
+
   const firstChild = queryExprNode.firstChild;
   if (!firstChild) return ctx.errorNode(queryExprNode, "Empty QueryExpression");
 
   let expression: AST.QueryExpression | AST.ErrorNode;
 
   switch (firstChild.type.name) {
-    case "PipelineExpression": expression = mapPipelineExpression(firstChild, ctx); break;
-    case "UnionExpression": expression = mapUnionExpression(firstChild, ctx); break;
-    case "SearchExpression": expression = mapSearchExpression(firstChild, ctx); break;
-    case "FindExpression": expression = mapFindExpression(firstChild, ctx); break;
-    default: return ctx.errorNode(firstChild, `Unsupported query expression type: ${firstChild.type.name}`);
+    case "PipelineExpression":
+      expression = mapPipelineExpression(firstChild, ctx);
+      break;
+    case "UnionExpression":
+      expression = mapUnionExpression(firstChild, ctx);
+      break;
+    case "SearchExpression":
+      expression = mapSearchExpression(firstChild, ctx);
+      break;
+    case "FindExpression":
+      expression = mapFindExpression(firstChild, ctx);
+      break;
+    default:
+      return ctx.errorNode(
+        firstChild,
+        `Unsupported query expression type: ${firstChild.type.name}`
+      );
   }
 
   if (expression.type === "ErrorNode") return expression as AST.ErrorNode;
@@ -228,7 +277,7 @@ export function mapUnionExpression(
     return ctx.errorNode(node, "UnionExpression missing table list");
   }
 
-  const tables: (AST.TableReference | AST.PipelineExpression)[] = [];
+  const tables: (AST.TableSource | AST.PipelineExpression)[] = [];
   const tableNodes = ctx.getChildren(tableList, "TableExpression");
 
   for (const tableNode of tableNodes) {
@@ -283,49 +332,80 @@ function mapTabularOperator(
   if (!child) return ctx.errorNode(node, "Empty TabularOperator");
 
   switch (child.type.name) {
-    case "WhereClause": return mapWhereOperator(child, ctx);
-    case "ProjectClause": return mapProjectClause(child, ctx);
+    case "WhereClause":
+      return mapWhereOperator(child, ctx);
+    case "ProjectClause":
+      return mapProjectClause(child, ctx);
     case "ProjectAwayClause":
     case "ProjectKeepClause":
-    case "ProjectReorderClause": return mapProjectVariant(child, ctx);
-    case "ProjectRenameClause": return mapProjectRenameClause(child, ctx);
-    case "ExtendClause": return mapExtendClause(child, ctx);
-    case "SortClause": return mapSortClause(child, ctx);
+    case "ProjectReorderClause":
+      return mapProjectVariant(child, ctx);
+    case "ProjectRenameClause":
+      return mapProjectRenameClause(child, ctx);
+    case "ExtendClause":
+      return mapExtendClause(child, ctx);
+    case "SortClause":
+      return mapSortClause(child, ctx);
     case "LimitClause":
-    case "TakeClause": return mapLimitClause(child, ctx);
-    case "TopClause": return mapTopClause(child, ctx);
-    case "DistinctClause": return mapDistinctClause(child, ctx);
-    case "SummarizeClause": return mapSummarizeClause(child, ctx);
-    case "MvExpandClause": return mapMvExpandClause(child, ctx);
-    case "UnionClause": return mapUnionClause(child, ctx);
-    
-    case "JoinClause": return mapJoinOperator(child, ctx);
-    case "LookupClause": return mapLookupOperator(child, ctx);
-    case "ParseClause": return mapParseOperator(child, ctx);
-    case "DatatableClause": return mapDatatableOperator(child, ctx);
-    case "PrintClause": return mapPrintOperator(child, ctx);
-    case "MakeSeriesClause": return mapMakeSeriesOperator(child, ctx);
-    case "SerializeClause": return mapSerializeOperator(child, ctx);
-    case "PartitionClause": return mapPartitionOperator(child, ctx);
-    case "SampleClause": return mapSampleOperator(child, ctx);
-    case "GetSchemaClause": return mapGetSchemaOperator(child, ctx);
-    case "RenderClause": return mapRenderOperator(child, ctx);
-    case "EvaluateClause": return mapEvaluateOperator(child, ctx);
+    case "TakeClause":
+      return mapLimitClause(child, ctx);
+    case "TopClause":
+      return mapTopClause(child, ctx);
+    case "DistinctClause":
+      return mapDistinctClause(child, ctx);
+    case "SummarizeClause":
+      return mapSummarizeClause(child, ctx);
+    case "MvExpandClause":
+      return mapMvExpandClause(child, ctx);
+    case "UnionClause":
+      return mapUnionClause(child, ctx);
 
-    case "TableExpression": return mapTableExpression(child, ctx) as any;
+    case "JoinClause":
+      return mapJoinOperator(child, ctx);
+    case "LookupClause":
+      return mapLookupOperator(child, ctx);
+    case "ParseClause":
+      return mapParseOperator(child, ctx);
+    case "DatatableClause":
+      return mapDatatableOperator(child, ctx);
+    case "PrintClause":
+      return mapPrintOperator(child, ctx);
+    case "MakeSeriesClause":
+      return mapMakeSeriesOperator(child, ctx);
+    case "SerializeClause":
+      return mapSerializeOperator(child, ctx);
+    case "PartitionClause":
+      return mapPartitionOperator(child, ctx);
+    case "SampleClause":
+      return mapSampleOperator(child, ctx);
+    case "GetSchemaClause":
+      return mapGetSchemaOperator(child, ctx);
+    case "RenderClause":
+      return mapRenderOperator(child, ctx);
+    case "EvaluateClause":
+      return mapEvaluateOperator(child, ctx);
+
+    case "TableExpression":
+      return mapTableExpression(child, ctx) as any;
     case "Number":
     case "String":
       return {
         type: "ProjectOperator", // Map to a dummy project for backward compatibility in tests
-        columns: [{
-          type: "ProjectColumn",
-          expression: ctx.mapScalarExpression(child)
-        }],
-        start: child.from, end: child.to
+        columns: [
+          {
+            type: "ProjectColumn",
+            expression: ctx.mapScalarExpression(child),
+          },
+        ],
+        start: child.from,
+        end: child.to,
       } as any;
 
     default:
-      return ctx.errorNode(child, `Unsupported tabular operator: ${child.type.name}`);
+      return ctx.errorNode(
+        child,
+        `Unsupported tabular operator: ${child.type.name}`
+      );
   }
 }
 
@@ -335,10 +415,14 @@ function mapTabularOperator(
 export function mapTableExpression(
   node: SyntaxNode,
   ctx: CstToAstContext
-): AST.TableReference | AST.PipelineExpression | AST.ErrorNode {
+): AST.TableSource | AST.PipelineExpression | AST.ErrorNode {
   const child = node.firstChild;
   if (!child) {
     return ctx.errorNode(node, "Empty TableExpression");
+  }
+
+  if (child.type.name === "RangeClause") {
+    return mapRangeOperator(child, ctx);
   }
 
   if (child.type.name === "Identifier") {
@@ -674,10 +758,10 @@ function mapUnionClause(
   }
 
   const tableNodes = ctx.getChildren(tableListNode, "TableExpression");
-  const tables = tableNodes.map(t => mapTableExpression(t, ctx));
-  
+  const tables = tableNodes.map((t) => mapTableExpression(t, ctx));
+
   for (const t of tables) {
-      if (t.type === "ErrorNode") return t;
+    if (t.type === "ErrorNode") return t;
   }
 
   let kind: string | undefined;
@@ -685,21 +769,21 @@ function mapUnionClause(
 
   const paramsNode = ctx.getChild(node, "UnionParameters");
   if (paramsNode) {
-      const kindToken = ctx.getChild(paramsNode, "kind");
-      if (kindToken) {
-          const kindVal = paramsNode.getChild("JoinKind");
-          if (kindVal) kind = ctx.slice(kindVal);
-      }
-      const sourceToken = ctx.getChild(paramsNode, "withsource");
-      if (sourceToken) {
-          const idNode = paramsNode.getChild("Identifier");
-          if (idNode) withSource = ctx.slice(idNode);
-      }
+    const kindToken = ctx.getChild(paramsNode, "kind");
+    if (kindToken) {
+      const kindVal = paramsNode.getChild("JoinKind");
+      if (kindVal) kind = ctx.slice(kindVal);
+    }
+    const sourceToken = ctx.getChild(paramsNode, "withsource");
+    if (sourceToken) {
+      const idNode = paramsNode.getChild("Identifier");
+      if (idNode) withSource = ctx.slice(idNode);
+    }
   }
 
   return {
     type: "UnionOperator",
-    tables: tables as (AST.TableReference | AST.PipelineExpression)[],
+    tables: tables as (AST.TableSource | AST.PipelineExpression)[],
     kind,
     withSource,
     start: node.from,

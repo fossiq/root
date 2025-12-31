@@ -235,7 +235,7 @@ export interface SummarizeOperator extends ASTNode {
 export interface Aggregation extends ASTNode {
   type: "Aggregation";
   alias?: string;
-  function: FunctionCall;
+  function: FunctionCall | ErrorNode;
 }
 
 /**
@@ -252,7 +252,9 @@ export interface MvExpandOperator extends ASTNode {
  */
 export interface UnionOperator extends ASTNode {
   type: "UnionOperator";
-  tables: (TableReference | PipelineExpression)[];
+  tables: (TableSource | PipelineExpression)[];
+  kind?: string;
+  withSource?: string;
   // TODO: Add parameters (kind, withsource, etc.)
 }
 
@@ -262,7 +264,7 @@ export interface UnionOperator extends ASTNode {
 export interface JoinOperator extends ASTNode {
   type: "JoinOperator";
   kind?: string; // inner, outer, leftouter, etc.
-  rightTable: TableReference | PipelineExpression;
+  rightTable: TableSource | PipelineExpression;
   on: Expression[];
 }
 
@@ -355,6 +357,17 @@ export interface PrintOperator extends ASTNode {
 }
 
 /**
+ * Range operator
+ */
+export interface RangeOperator extends ASTNode {
+  type: "RangeOperator";
+  name: string;
+  from: Expression;
+  to: Expression;
+  step: Expression;
+}
+
+/**
  * Table reference (source of a pipeline)
  */
 export interface TableReference extends ASTNode {
@@ -363,11 +376,16 @@ export interface TableReference extends ASTNode {
 }
 
 /**
+ * Table source (table reference or operator producing a table)
+ */
+export type TableSource = TableReference | RangeOperator;
+
+/**
  * Pipeline expression (table source + operators)
  */
 export interface PipelineExpression extends ASTNode {
   type: "PipelineExpression";
-  source: TableReference | PipelineExpression;
+  source: TableSource | PipelineExpression;
   operators: TabularOperator[];
 }
 
@@ -393,7 +411,7 @@ export type QueryExpression =
 
 export interface UnionExpression extends ASTNode {
   type: "UnionExpression";
-  tables: (TableReference | PipelineExpression)[];
+  tables: (TableSource | PipelineExpression)[];
 }
 
 export interface SearchExpression extends ASTNode {
@@ -484,7 +502,8 @@ export type Expression =
   | Literal
   | ParenthesizedExpression
   | NumberLiteral
-  | StringLiteral;
+  | StringLiteral
+  | ErrorNode;
 
 /**
  * Unary expression (e.g., !condition)

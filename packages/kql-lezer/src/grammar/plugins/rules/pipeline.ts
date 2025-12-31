@@ -19,6 +19,7 @@ export const pipelineRules: Record<string, RuleDef> = {
 
   TableExpression: {
     expression: choice(
+      ref("RangeClause"),
       ref("Identifier"),
       ref("BracketedIdentifier"),
       seq(ref("OpenParen"), ref("PipelineExpression"), ref("CloseParen"))
@@ -26,6 +27,6 @@ export const pipelineRules: Record<string, RuleDef> = {
   },
 
   BracketedIdentifier: {
-    expression: seq(ref("OpenBracket"), ref("String"), ref("CloseBracket"))
+    expression: seq(ref("OpenBracket"), ref("String"), ref("CloseBracket")),
   },
 };

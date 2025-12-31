@@ -43,6 +43,10 @@ function getTokenType(tokenName: string): TokenType | null {
     case "top":
     case "distinct":
     case "summarize":
+    case "range":
+    case "from":
+    case "to":
+    case "step":
     case "mv-expand":
     case "make-series":
     case "join":
@@ -199,8 +203,8 @@ export function parseKQL(doc: string): ParseResult {
       errors.push({
         type: "ParseError",
         message: result.error,
-        start: result.start,
-        end: result.end,
+        start: result.from,
+        end: result.to,
       });
     } else {
       ast = result;
