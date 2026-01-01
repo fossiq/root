@@ -125,6 +125,7 @@ export type TabularOperator =
   | GetSchemaOperator
   | RenderOperator
   | SerializeOperator
+  | AsOperator
   | DatatableOperator
   | PrintOperator;
 
@@ -354,6 +355,15 @@ export interface DatatableOperator extends ASTNode {
 export interface PrintOperator extends ASTNode {
   type: "PrintOperator";
   expressions: ProjectColumn[];
+}
+
+/**
+ * As operator
+ */
+export interface AsOperator extends ASTNode {
+  type: "AsOperator";
+  name: string;
+  materialized?: boolean;
 }
 
 /**

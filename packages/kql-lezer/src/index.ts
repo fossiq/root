@@ -43,6 +43,9 @@ function getTokenType(tokenName: string): TokenType | null {
     case "top":
     case "distinct":
     case "summarize":
+    case "as":
+    case "hint":
+    case "materialized":
     case "range":
     case "from":
     case "to":

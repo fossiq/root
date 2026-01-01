@@ -17,6 +17,7 @@ const coreTokenNames = new Set([
   "Equals",
   "Comma",
   "Colon",
+  "Dot",
   "Plus",
   "Minus",
   "Star",
@@ -54,7 +55,7 @@ const coreTokenNames = new Set([
   "HasCs",
   "NotHasCs",
   "InCs",
-  "NotInCs"
+  "NotInCs",
 ]);
 
 export const allTokens: TokenDef[] = [

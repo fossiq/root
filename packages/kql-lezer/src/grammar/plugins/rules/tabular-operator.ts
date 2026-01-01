@@ -1,8 +1,4 @@
-import {
-  choice,
-  ref,
-  type RuleDef,
-} from "@fossiq/lezer-grammar-generator";
+import { choice, ref, type RuleDef } from "@fossiq/lezer-grammar-generator";
 
 /**
  * The central definition of TabularOperator.
@@ -32,6 +28,7 @@ export const tabularOperatorRule: Record<string, RuleDef> = {
       ref("DatatableClause"),
       ref("PrintClause"),
       ref("EvaluateClause"),
+      ref("AsClause"),
       ref("MakeSeriesClause"),
       ref("PartitionClause"),
       ref("SampleClause"),

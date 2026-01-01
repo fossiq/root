@@ -16,6 +16,7 @@ import {
   mapRenderOperator,
   mapPartitionOperator,
   mapEvaluateOperator,
+  mapAsOperator,
 } from "./operators/misc";
 import type * as AST from "@fossiq/kql-ast";
 
@@ -374,6 +375,8 @@ function mapTabularOperator(
       return mapMakeSeriesOperator(child, ctx);
     case "SerializeClause":
       return mapSerializeOperator(child, ctx);
+    case "AsClause":
+      return mapAsOperator(child, ctx);
     case "PartitionClause":
       return mapPartitionOperator(child, ctx);
     case "SampleClause":

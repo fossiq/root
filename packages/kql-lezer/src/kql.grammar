@@ -5,6 +5,7 @@
   Comma { "," }
   ComparisonOp { "==" | "!=" | ">=" | "<=" | ">" | "<" }
   ContainsCs { "contains_cs" }
+  Dot { "." }
   EndsWithCs { "endswith_cs" }
   Equals { "=" }
   HasCs { "has_cs" }
@@ -59,6 +60,8 @@ AggregationItem { Identifier Equals FunctionCall | FunctionCall }
 AggregationList { AggregationItem (Comma AggregationItem)* }
 AndExpression { AndExpression @specialize[@name=and]<Identifier, "and"> NotExpression | NotExpression }
 ArgumentList { Expression (Comma Expression)* }
+AsClause { @specialize[@name=as]<Identifier, "as"> AsHint? Identifier }
+AsHint { @specialize[@name=hint]<Identifier, "hint"> Dot @specialize[@name=materialized]<Identifier, "materialized"> Equals @specialize[@name=true]<Identifier, "true"> | @specialize[@name=false]<Identifier, "false"> }
 BetweenOp { @specialize[@name=between]<Identifier, "between"> | NotBetween }
 BracketedIdentifier { OpenBracket String CloseBracket }
 ComparisonExpression { AdditiveExpression (GeneralComparisonOp AdditiveExpression)? }
@@ -123,7 +126,7 @@ StringOp { @specialize[@name=contains]<Identifier, "contains"> | NotContains | C
 SummarizeClause { @specialize[@name=summarize]<Identifier, "summarize"> AggregationList (@specialize[@name=by]<Identifier, "by"> GroupByList)? }
 TableExpression { RangeClause | Identifier | BracketedIdentifier | OpenParen PipelineExpression CloseParen }
 TableList { TableExpression (Comma TableExpression)* }
-TabularOperator { WhereClause | ProjectClause | ProjectAwayClause | ProjectKeepClause | ProjectRenameClause | ProjectReorderClause | ExtendClause | SortClause | LimitClause | TakeClause | TopClause | DistinctClause | SummarizeClause | MvExpandClause | UnionClause | JoinClause | LookupClause | ParseClause | DatatableClause | PrintClause | EvaluateClause | MakeSeriesClause | PartitionClause | SampleClause | GetSchemaClause | RenderClause | SerializeClause | TableExpression | Number | String }
+TabularOperator { WhereClause | ProjectClause | ProjectAwayClause | ProjectKeepClause | ProjectRenameClause | ProjectReorderClause | ExtendClause | SortClause | LimitClause | TakeClause | TopClause | DistinctClause | SummarizeClause | MvExpandClause | UnionClause | JoinClause | LookupClause | ParseClause | DatatableClause | PrintClause | EvaluateClause | AsClause | MakeSeriesClause | PartitionClause | SampleClause | GetSchemaClause | RenderClause | SerializeClause | TableExpression | Number | String }
 TakeClause { @specialize[@name=take]<Identifier, "take"> Expression }
 TopClause { @specialize[@name=top]<Identifier, "top"> Expression @specialize[@name=by]<Identifier, "by"> SortExpressionList }
 UnionClause { @specialize[@name=union]<Identifier, "union"> UnionParameters? TableList }

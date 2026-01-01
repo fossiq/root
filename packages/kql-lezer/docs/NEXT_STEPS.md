@@ -20,6 +20,7 @@ These operators are standard in KQL but currently missing from the grammar.
 - **Location**: `src/grammar/plugins/rules/misc-operators.ts`
 - **AST Mapping**: Needs `AsOperator` type.
 - **Example**: `T | as T_copy`
+- [x] Implemented
 
 ### 1.3 Mv-Apply (`mv-apply`)
 
@@ -75,7 +76,7 @@ The `TableExpression` rule in `src/grammar/plugins/rules/pipeline.ts` is too res
 
 The `@fossiq/kql-ast` package might need updates to support these new nodes.
 
-- **Check**: `RangeOperator` ✅, `AsOperator`, `ExternalDataOperator`.
+- **Check**: `RangeOperator` ✅, `AsOperator` ✅, `ExternalDataOperator`.
 - **Action**: Add interfaces to `packages/kql-ast/src/index.ts` if missing.
 
 ## 5. Testing
@@ -83,7 +84,7 @@ The `@fossiq/kql-ast` package might need updates to support these new nodes.
 - [x] **New Tests**: Create `tests/missing_features.test.ts`.
 - **Cases**:
   - [x] `range x from 1 to 5 step 1`
-  - [ ] `T | as T2`
+  - [x] `T | as T2`
   - [ ] `print has_all("a", dynamic(["a", "b"]))`
   - [ ] `database("db").Table | count`
 

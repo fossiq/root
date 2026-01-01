@@ -19,4 +19,5 @@ export const delimiterTokens: TokenDef[] = [
   { name: "Semicolon", pattern: literal(";") },
   { name: "Equals", pattern: literal("=") },
   { name: "Colon", pattern: literal(":") },
+  { name: "Dot", pattern: literal(".") },
 ];
