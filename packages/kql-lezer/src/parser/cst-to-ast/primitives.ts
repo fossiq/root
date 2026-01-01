@@ -2,7 +2,6 @@ import { SyntaxNode } from "@lezer/common";
 import type * as AST from "@fossiq/kql-ast";
 import { MapperContext } from "./context";
 import { createErrorNode, parseStringLiteral } from "./utils";
-import { mapScalarExpression } from "./mappers";
 
 /**
  * Map basic primitive nodes (literals and identifiers).
@@ -83,7 +82,7 @@ export function mapFunctionCall(
   if (argListNode) {
     const exprs = getChildren(argListNode, "Expression");
     for (const expr of exprs) {
-      args.push(mapScalarExpression(expr, ctx));
+      args.push(ctx.mapScalarExpression(expr));
     }
   }
 

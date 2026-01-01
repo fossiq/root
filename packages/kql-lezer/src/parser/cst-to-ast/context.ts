@@ -1,6 +1,7 @@
 import { SyntaxNode } from "@lezer/common";
 import * as AST from "@fossiq/kql-ast";
-import { mapScalarExpression, mapFunctionCall } from "./mappers";
+import { mapScalarExpression } from "./expressions/scalar";
+import { mapFunctionCall } from "./primitives";
 
 /**
  * Utility functions for navigating syntax nodes.
