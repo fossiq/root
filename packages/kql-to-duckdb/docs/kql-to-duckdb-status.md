@@ -3,7 +3,6 @@
 ## Current State
 
 - **Translator:** Implemented for all core operators (Project, Where, Summarize, Take, Limit, Extend, Sort, Distinct, Join, Top, Union)
-- **Parser Integration:** Verified integration with `@fossiq/kql-parser`
 - **Tests:** 113 passing tests covering translation scenarios
 - **Package:** `@fossiq/kql-to-duckdb` production-ready for complex queries with comprehensive function support
 - **Expression Support:** Full support for arithmetic, comparison, binary, string, math, and type conversion functions
@@ -13,7 +12,6 @@
 ### Phase 1: Setup & Parsing (Completed)
 
 - [x] Create package structure
-- [x] Add dependency on `@fossiq/kql-parser`
 - [x] Implement basic parser invocation
 - [x] Verify with simple test
 
@@ -253,7 +251,6 @@
 
 **Parser Fixes**
 
-- Patched `@fossiq/kql-parser` to handle wrapper nodes for operators, expressions, and literals
 - Verified fix with `kql-to-duckdb` integration tests
 
 ## Test Coverage

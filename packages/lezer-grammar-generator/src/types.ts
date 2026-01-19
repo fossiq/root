@@ -1,3 +1,5 @@
+import type { ValidationIssue } from "./model.js";
+
 /**
  * Configuration for generating Lezer grammar
  */
@@ -35,6 +37,40 @@ export interface GrammarGeneratorConfig {
   macros?: {
     [name: string]: string;
   };
+
+  /**
+   * Validation options for passthrough strings (e.g. `grammarFields`, token patterns, macros).
+   *
+   * - `off`: no passthrough validation (only required-field checks still apply)
+   * - `basic` (default): balanced delimiters/quotes + macro invocation checks
+   * - `strict`: additionally attempts to detect unknown rule/token/macro references
+   */
+  validation?: {
+    mode?: "off" | "basic" | "strict";
+    /**
+     * Allowlist for strict-mode unknown reference checks.
+     * Useful when referencing external constructs not modeled by this generator.
+     */
+    allowUnknown?: string[];
+  };
+}
+
+export interface GrammarPlugin {
+  name: string;
+  dependsOn?: string[];
+  tokens?: TokenDefinition[];
+  rules?: Record<string, string>;
+  precedence?: string[];
+  macros?: Record<string, string>;
+  skipWhitespace?: boolean;
+}
+
+export interface PluginGrammarConfig {
+  grammarName: string;
+  plugins: GrammarPlugin[];
+  precedence?: string[];
+  skipWhitespace?: boolean;
+  validation?: GrammarGeneratorConfig["validation"];
 }
 
 /**
@@ -42,7 +78,7 @@ export interface GrammarGeneratorConfig {
  */
 export interface ASTTypeDefinition {
   /**
-   * Type name in the grammar
+   * Rule name in the grammar
    */
   grammarName: string;
 
@@ -66,25 +102,32 @@ export interface ASTTypeDefinition {
 /**
  * Token definition
  */
-export interface TokenDefinition {
-  /**
-   * Token name
-   */
-  name: string;
+export type TokenDefinition =
+  | {
+      /**
+       * Token name
+       */
+      name: string;
 
-  /**
-   * Token pattern in Lezer grammar format
-   */
-  pattern: string;
+      /**
+       * Token pattern in Lezer grammar format
+       */
+      pattern: string;
+    }
+  | {
+      /**
+       * Token name
+       */
+      name: string;
 
-  /**
-   * Whether this is a specialized token (like @specialize)
-   */
-  specialized?: {
-    base: string;
-    term: string;
-  };
-}
+      /**
+       * Whether this is a specialized token (like @specialize)
+       */
+      specialized: {
+        base: string;
+        term: string;
+      };
+    };
 
 /**
  * Generated grammar result
@@ -92,5 +135,5 @@ export interface TokenDefinition {
 export interface GeneratedGrammar {
   grammar: string;
   imports: string[];
-  errors: string[];
+  errors: readonly ValidationIssue[];
 }

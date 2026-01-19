@@ -14,13 +14,7 @@ build/
 !vite.config.ts
 !*.config.ts
 
-# Tree-sitter generated files
-packages/kql-parser/grammar.js
-packages/kql-parser/bindings/
-packages/kql-parser/src/tree-sitter/
-packages/kql-parser/*.dylib
-packages/kql-parser/*.so
-packages/kql-parser/*.dll
+
 
 # Lock files
 bun.lock

@@ -26,14 +26,14 @@ bun install
 bun run build
 
 # Build specific package
-cd packages/kql-parser && bun run build
+cd packages/kql-lezer && bun run build
 ```
 
 ### Running Tests
 
 ```bash
 # Run tests for a package
-cd packages/kql-parser && bun run test
+cd packages/kql-lezer && bun run test
 
 # Run tests in watch mode
 bun run test:watch
@@ -115,7 +115,7 @@ bun run changeset
 
 1. Create directory: `packages/<package-name>/`
 2. Use `@fossiq/` prefix for package names
-3. Follow existing package structure (see `kql-parser` as reference)
+3. Follow existing package structure (see `kql-lezer` as reference)
 4. Add to workspace in root `package.json`
 
 ### Dependencies
