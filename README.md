@@ -106,7 +106,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
 
 ## For AI Agents
 
-See [AGENTS.md](./AGENTS.md) for detailed instructions on working with this codebase.
+**Start here:** [AGENTS.md](./AGENTS.md) - Critical instructions and safety rules
+
+**Consolidated Documentation:**
+- [docs/PROJECT_OVERVIEW.md](./docs/PROJECT_OVERVIEW.md) - High-level project summary and status
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Technical architecture and design decisions
+- [docs/PACKAGES.md](./docs/PACKAGES.md) - Package-specific documentation and APIs
+- [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) - Development workflow and gotchas
+
+These docs are verified against actual code and optimized for AI agent consumption.
 
 ## Tech Stack
 
