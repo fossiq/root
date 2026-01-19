@@ -1,24 +1,31 @@
+import { parseKQL } from "@fossiq/kql-lezer";
+import type { SourceFile } from "@fossiq/kql-ast";
 import { translate } from "./translator";
 
 export { translate };
 
-export type SourceFile = unknown;
+/**
+ * Parse KQL query using Lezer parser
+ */
+export function parseKql(query: string): SourceFile {
+  const result = parseKQL(query);
 
-export async function initParser(
-    _wasmPath: string,
-    _treeSitterWasmPath?: string,
-): Promise<void> {
-    // Stub: kql-parser removed
+  if (!result.ast) {
+    throw new Error("Failed to parse KQL query");
+  }
+
+  if (result.errors.length > 0) {
+    const errorMessages = result.errors.map(e => e.message).join(", ");
+    console.warn(`Parse errors: ${errorMessages}`);
+  }
+
+  return result.ast;
 }
 
-export function parseKql(_query: string): unknown {
-    throw new Error(
-        "parseKql is not implemented: kql-parser has been removed.",
-    );
-}
-
-export function kqlToDuckDB(_query: string): string {
-    throw new Error(
-        "kqlToDuckDB is not implemented: kql-parser has been removed.",
-    );
+/**
+ * Convert KQL query to DuckDB SQL
+ */
+export function kqlToDuckDB(query: string): string {
+  const ast = parseKql(query);
+  return translate(ast);
 }
