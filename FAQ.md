@@ -47,64 +47,18 @@ imported by "web-tree-sitter/tree-sitter.js"
 
 ## Package Development
 
-### How do I add a new operator to kql-parser?
+### How do I add a new operator to kql-lezer?
 
-See the detailed step-by-step guide in `packages/kql-parser/docs/kql-parser-dev.md` under "Adding a New Operator".
+See the detailed step-by-step guide in `packages/kql-lezer/docs/kql-lezer-dev.md` under "Adding a New Operator".
 
 Key steps:
 
-1. Define types in `src/types.ts`
-2. Add grammar rules in `src/grammar/rules.ts`
-3. Register rules in `src/grammar/index.ts`
-4. Create builders in `src/builders/operators.ts`
-5. Wire up in `src/builders/index.ts`
-6. Add tests and update status docs
-
-### Why does kql-parser build output grammar.js with CommonJS syntax when package.json says "type": "module"?
-
-**The Issue**: The `tree-sitter` CLI binary needs to load `grammar.js` as a CommonJS module (it expects `module.exports`). But when Node.js sees `"type": "module"` in package.json, it treats all `.js` files as ES modules, causing:
-
-```
-ReferenceError: module is not defined in ES module scope
-```
-
-**The Solution**: We use a build script (`scripts/generate.sh`) that:
-
-1. Compiles grammar to CommonJS syntax (`grammar.js` with `module.exports`)
-2. **Temporarily removes** `"type": "module"` from package.json
-3. Runs `tree-sitter generate` (which expects CommonJS)
-4. **Restores** `"type": "module"` to package.json
-
-This allows both requirements to coexist:
-
-- Source code uses ESM (`"type": "module"`)
-- Grammar generation uses CommonJS (tree-sitter requirement)
-
-**Why this approach**:
-
-- The `tree-sitter` CLI is a mature C++ tool that predates ES modules
-- Renaming to `grammar.cjs` doesn't work because the `tree-sitter` CLI explicitly looks for `grammar.js`
-- Temporary package.json modification is the cleanest solution without patching the `tree-sitter` CLI
+1. Add grammar rules in `src/kql.grammar`
+2. Add tests and update status docs
 
 ## Build & CI
 
-### Why does the CI workflow have separate build_bindings and build-test-publish jobs?
 
-The workflow uses a **multi-stage build pattern**:
-
-1. **build_bindings** (parallel on multiple OS/arch):
-
-   - Builds native tree-sitter bindings for Linux, Windows, macOS, ARM64
-   - Runs in parallel across platforms
-   - Uploads artifacts
-
-2. **build-test-publish** (depends on build_bindings):
-   - Downloads all pre-built bindings
-   - Builds TypeScript packages
-   - Runs tests
-   - Publishes to npm
-
-**Why**: Native bindings are platform-specific and slow to build. Parallelizing across platforms saves time while ensuring all artifacts are available before tests run.
 
 ### What are changesets and why are they required?
 
@@ -154,8 +108,8 @@ bun run test
 
 Each package owns its docs under `packages/<name>/docs/`:
 
-- Status files (e.g., `packages/kql-parser/docs/kql-parser-status.md`) track current feature coverage
-- Dev guides (e.g., `packages/kql-parser/docs/kql-parser-dev.md`) capture implementation details
+- Status files (e.g., `packages/kql-lezer/docs/kql-lezer-status.md`) track current feature coverage
+- Dev guides (e.g., `packages/kql-lezer/docs/kql-lezer-dev.md`) capture implementation details
 - Package-specific instructions live alongside the code they describe
 
 After completing a feature:

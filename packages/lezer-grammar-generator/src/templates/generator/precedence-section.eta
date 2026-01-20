@@ -1,0 +1,15 @@
+<% if (it.precedenceRules && it.precedenceRules.length > 0) { %>
+<% if (it.hasConfigPrecedence) { %>
+
+
+  @precedence {
+    <%= it.configPrecedence %>
+  }<% } else { %>
+
+
+  @precedence {
+<% for (const level of it.groupedPrecedence) { %>
+    <%= level %>,
+<% } %>
+  }<% } %>
+<% } %>

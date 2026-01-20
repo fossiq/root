@@ -36,8 +36,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": false,
-    "registry": "https://npm.pkg.github.com"
+    "provenance": true
   },
   "scripts": {
     "dev": "vite",
@@ -57,7 +56,6 @@
     "@codemirror/view": "^6.0.0",
     "@duckdb/duckdb-wasm": "^1.30.0",
     "@fossiq/kql-lezer": "workspace:*",
-    "@fossiq/kql-parser": "workspace:*",
     "@fossiq/kql-to-duckdb": "workspace:*",
     "@lezer/highlight": "1.2.3",
     "@picocss/pico": "^2.0.0",

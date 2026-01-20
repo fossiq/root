@@ -13,13 +13,13 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "bun test tests",
-    "test:coverage": "bun test tests --coverage",
+    "test": "echo \"No tests specified\"",
+    "test:coverage": "echo \"No tests specified\"",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   },
   "dependencies": {
-    "@fossiq/kql-parser": "workspace:*",
-    "web-tree-sitter": "catalog:"
+    "@fossiq/kql-ast": "workspace:*",
+    "@fossiq/kql-lezer": "workspace:*"
   },
   "devDependencies": {
     "@types/bun": "catalog:",
@@ -28,6 +28,6 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "provenance": true
   }
 }

@@ -12,11 +12,17 @@ describe("Between operator", () => {
   });
 
   test("between datetimes", () => {
-    expect(isValid("Events | where Timestamp between (datetime(2023-01-01) .. datetime(2023-12-31))")).toBe(true);
+    expect(
+      isValid(
+        "Events | where Timestamp between (datetime(2023-01-01) .. datetime(2023-12-31))"
+      )
+    ).toBe(true);
   });
 
   test("between expressions", () => {
-    expect(isValid("Events | where Timestamp between (ago(7d) .. now())")).toBe(true);
+    expect(isValid("Events | where Timestamp between (ago(7d) .. now())")).toBe(
+      true
+    );
   });
 });
 
@@ -36,7 +42,9 @@ describe("Union operator", () => {
   });
 
   test("complex union", () => {
-     expect(isValid("union kind=inner withsource=Src Table1, Table2, Table3")).toBe(true);
+    expect(
+      isValid("union kind=inner withsource=Src Table1, Table2, Table3")
+    ).toBe(true);
   });
 });
 
@@ -54,6 +62,20 @@ describe("Search operator", () => {
   });
 
   test("search with kind", () => {
-     expect(isValid('search kind=case_sensitive "Error"')).toBe(true);
+    expect(isValid('search kind=case_sensitive "Error"')).toBe(true);
+  });
+});
+
+describe("Find operator", () => {
+  test("simple find", () => {
+    expect(isValid('find "error"')).toBe(true);
+  });
+
+  test("find in tables", () => {
+    expect(isValid('find in (Table1, Table2) "error"')).toBe(true);
+  });
+
+  test("find with kind", () => {
+    expect(isValid('find kind=case_sensitive in (Table1) "Error"')).toBe(true);
   });
 });

@@ -35,14 +35,13 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": false,
-    "registry": "https://npm.pkg.github.com"
+    "provenance": true
   },
   "dependencies": {
     "@fossiq/kql-ast": "workspace:*",
-    "@lezer/common": "1.4.0",
-    "@lezer/highlight": "1.2.3",
-    "@lezer/lr": "1.4.5"
+    "@lezer/common": "^1.2.3",
+    "@lezer/lr": "^1.4.5",
+    "@lezer/highlight": "^1.2.1"
   },
   "peerDependencies": {
     "@codemirror/language": "6.11.3",
@@ -64,11 +63,12 @@
     "@fossiq/lezer-grammar-generator": "workspace:*",
     "@lezer/generator": "1.8.0",
     "@types/node": "catalog:",
+    "@types/bun": "catalog:",
     "typescript": "catalog:"
   },
   "scripts": {
-    "build": "bun run build:grammar && tsc",
-    "build:grammar": "lezer-generator src/kql.grammar -o src/parser.ts && bun scripts/fix-parser-types.ts",
+    "build": "tsc",
+    "build:grammar": "bun x lezer-generator src/kql.grammar -o src/parser.ts",
     "test": "bun test tests",
     "test:coverage": "bun test tests --coverage",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"

@@ -1,12 +1,11 @@
 /**
  * Prepends TypeScript/ESLint ignore directives to generated parser files.
  * The lezer-generator output has implicit any types we don't need to fix.
- * Cross-platform replacement for fix-parser-types.sh
  */
 
-import { readFileSync, writeFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const parserFile = join(__dirname, "../src/parser.ts");

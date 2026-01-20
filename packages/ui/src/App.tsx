@@ -4,8 +4,8 @@ import Layout from "./components/Layout";
 import Editor from "./components/Editor";
 import ResultsTable from "./components/ResultsTable";
 import { SchemaProvider, useSchema } from "./contexts/SchemaContext";
-import { Component, createSignal, createEffect, onMount, Show } from "solid-js";
-import { kqlToDuckDB, initParser } from "@fossiq/kql-to-duckdb";
+import { Component, createSignal, createEffect, Show } from "solid-js";
+import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
 
 const STORAGE_KEY_QUERY = "fossiq-query";
 const STORAGE_KEY_RESULTS = "fossiq-results";
@@ -47,15 +47,6 @@ const AppContent: Component = () => {
     }
   });
 
-  onMount(async () => {
-    try {
-      await initParser("/tree-sitter-kql.wasm", "/tree-sitter.wasm");
-      console.log("KQL Parser initialized");
-    } catch (e) {
-      console.error("Failed to initialize KQL Parser", e);
-      setError("Failed to initialize parser. Check console.");
-    }
-  });
 
   const handleRun = async () => {
     const connection = conn();

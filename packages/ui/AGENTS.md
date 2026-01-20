@@ -1,7 +1,7 @@
 # @fossiq/ui Agent Guide
 
 ## Purpose
-- SolidJS + Vite UI that orchestrates the parser (`@fossiq/kql-parser`), Lezer highlighter, translator, and DuckDB WASM. Entirely client-side—focus on fast iteration and Azure Data Explorer parity.
+- SolidJS + Vite UI that orchestrates the Lezer highlighter, translator, and DuckDB WASM. Entirely client-side—focus on fast iteration and Azure Data Explorer parity.
 
 ## Structure
 ```

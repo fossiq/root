@@ -8,20 +8,10 @@ Hey there! This is a monorepo with KQL (Kusto Query Language) tools and apps. Qu
 
 | Package                                           | Description                                           | Status                                                                                                                |
 | ------------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| [@fossiq/kql-parser](./packages/kql-parser)       | Tree-sitter based KQL parser with typed AST           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-parser.svg)](https://www.npmjs.com/package/@fossiq/kql-parser)       |
 | [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb) | KQL to DuckDB SQL translator                          | [![npm](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb) |
 | [@fossiq/kql-ast](./packages/kql-ast)             | Shared AST type definitions                           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-ast.svg)](https://www.npmjs.com/package/@fossiq/kql-ast)             |
 | [@fossiq/kql-lezer](./packages/kql-lezer)         | Lezer-based parser for CodeMirror syntax highlighting | [![npm](https://img.shields.io/npm/v/@fossiq/kql-lezer.svg)](https://www.npmjs.com/package/@fossiq/kql-lezer)         |
 | [@fossiq/ui](./packages/ui)                       | Web application (private)                             | -                                                                                                                     |
-
-### @fossiq/kql-parser
-
-Tree-sitter based KQL parser providing:
-
-- Complete KQL grammar (14 operators, all expression types)
-- Type-safe AST generation
-- 88 comprehensive tests
-- Cross-platform native bindings
 
 ### @fossiq/kql-to-duckdb
 
@@ -80,13 +70,13 @@ bun run changeset    # Create a changeset for versioning
 
 ```bash
 # Build specific package
-cd packages/kql-parser && bun run build
+cd packages/kql-lezer && bun run build
 
 # Run tests
-cd packages/kql-parser && bun run test
+cd packages/kql-lezer && bun run test
 
 # Watch mode
-cd packages/kql-parser && bun run test:watch
+cd packages/kql-lezer && bun run test:watch
 ```
 
 ## Repository Structure
@@ -94,7 +84,6 @@ cd packages/kql-parser && bun run test:watch
 ```
 .
 ├── packages/
-│   ├── kql-parser/      # Tree-sitter KQL parser
 │   ├── kql-to-duckdb/   # KQL to SQL translator
 │   ├── kql-ast/         # Shared AST types
 │   ├── kql-lezer/       # Lezer parser for editors
@@ -117,13 +106,21 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
 
 ## For AI Agents
 
-See [AGENTS.md](./AGENTS.md) for detailed instructions on working with this codebase.
+**Start here:** [AGENTS.md](./AGENTS.md) - Critical instructions and safety rules
+
+**Consolidated Documentation:**
+- [docs/PROJECT_OVERVIEW.md](./docs/PROJECT_OVERVIEW.md) - High-level project summary and status
+- [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Technical architecture and design decisions
+- [docs/PACKAGES.md](./docs/PACKAGES.md) - Package-specific documentation and APIs
+- [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md) - Development workflow and gotchas
+
+These docs are verified against actual code and optimized for AI agent consumption.
 
 ## Tech Stack
 
 - **Runtime**: Bun
 - **Language**: TypeScript (ESM)
-- **Parsers**: Tree-sitter, Lezer
+- **Parsers**: Lezer
 - **Frontend**: SolidJS, Vite, PicoCSS, CodeMirror 6
 - **Database**: DuckDB WASM
 - **CI/CD**: GitHub Actions
@@ -132,4 +129,3 @@ See [AGENTS.md](./AGENTS.md) for detailed instructions on working with this code
 ## License
 
 MIT
- 

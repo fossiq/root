@@ -1,35 +1,30 @@
-import { Parser, Language } from "web-tree-sitter";
-import { buildAST } from "@fossiq/kql-parser";
-import type { SourceFile } from "@fossiq/kql-parser";
+import { parseKQL } from "@fossiq/kql-lezer";
+import type { Query, ParseError } from "@fossiq/kql-ast";
 import { translate } from "./translator";
 
 export { translate };
 
-let parser: Parser | null = null;
+/**
+ * Parse KQL query using Lezer parser
+ */
+export function parseKql(query: string): Query {
+  const result = parseKQL(query);
 
-export async function initParser(wasmPath: string, treeSitterWasmPath?: string): Promise<void> {
-  if (parser) return;
-
-  await Parser.init({
-    locateFile() {
-      return treeSitterWasmPath || '/tree-sitter.wasm';
-    }
-  });
-  const KqlLanguage = await Language.load(wasmPath);
-
-  parser = new Parser();
-  parser.setLanguage(KqlLanguage);
-}
-
-export function parseKql(query: string): SourceFile {
-  if (!parser) {
-    throw new Error("Parser not initialized. Call initParser() first.");
+  if (!result.ast) {
+    throw new Error("Failed to parse KQL query");
   }
-  const tree = parser.parse(query);
-  // @ts-expect-error - web-tree-sitter types might differ slightly from native but AST structure is same
-  return buildAST(tree.rootNode) as SourceFile;
+
+  if (result.errors.length > 0) {
+    const errorMessages = result.errors.map((e: ParseError) => e.message).join(", ");
+    console.warn(`Parse errors: ${errorMessages}`);
+  }
+
+  return result.ast;
 }
 
+/**
+ * Convert KQL query to DuckDB SQL
+ */
 export function kqlToDuckDB(query: string): string {
   const ast = parseKql(query);
   return translate(ast);

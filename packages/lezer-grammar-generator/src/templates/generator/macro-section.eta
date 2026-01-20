@@ -1,0 +1,5 @@
+<% if (it.macros) { %>
+<% for (const [name, body] of Object.entries(it.macros)) { %>
+<%= name %> { <%= body %> }
+<% } %>
+<% } %>

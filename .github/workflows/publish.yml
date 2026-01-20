@@ -1,57 +1,36 @@
 name: Publish
 
 on:
-  workflow_call:
-    secrets:
-      npm-token:
-        required: true
-      github-token:
-        required: true
+    workflow_call:
+        secrets:
+            npm-token:
+                required: true
+            github-token:
+                required: true
 
 jobs:
-  publish:
-    name: Validate & Publish Packages
-    runs-on: ubuntu-24.04
-    environment: release
+    publish:
+        name: Publish Packages
+        runs-on: ubuntu-latest
+        environment: release
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-      - name: Download linux-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-linux-x64
-          path: temp-linux-x64
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: built-packages
+                  path: packages
 
-      - name: Download darwin-arm64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-darwin-arm64
-          path: temp-darwin-arm64
+            - name: Setup tooling
+              uses: ./.github/actions/setup
 
-      - name: Download darwin-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-darwin-x64
-          path: temp-darwin-x64
-
-      - name: Download win32-x64 artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: built-packages-win32-x64
-          path: temp-win32-x64
-
-      - name: Setup Bun tooling
-        uses: ./.github/actions/setup-bun
-
-      - name: Merge build artifacts
-        run: bun ./.github/scripts/merge-artifacts.ts
-
-      - name: Publish packages via Changesets
-        run: bun run release
-        env:
-          NPM_TOKEN: ${{ secrets.npm-token }}
-          GITHUB_TOKEN: ${{ secrets.github-token }}
+            - name: Publish packages via Changesets
+              run: bun run release
+              env:
+                  NPM_TOKEN: ${{ secrets.npm-token }}
+                  GITHUB_TOKEN: ${{ secrets.github-token }}

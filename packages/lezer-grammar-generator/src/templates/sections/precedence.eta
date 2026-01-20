@@ -1,0 +1,5 @@
+@precedence {
+<% for (const level of it.precedence) { %>
+  <% if (level.associativity) { %><%= level.associativity %> <% } %><%= level.name %>;
+<% } %>
+}
