@@ -441,19 +441,78 @@ import { helper } from './helpers'
 ### GitHub Actions
 
 **Workflows:**
-- `ci.yml` - Lint, build, test on push/PR
-- `publish.yml` - Publish to npm on changeset merge
+- `ci.yml` - Main workflow that orchestrates all jobs on push/PR
+- `lint.yml` - Code linting
+- `build.yml` - Build all packages
+- `test.yml` - Run tests
+- `publish-npm.yml` - Publish packages to npm (decoupled from UI)
+- `deploy-ui.yml` - Deploy UI to fossiq.github.io (decoupled from npm)
+
+**Workflow Triggers:**
+- `ci.yml` - Runs on push to main and all PRs
+  - Runs lint → build → test
+  - On main branch only: publish-npm + deploy-ui (parallel)
+- `deploy-ui.yml` - Also runs independently on push to main when UI-related files change
+  - Triggers: changes in `packages/ui/`, `packages/kql-lezer/`, `packages/kql-to-duckdb/`, `packages/kql-ast/`
+
+**Secrets Required:**
+- `NPM_TOKEN` - npm authentication for publishing packages
+- `DEPLOY_KEY_GITHUB_IO` - SSH deploy key for fossiq.github.io repository
+- `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 **Debugging CI:**
 1. `gh run view <run-id>` - See job status
 2. `gh run view --log-failed --job=<job-id>` - See failed logs
 3. Check workflow definitions in `.github/workflows/`
-4. Inspect job files in `.github/workflows/jobs/`
+4. Inspect scripts in `.github/scripts/`
 
 **Common CI Failures:**
 - Dependency installation (check lock file)
 - Cache issues (update cache keys)
 - Build order (check turbo.json)
+- Missing secrets (check repository settings → Secrets)
+- Deploy key permissions (check fossiq.github.io deploy keys)
+
+### Decoupled Publishing Architecture
+
+The publishing and deployment workflows are intentionally decoupled:
+
+**Why Decoupled:**
+- npm package releases and UI deployments have different cadences
+- UI can be deployed independently when fixing visual bugs
+- npm packages can be published without re-deploying UI
+- Failures in one pipeline don't block the other
+- Both can run in parallel for faster releases
+
+**Workflow:**
+```
+Push to main
+    ↓
+CI Workflow
+    ├─→ Lint
+    ├─→ Build
+    └─→ Test
+         ├─→ Publish npm (if on main)
+         │   ├─→ Publish packages to npm
+         │   └─→ Create GitHub release
+         │
+         └─→ Deploy UI (if on main)
+             └─→ Deploy to fossiq.github.io
+
+UI changes detected
+    ↓
+Deploy UI Workflow (independent)
+    └─→ Deploy to fossiq.github.io
+```
+
+**Manual Triggers:**
+```bash
+# Trigger npm publish only (via GitHub UI)
+gh workflow run publish-npm.yml
+
+# Trigger UI deploy only (via GitHub UI)
+gh workflow run deploy-ui.yml
+```
 
 ## Performance Tips
 
