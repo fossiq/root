@@ -42,3 +42,5 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         needs: [test, build]
         uses: ./.github/workflows/deploy-ui.yml
+        secrets:
+            deploy-key-github-io: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
