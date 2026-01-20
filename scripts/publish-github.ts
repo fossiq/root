@@ -21,22 +21,42 @@ const packages = [
 async function publishToGitHub() {
   console.log("=== Publishing to GitHub Package Registry ===\n");
 
-  if (!process.env.GITHUB_TOKEN) {
-    console.error("❌ GITHUB_TOKEN environment variable not set");
-    console.error("Run: export GITHUB_TOKEN=<your-token>");
-    process.exit(1);
+  let token = process.env.GITHUB_TOKEN;
+  let usingTempConfig = false;
+
+  if (!token) {
+    try {
+      console.log("ℹ️  GITHUB_TOKEN not set. Trying 'gh auth token'...");
+      token = (await $`gh auth token`.text()).trim();
+      if (token) {
+        console.log("✅ Obtained token from gh CLI");
+      }
+    } catch (e) {
+      console.log("ℹ️  Could not get token from gh CLI.");
+    }
   }
 
-  // Create .npmrc for GitHub registry
-  await $`echo "//npm.pkg.github.com/:_authToken=\${GITHUB_TOKEN}" > /tmp/.npmrc-github`;
-  await $`echo "@fossiq:registry=https://npm.pkg.github.com" >> /tmp/.npmrc-github`;
+  if (token) {
+    // Create .npmrc for GitHub registry
+    await $`echo "//npm.pkg.github.com/:_authToken=${token}" > /tmp/.npmrc-github`;
+    await $`echo "@fossiq:registry=https://npm.pkg.github.com" >> /tmp/.npmrc-github`;
+    usingTempConfig = true;
+  } else {
+    console.log(
+      "⚠️  No token found. Assuming global .npmrc is configured for @fossiq registry."
+    );
+  }
 
   for (const pkg of packages) {
     const pkgPath = `packages/${pkg}`;
     console.log(`\n📦 Publishing @fossiq/${pkg} to GitHub...`);
 
     try {
-      await $`cd ${pkgPath} && npm publish --registry=https://npm.pkg.github.com --userconfig /tmp/.npmrc-github`;
+      if (usingTempConfig) {
+        await $`cd ${pkgPath} && npm publish --registry=https://npm.pkg.github.com --userconfig /tmp/.npmrc-github --no-provenance`;
+      } else {
+        await $`cd ${pkgPath} && npm publish --registry=https://npm.pkg.github.com --no-provenance`;
+      }
       console.log(`✅ @fossiq/${pkg} published to GitHub successfully`);
     } catch (error) {
       console.error(`❌ Failed to publish @fossiq/${pkg} to GitHub:`, error);
@@ -45,9 +65,13 @@ async function publishToGitHub() {
   }
 
   // Cleanup
-  await $`rm -f /tmp/.npmrc-github`;
+  if (usingTempConfig) {
+    await $`rm -f /tmp/.npmrc-github`;
+  }
 
-  console.log("\n✅ All packages published to GitHub Package Registry successfully!");
+  console.log(
+    "\n✅ All packages published to GitHub Package Registry successfully!"
+  );
 }
 
 publishToGitHub();

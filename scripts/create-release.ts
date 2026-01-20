@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 import { $ } from "bun";
 import { readFileSync } from "fs";
-import { join } from "path";
 
 /**
  * Create a GitHub release from changeset information
@@ -15,14 +14,10 @@ import { join } from "path";
 async function createGitHubRelease() {
   console.log("=== Creating GitHub Release ===\n");
 
-  if (!process.env.GITHUB_TOKEN) {
-    console.error("❌ GITHUB_TOKEN environment variable not set");
-    console.error("Run: export GITHUB_TOKEN=<your-token>");
-    process.exit(1);
-  }
-
   // Get version from package.json (all packages should have same version)
-  const pkgJson = JSON.parse(readFileSync("packages/kql-lezer/package.json", "utf-8"));
+  const pkgJson = JSON.parse(
+    readFileSync("packages/kql-lezer/package.json", "utf-8")
+  );
   const version = pkgJson.version;
   const tag = `v${version}`;
 
@@ -35,12 +30,16 @@ async function createGitHubRelease() {
 
   try {
     const changelog = readFileSync(changelogPath, "utf-8");
-    const versionMatch = changelog.match(new RegExp(`## ${version}[\\s\\S]*?(?=\\n## |$)`));
+    const versionMatch = changelog.match(
+      new RegExp(`## ${version}[\\s\\S]*?(?=\\n## |$)`)
+    );
     if (versionMatch) {
       releaseNotes = versionMatch[0].replace(`## ${version}`, "").trim();
     }
   } catch (error) {
-    console.warn("⚠️  Could not read CHANGELOG.md, using generic release notes");
+    console.warn(
+      "⚠️  Could not read CHANGELOG.md, using generic release notes"
+    );
   }
 
   if (!releaseNotes) {
@@ -58,7 +57,11 @@ async function createGitHubRelease() {
 
   // Push tag
   console.log("📤 Pushing tag to remote...");
-  await $`git push origin ${tag}`;
+  try {
+    await $`git push origin ${tag}`;
+  } catch (error) {
+    console.warn("⚠️  Failed to push tag (might already exist on remote)");
+  }
 
   // Create GitHub release
   console.log("🚀 Creating GitHub release...");
@@ -76,30 +79,16 @@ ${releaseNotes}
 `;
 
   try {
-    // Use GitHub API to create release
-    const response = await fetch("https://api.github.com/repos/fossiq/root/releases", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GITHUB_TOKEN}`,
-        "Accept": "application/vnd.github+json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tag_name: tag,
-        name: `Release ${tag}`,
-        body: releaseBody,
-        draft: false,
-        prerelease: false,
-      }),
-    });
+    // Write notes to a temp file to avoid shell quoting issues
+    const notesFile = "/tmp/release-notes.md";
+    await $`echo ${releaseBody} > ${notesFile}`;
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`GitHub API error: ${error}`);
-    }
+    await $`gh release create ${tag} --title "Release ${tag}" --notes-file ${notesFile} --verify-tag`;
 
-    const release = await response.json();
-    console.log(`✅ Release created: ${release.html_url}`);
+    // Cleanup
+    await $`rm -f ${notesFile}`;
+
+    console.log(`✅ Release created successfully using gh CLI`);
   } catch (error) {
     console.error("❌ Failed to create GitHub release:", error);
     process.exit(1);

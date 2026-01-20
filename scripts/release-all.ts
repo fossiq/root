@@ -21,15 +21,11 @@ import { $ } from "bun";
 async function releaseAll() {
   console.log("=== Complete Release Workflow ===\n");
 
-  // Verify environment variables
+  // Verify environment variables (optional if logged in via CLI)
   if (!process.env.NPM_TOKEN || !process.env.GITHUB_TOKEN) {
-    console.error("❌ Missing required environment variables:");
-    if (!process.env.NPM_TOKEN) console.error("  - NPM_TOKEN");
-    if (!process.env.GITHUB_TOKEN) console.error("  - GITHUB_TOKEN");
-    console.error("\nSet them with:");
-    console.error("  export NPM_TOKEN=<your-npm-token>");
-    console.error("  export GITHUB_TOKEN=<your-github-token>");
-    process.exit(1);
+    console.log(
+      "ℹ️  NPM_TOKEN or GITHUB_TOKEN not set. Assuming you are logged in via npm/gh CLIs."
+    );
   }
 
   try {

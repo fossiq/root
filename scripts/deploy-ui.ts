@@ -18,7 +18,9 @@ import { existsSync } from "fs";
 async function deployUI() {
   console.log("=== Deploying UI to fossiq.github.io ===\n");
 
-  const commitMessage = process.argv[2] || `deploy: update from fossiq/root@${await $`git rev-parse --short HEAD`.text()}`;
+  const commitMessage =
+    process.argv[2] ||
+    `deploy: update from fossiq/root@${await $`git rev-parse --short HEAD`.text()}`;
 
   // Check if UI dist exists
   const distPath = join(process.cwd(), "packages", "ui", "dist");
@@ -29,16 +31,12 @@ async function deployUI() {
 
   console.log("📦 UI dist found at:", distPath);
 
-  // Clone fossiq.github.io (or use HTTPS with token)
-  const cloneUrl = process.env.GITHUB_TOKEN
-    ? `https://${process.env.GITHUB_TOKEN}@github.com/fossiq/fossiq.github.io.git`
-    : "git@github.com:fossiq/fossiq.github.io.git";
-
-  console.log("\n📥 Cloning fossiq.github.io...");
   const tmpDir = "/tmp/fossiq-github-io";
+  console.log("\n📥 Cloning fossiq.github.io using gh CLI...");
   await $`rm -rf ${tmpDir}`;
-  await $`git clone ${cloneUrl} ${tmpDir}`;
 
+  // Use gh CLI to clone, which handles auth automatically
+  await $`gh repo clone fossiq/fossiq.github.io ${tmpDir}`;
   console.log("\n🗑️  Removing old files...");
   process.chdir(tmpDir);
   await $`find . -maxdepth 1 ! -name '.git' ! -name 'CNAME' ! -name '.' -exec rm -rf {} + || true`;

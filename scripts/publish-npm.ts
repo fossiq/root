@@ -22,20 +22,22 @@ async function publishToNpm() {
   console.log("=== Publishing to npm ===\n");
 
   if (!process.env.NPM_TOKEN) {
-    console.error("❌ NPM_TOKEN environment variable not set");
-    console.error("Run: export NPM_TOKEN=<your-token>");
-    process.exit(1);
+    console.log("ℹ️  NPM_TOKEN not set. Using existing npm login.");
+  } else {
+    // Create .npmrc for authentication if token is provided
+    await $`echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > /tmp/.npmrc`;
   }
-
-  // Create .npmrc for authentication
-  await $`echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > /tmp/.npmrc`;
 
   for (const pkg of packages) {
     const pkgPath = `packages/${pkg}`;
     console.log(`\n📦 Publishing @fossiq/${pkg}...`);
 
     try {
-      await $`cd ${pkgPath} && npm publish --access public --provenance --userconfig /tmp/.npmrc`;
+      if (process.env.NPM_TOKEN) {
+        await $`cd ${pkgPath} && npm publish --access public --no-provenance --userconfig /tmp/.npmrc`;
+      } else {
+        await $`cd ${pkgPath} && npm publish --access public --no-provenance`;
+      }
       console.log(`✅ @fossiq/${pkg} published successfully`);
     } catch (error) {
       console.error(`❌ Failed to publish @fossiq/${pkg}:`, error);
@@ -44,7 +46,9 @@ async function publishToNpm() {
   }
 
   // Cleanup
-  await $`rm -f /tmp/.npmrc`;
+  if (process.env.NPM_TOKEN) {
+    await $`rm -f /tmp/.npmrc`;
+  }
 
   console.log("\n✅ All packages published to npm successfully!");
 }
