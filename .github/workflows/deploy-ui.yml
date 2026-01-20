@@ -2,9 +2,6 @@ name: Deploy UI
 
 on:
     workflow_call:
-        secrets:
-            deploy-key:
-                required: true
     workflow_dispatch:
     push:
         branches: [main]
@@ -52,6 +49,6 @@ jobs:
             - name: Deploy to fossiq.github.io
               run: bun ./.github/scripts/trigger-ui-deploy.ts
               env:
-                  DEPLOY_KEY_GITHUB_IO: ${{ secrets.deploy-key }}
+                  DEPLOY_KEY_GITHUB_IO: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
                   GITHUB_SHA: ${{ github.sha }}
                   GITHUB_WORKSPACE: ${{ github.workspace }}
