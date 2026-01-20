@@ -28,7 +28,6 @@ import type {
   UnionOperator,
   MvExpandOperator,
   TabularOperator,
-  LetStatement,
 } from "@fossiq/kql-ast";
 
 // Store let statement values for variable substitution

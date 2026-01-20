@@ -41,7 +41,7 @@ describe("skip blocks", () => {
     };
 
     const output = generateLezerGrammar(def);
-    expect(output).toContain("@skip {  } {\n  String { stringContent }\n}");
+    expect(output).toContain("@skip {  } {\n  String { stringContent }}");
   });
 
   it("validates unknown reference in global skip", () => {

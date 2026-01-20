@@ -4,7 +4,7 @@ import Layout from "./components/Layout";
 import Editor from "./components/Editor";
 import ResultsTable from "./components/ResultsTable";
 import { SchemaProvider, useSchema } from "./contexts/SchemaContext";
-import { Component, createSignal, createEffect, onMount, Show } from "solid-js";
+import { Component, createSignal, createEffect, Show } from "solid-js";
 import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
 
 const STORAGE_KEY_QUERY = "fossiq-query";
