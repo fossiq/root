@@ -26,4 +26,4 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: bun install --ignore-scripts --verbose --frozen-lockfile --production --prefer-offline
+      run: bun install --frozen-lockfile
