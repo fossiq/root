@@ -2,6 +2,9 @@ name: Deploy UI
 
 on:
     workflow_call:
+        secrets:
+            deploy-key-github-io:
+                required: true
     workflow_dispatch:
     push:
         branches: [main]
@@ -10,6 +13,9 @@ on:
             - 'packages/kql-lezer/**'
             - 'packages/kql-to-duckdb/**'
             - 'packages/kql-ast/**'
+
+permissions:
+    contents: read
 
 jobs:
     deploy-ui:
@@ -49,6 +55,6 @@ jobs:
             - name: Deploy to fossiq.github.io
               run: bun ./.github/scripts/trigger-ui-deploy.ts
               env:
-                  DEPLOY_KEY_GITHUB_IO: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
+                  DEPLOY_KEY_GITHUB_IO: ${{ secrets.deploy-key-github-io }}
                   GITHUB_SHA: ${{ github.sha }}
                   GITHUB_WORKSPACE: ${{ github.workspace }}
