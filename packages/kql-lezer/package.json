@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/kql-lezer",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Lezer-based KQL parser for CodeMirror with syntax highlighting support",
   "type": "module",
   "main": "dist/index.js",
