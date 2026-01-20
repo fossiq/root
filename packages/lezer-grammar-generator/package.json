@@ -49,7 +49,7 @@
     "typescript": "catalog:"
   },
   "scripts": {
-    "build": "bun-tasks emit:js ::: emit:types",
+    "build": "bun ./scripts/bun.build.ts && tsc",
     "emit:js": "bun ./scripts/bun.build.ts",
     "emit:types": "tsc",
     "test": "bun test tests --ignore 'dist/**'",

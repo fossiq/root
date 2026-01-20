@@ -2,23 +2,11 @@ name: Build
 
 on:
     workflow_call:
-        inputs:
-            runs-on:
-                description: GitHub runner label
-                required: true
-                type: string
-            platform:
-                description: Platform identifier (linux-x64, darwin-arm64, darwin-x64, win32-x64)
-                required: true
-                type: string
 
 jobs:
     build:
-        name: Build Packages (${{ inputs.platform }})
-        runs-on: ${{ inputs.runs-on }}
-        defaults:
-            run:
-                shell: bash
+        name: Build Packages
+        runs-on: ubuntu-latest
 
         steps:
             - name: Checkout repository
@@ -27,15 +15,12 @@ jobs:
             - name: Setup tooling
               uses: ./.github/actions/setup
 
-            - name: Build packages in dependency order
+            - name: Build packages
               run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
-
-            - name: Prepare upload directory
-              run: bun ./.github/scripts/prepare-upload.ts
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v4
               with:
-                  name: built-packages-${{ inputs.platform }}
-                  path: upload/packages
-                  retention-days: 7
+                  name: built-packages
+                  path: packages/*/dist
+                  retention-days: 1

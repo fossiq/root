@@ -10,8 +10,8 @@ on:
 
 jobs:
     publish:
-        name: Validate & Publish Packages
-        runs-on: ubuntu-24.04
+        name: Publish Packages
+        runs-on: ubuntu-latest
         environment: release
 
         steps:
@@ -20,17 +20,14 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Download linux-x64 artifacts
+            - name: Download build artifacts
               uses: actions/download-artifact@v4
               with:
-                  name: built-packages-linux-x64
-                  path: temp-linux-x64
+                  name: built-packages
+                  path: packages
 
-            - name: Setup Bun tooling
-              uses: ./.github/actions/setup-bun
-
-            - name: Merge build artifacts
-              run: bun ./.github/scripts/merge-artifacts.ts
+            - name: Setup tooling
+              uses: ./.github/actions/setup
 
             - name: Publish packages via Changesets
               run: bun run release
