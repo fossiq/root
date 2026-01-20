@@ -7,6 +7,8 @@ on:
                 required: true
             github-token:
                 required: true
+            deploy-key:
+                required: false
 
 jobs:
     publish:
@@ -34,3 +36,11 @@ jobs:
               env:
                   NPM_TOKEN: ${{ secrets.npm-token }}
                   GITHUB_TOKEN: ${{ secrets.github-token }}
+
+            - name: Deploy UI to GitHub Pages
+              if: secrets.deploy-key != ''
+              run: bun ./.github/scripts/trigger-ui-deploy.ts
+              env:
+                  DEPLOY_KEY_GITHUB_IO: ${{ secrets.deploy-key }}
+                  GITHUB_SHA: ${{ github.sha }}
+                  GITHUB_WORKSPACE: ${{ github.workspace }}

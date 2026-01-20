@@ -36,3 +36,4 @@ jobs:
         secrets:
             npm-token: ${{ secrets.NPM_TOKEN }}
             github-token: ${{ secrets.GITHUB_TOKEN }}
+            deploy-key: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
