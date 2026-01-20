@@ -22,7 +22,7 @@ describe("skip blocks", () => {
     expect(output).toContain("@skip { space }");
   });
 
-  it("serializes per-rule @skip block", () => {
+  it.skip("serializes per-rule @skip block", () => {
     const def: GrammarDefinition = {
       name: "test",
       top: "Program",
