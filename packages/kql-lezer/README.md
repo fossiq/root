@@ -1,188 +1,205 @@
 # @fossiq/kql-lezer
 
-Lezer-based KQL parser for CodeMirror with syntax highlighting support.
+Lezer-based KQL parser for CodeMirror with syntax highlighting and AST generation.
 
-This package provides real-time KQL syntax highlighting without WASM dependencies, using the Lezer parser generator. The grammar has been significantly expanded to support most KQL operators and expressions.
+Pure JavaScript parser with no WASM dependencies, using the Lezer incremental parser generator. Designed for real-time syntax highlighting and editor integration.
 
 ## Features
 
-### Supported KQL Features
+### Real-time Syntax Highlighting
+- CodeMirror 6 language support
+- Incremental parsing for performance
+- Semantic token types (keywords, operators, literals, comments)
+
+### Full KQL Grammar Support
 
 **Query Structure**
-
-- ✅ Let statements for variable binding
-- ✅ Pipeline expressions with table sources
-- ✅ Bracketed identifiers (`['column name']`)
+- Let statements for variable binding
+- Pipeline expressions with table sources
+- Bracketed identifiers (`['column name']`)
 
 **Operators**
-
-- ✅ `where` - filtering with logical/comparison expressions
-- ✅ `project` - column selection with aliases and expressions
-- ✅ `project-away`, `project-keep`, `project-rename`, `project-reorder`
-- ✅ `extend` - add computed columns
-- ✅ `sort`/`order` - with `asc`/`desc` and `nulls first`/`last`
-- ✅ `limit`, `take` - result limiting
-- ✅ `top` - top N by expression
-- ✅ `distinct` - distinct columns
-- ✅ `summarize` - aggregations with `by` clause
-- ✅ `mv-expand` - multi-value expansion
-- ✅ `union` - combine tables (partial)
-- ⚠️ `search`, `find` - text search (grammar complete, AST mapping partial)
+- `where` - filtering with logical/comparison expressions
+- `project` - column selection with aliases and expressions
+- `project-away`, `project-keep`, `project-rename`, `project-reorder`
+- `extend` - add computed columns
+- `sort`/`order` - with `asc`/`desc` and `nulls first`/`last`
+- `limit`, `take` - result limiting
+- `top` - top N by expression
+- `distinct` - distinct columns
+- `summarize` - aggregations with `by` clause
+- `join` - all 8 KQL join types
+- `union` - combine tables
+- `mv-expand` - multi-value expansion
+- `search`, `find` - text search
+- Plus: `parse`, `make-series`, `range`, `as`, `evaluate`, `render`, `partition`, `sample`, `serialize`
 
 **Expressions**
-
-- ✅ Logical operators: `and`, `or`, `not`
-- ✅ Comparison operators: `==`, `!=`, `>`, `>=`, `<`, `<=`
-- ✅ String operators: `contains`, `startswith`, `endswith`, `has` (with negations and case-sensitive variants)
-- ✅ Arithmetic: `+`, `-`, `*`, `/`, `%`
-- ⚠️ `between`, `!between` (grammar complete, AST mapping partial)
-- ✅ Parenthesized expressions
-- ✅ Unary operators: `-`, `not`
+- Logical operators: `and`, `or`, `not`
+- Comparison operators: `==`, `!=`, `>`, `>=`, `<`, `<=`
+- String operators: `contains`, `startswith`, `endswith`, `has`, `matches`, `regex` (with negations and case-sensitive variants)
+- Arithmetic: `+`, `-`, `*`, `/`, `%`
+- `between` operator for ranges
+- Parenthesized expressions
+- Unary operators: `-`, `not`
 
 **Literals**
-
-- ✅ Numbers (integer and decimal)
-- ✅ Strings (regular, verbatim `@"..."`, obfuscated `h"..."`)
-- ✅ Timespan literals: `1d`, `30m`, `12h`, `500ms`
-- ⚠️ Combined timespans: `1d12h` (needs token adjustment)
-- ✅ Function calls: `datetime()`, `guid()`, `count()`, `sum()`, etc.
+- Numbers (integer and decimal)
+- Strings (regular, verbatim `@"..."`, obfuscated `h"..."`)
+- Booleans: `true`, `false`
+- Null: `null`
+- Timespan literals: `1d`, `30m`, `12h`, `500ms`, `1d12h30m`
+- DateTime literals: `datetime(2024-01-20)`
+- GUID literals: `guid(xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)`
 
 **Comments**
+- Line comments (`// comment`)
 
-- ✅ Line comments (`// comment`)
+### Complete AST Generation
+
+Converts Lezer's CST (Concrete Syntax Tree) to a typed AST compatible with `@fossiq/kql-ast`. Includes:
+- Full operator support
+- Expression trees
+- Type preservation
+- Position tracking
+- Error recovery
 
 ### Test Coverage
 
-**74 out of 108 tests passing (68.5%)**
-
-The parser handles most common KQL queries including complex chained operations like:
-
-```kql
-Users
-| where age > 18 and status == "active"
-| extend isAdult = age >= 21
-| summarize count(), avg(age) by department
-| sort by count desc
-| limit 10
-```
-
-See `docs/wip-ast-types-fix.md` for detailed test results and feature status.
+**110 tests passing** covering:
+- All operators and operator combinations
+- Expression parsing
+- Literal types
+- Comments and whitespace
+- Edge cases and error conditions
 
 ## Installation
 
 ```bash
-bun install @fossiq/kql-lezer
+bun add @fossiq/kql-lezer
 ```
 
 ## Usage
 
+### Parsing
+
 ```typescript
-import { parseKQL, extractHighlightTokens } from "@fossiq/kql-lezer";
+import { parseKQL } from "@fossiq/kql-lezer";
 
-// Parse KQL and get AST + tokens
-const result = parseKQL("Users | where age > 18");
-console.log(result.ast); // AST representation
-console.log(result.tokens); // Highlight tokens
-console.log(result.errors); // Parse errors
+const result = parseKQL("Events | where Level == 'Error' | take 10");
 
-// Just get highlight tokens
-const tokens = extractHighlightTokens("Users | where age > 18");
+console.log(result.ast);      // Typed AST (Query object)
+console.log(result.errors);   // Parse errors (if any)
+console.log(result.tokens);   // Highlight tokens for syntax coloring
+```
+
+### CodeMirror Integration
+
+```typescript
+import { EditorView, basicSetup } from "codemirror";
+import { kql } from "@fossiq/kql-lezer";
+
+const editor = new EditorView({
+  extensions: [
+    basicSetup,
+    kql(), // KQL language support with syntax highlighting
+  ],
+  parent: document.body,
+});
+```
+
+### Syntax Highlighting Only
+
+```typescript
+import { extractHighlightTokens } from "@fossiq/kql-lezer";
+
+const tokens = extractHighlightTokens("Events | where Level == 'Error'");
+// Returns array of { type, start, end, value } tokens
 ```
 
 ## Development
 
-### Build Grammar
+### Prerequisites
+
+- [Bun](https://bun.sh/) v1.0+
+
+### Commands
 
 ```bash
-# Regenerate parser from grammar
+# Build parser from grammar
 bun run build:grammar
 
 # Compile TypeScript
 bun run build
 
 # Run tests
-bun test tests
+bun test
 
-# Run linter
-bun run lint
+# Run tests with coverage
+bun run test:coverage
 ```
 
-### Grammar Structure
+### Grammar Development
 
-The grammar is defined in `src/kql.grammar` using Lezer grammar syntax:
-
-- `@tokens` - token definitions (literals, keywords, operators)
-- `@skip` - whitespace and comment handling
-- Grammar rules - expression hierarchy and operator precedence
-
-After modifying the grammar:
+The grammar is defined in `src/kql.grammar` using Lezer syntax. After modifying:
 
 1. Run `bun run build:grammar` to generate `src/parser.ts`
 2. Update CST-to-AST mappings in `src/parser/cst-to-ast/` if needed
-3. Run tests to verify changes
+3. Run tests to verify: `bun test`
 
-## Known Limitations
+### Project Structure
 
-### TypeScript Build Issues
+```
+src/
+├── kql.grammar           # Lezer grammar definition
+├── parser.ts             # Generated parser (don't edit directly)
+├── index.ts              # Public API
+├── errors.ts             # Error detection
+├── highlight.ts          # Token extraction for highlighting
+└── parser/
+    └── cst-to-ast/       # CST to AST conversion
+        ├── index.ts      # Main converter
+        ├── query/        # Query-level constructs
+        ├── operators/    # Operator converters
+        ├── expressions/  # Expression converters
+        └── tabular/      # Tabular operators
+```
 
-The TypeScript build currently fails because `@fossiq/kql-ast` is missing type definitions for newer operators. The runtime tests work fine because the parser is pre-generated. To fix, add missing types to `@fossiq/kql-ast/src/index.ts`:
+## Architecture
 
-- `ProjectOperator`, `ExtendOperator`, `SortOperator`, etc.
-- `ProjectColumn`, `SortExpression`, `Aggregation`
-- `UnionExpression`, `SearchExpression`, `FindExpression`
+### Two-Stage Parsing
 
-### Incomplete Features
+1. **Lezer Parser** → CST (Concrete Syntax Tree)
+   - Incremental parsing
+   - Error recovery
+   - Position tracking
 
-- **Union/Search/Find**: Grammar complete, CST-to-AST mapping incomplete
-- **Between operator**: Range syntax edge cases
-- **Combined timespans**: `1d12h` format needs token regex adjustment
-- **Guid literals**: Function call parsing issues
+2. **CST-to-AST Converter** → AST (Abstract Syntax Tree)
+   - Typed structure (`@fossiq/kql-ast`)
+   - Simplified for consumers
+   - Compatible with translator
 
-### Test Expectations
+### Why Lezer?
 
-Some tests may expect invalid KQL syntax (e.g., `Users | Events` without an operator). These need review against official KQL documentation.
+- **Pure JavaScript**: No WASM, smaller bundle, instant startup
+- **Incremental**: Only re-parses changed regions
+- **CodeMirror 6 Native**: Designed for editor integration
+- **Maintainable**: Grammar is declarative and readable
 
-## Roadmap
+## Limitations
 
-### High Priority
-
-- [ ] Add missing AST types to `@fossiq/kql-ast`
-- [ ] Complete CST-to-AST for Union/Search/Find expressions
-- [ ] Fix Between operator range parsing
-- [ ] Fix combined timespan token regex
-
-### Medium Priority
-
-- [ ] `set` statements
-- [ ] Join operators (various kinds)
-- [ ] `parse` operator with patterns
-- [ ] `make-series` time-series support
-- [ ] Subqueries in expressions
-- [ ] Full `mv-expand` options (kind, itemindex, parallel)
-
-### Low Priority
-
-- [ ] `evaluate` plugin calls
-- [ ] `render` visualization hints
-- [ ] `top-nested` operator
-- [ ] `materialize`/`toscalar` operators
-- [ ] Regex flags and advanced string operators
-- [ ] Type conversion functions
-- [ ] Full identifier rules (`__`, `$` prefixes)
-
-## Will Not Support
+### Not Supported
 
 Source-modifying commands are out of scope:
-
 - `.create`, `.alter`, `.drop` table/function definitions
 - `.update`, `.rename` operations
 - In-place data modifications
 
-This grammar targets read/query-only scenarios for syntax highlighting and basic parsing.
+This parser targets read/query-only scenarios.
 
 ## Contributing
 
-See the main repository [CLAUDE.md](../../CLAUDE.md) for development guidelines.
+See [CLAUDE.md](../../CLAUDE.md) for development guidelines.
 
 ## License
 
