@@ -6,7 +6,7 @@ on:
 jobs:
   lint:
     name: Lint Source
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
