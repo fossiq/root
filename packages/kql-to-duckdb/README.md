@@ -1,4 +1,4 @@
-# KQL to DuckDB Translator
+# @fossiq/kql-to-duckdb
 
 Translates Kusto Query Language (KQL) to DuckDB SQL.
 
@@ -11,105 +11,189 @@ bun add @fossiq/kql-to-duckdb
 ## Usage
 
 ```typescript
-import { kqlToDuckDB, initParser } from "@fossiq/kql-to-duckdb";
+import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
 
-// Initialize parser once (required for web-tree-sitter)
-await initParser("/path/to/tree-sitter-kql.wasm");
-
-const kql =
-  "Table | where Status == 'active' | project Name, Score | top 10 by Score desc";
+const kql = "Events | where Level == 'Error' | project Timestamp, Message | take 10";
 const sql = kqlToDuckDB(kql);
 console.log(sql);
+// Output: WITH cte_0 AS (SELECT * FROM Events WHERE Level = 'Error'), 
+//         cte_1 AS (SELECT Timestamp, Message FROM cte_0),
+//         cte_2 AS (SELECT * FROM cte_1 LIMIT 10)
+//         SELECT * FROM cte_2
 ```
+
+No initialization required - parsing is synchronous and instant.
 
 ## Supported Features
 
-| Feature                | Status | Notes                                                                                     |
-| ---------------------- | ------ | ----------------------------------------------------------------------------------------- |
-| Basic table selection  | ✓      | `Table`                                                                                   |
-| where clause           | ✓      | Filtering with comparisons and binary operators                                           |
-| project / project-away / project-keep / project-rename / project-reorder | ✓ | Column operations via DuckDB's SELECT, SELECT * EXCLUDE, SELECT * REPLACE, and reordering patterns |
-| extend clause          | ✓      | Computed columns                                                                          |
-| summarize clause       | ✓      | Aggregations with GROUP BY                                                                |
-| sort/order by          | ✓      | Multi-column with asc/desc                                                                |
-| distinct               | ✓      | Deduplication                                                                             |
-| take/limit             | ✓      | Row limiting                                                                              |
-| top                    | ✓      | Top N with optional ordering                                                              |
-| join                   | ✓      | All 8 KQL join kinds (inner, left/right/full outer, anti, semi)                           |
-| union                  | ✓      | Set operations (inner/outer)                                                              |
-| String functions       | ✓      | substring, tolower, toupper, length, trim, ltrim, rtrim, reverse, replace, split, indexof |
-| Math functions         | ✓      | round, floor, ceil, abs, sqrt, pow, log, log10, exp, sin, cos, tan                        |
-| Type conversion        | ✓      | tostring, toint, todouble, tobool, tolong, tofloat, todatetime, totimespan                |
-| Aggregation functions  | ✓      | count, sum, avg, min, max                                                                 |
-| Arithmetic expressions | ✓      | +, -, \*, /, %                                                                            |
-| Comparison operators   | ✓      | ==, !=, >, <, >=, <=                                                                      |
-| Binary operators       | ✓      | and, or                                                                                   |
-| String operators       | ✓      | contains, startswith, endswith, matches, has                                              |
-| Function calls         | ✓      | Generic function support with mapping                                                     |
+### Operators
+
+| Operator | Status | Notes |
+|----------|--------|-------|
+| `where` | ✓ | Filtering with comparisons and logical operators |
+| `project` | ✓ | Column selection with aliases and expressions |
+| `project-away` | ✓ | Exclude columns via `SELECT * EXCLUDE (...)` |
+| `project-keep` | ✓ | Keep only specified columns |
+| `project-rename` | ✓ | Rename columns via `SELECT * REPLACE (...)` |
+| `project-reorder` | ✓ | Reorder columns |
+| `extend` | ✓ | Add computed columns |
+| `summarize` | ✓ | Aggregations with GROUP BY |
+| `sort`/`order by` | ✓ | Multi-column with asc/desc, nulls first/last |
+| `distinct` | ✓ | Deduplication |
+| `take`/`limit` | ✓ | Row limiting |
+| `top` | ✓ | Top N with ordering |
+| `join` | ✓ | All 8 KQL join types (inner, left/right/full outer, left/right anti, left/right semi) |
+| `union` | ✓ | Set operations (inner/outer) |
+| `mv-expand` | ✓ | Multi-value expansion via UNNEST |
+
+### Expressions
+
+| Feature | Status | Examples |
+|---------|--------|----------|
+| Comparison operators | ✓ | `==`, `!=`, `>`, `<`, `>=`, `<=` |
+| Logical operators | ✓ | `and`, `or`, `not` |
+| Arithmetic | ✓ | `+`, `-`, `*`, `/`, `%` |
+| String operators | ✓ | `contains`, `startswith`, `endswith`, `has`, `matches` |
+| Parenthesized expressions | ✓ | `(a + b) * c` |
+| Function calls | ✓ | `count()`, `sum(Amount)`, `tolower(Name)` |
+
+### Functions
+
+**String Functions**
+- `substring`, `tolower`, `toupper`, `length`, `trim`, `ltrim`, `rtrim`
+- `reverse`, `replace`, `split`, `indexof`, `strcat`
+
+**Math Functions**
+- `round`, `floor`, `ceil`, `abs`, `sqrt`, `pow`
+- `log`, `log10`, `exp`, `sin`, `cos`, `tan`
+
+**Type Conversion**
+- `tostring`, `toint`, `todouble`, `tobool`
+- `tolong`, `tofloat`, `todatetime`, `totimespan`
+
+**Aggregation Functions**
+- `count`, `sum`, `avg`, `min`, `max`
+- `dcount` (distinct count)
+
+**DateTime Functions**
+- `now()`, `ago()`, `datetime()`, `format_datetime()`
 
 ## Unsupported Features
 
-| Feature            | Status | Notes                                                  |
-| ------------------ | ------ | ------------------------------------------------------ |
-| Subqueries         | ✗      | Nested SELECT in FROM - complex scope handling         |
-| parse operator     | ✗      | Complex - see limitations below                        |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| `parse` operator | ✗ | Requires dynamic column creation and regex patterns |
+| Subqueries | ✗ | Nested SELECT in FROM clause |
+| `search` | ✗ | Full-text search |
+| `find` | ✗ | Cross-table search |
 
 ### Why parse operator is unsupported
 
-The KQL `parse` operator extracts structured data from strings using regex or simple patterns. It requires:
+The KQL `parse` operator extracts structured data from strings using patterns. It requires:
+1. Dynamic column creation from regex groups
+2. Runtime schema modification
+3. Complex pattern evaluation
 
-1. **Dynamic column creation** - Regex groups become new columns at runtime
-2. **Schema modification** - Changes output schema based on pattern
-3. **Pattern evaluation** - Complex regex handling with named capture groups
-4. **SQL limitations** - Standard SQL lacks equivalent feature
-
-Workaround: Pre-process data with application logic or use DuckDB's `regexp_extract()` for simple cases.
+Workaround: Use DuckDB's `regexp_extract()` or pre-process data.
 
 ## Examples
 
-### Project Operator Family
-```kql
-Users | project-rename DisplayName = Name | project-away Password
-```
-Becomes:
-```sql
-SELECT * REPLACE (Name AS DisplayName) EXCLUDE (Password) FROM Users
-```
+### Basic Query
 
-### Filtering and Projection
+```typescript
+import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
 
-```kql
-Events | where Level == "Error" | project Timestamp, Message
+const sql = kqlToDuckDB(`
+  Events 
+  | where Level == "Error" 
+  | project Timestamp, Message
+  | take 10
+`);
 ```
 
 ### Aggregation
 
-```kql
-Sales | summarize sum(Amount), count() by Region | sort by Amount desc
+```typescript
+const sql = kqlToDuckDB(`
+  Sales 
+  | summarize TotalRevenue = sum(Amount), OrderCount = count() by Region
+  | sort by TotalRevenue desc
+`);
+```
+
+### Join
+
+```typescript
+const sql = kqlToDuckDB(`
+  Orders 
+  | join kind=inner Customers on CustomerID == ID
+  | project OrderDate, CustomerName, Amount
+`);
 ```
 
 ### String Processing
 
-```kql
-Users | extend Email_Domain = substring(Email, indexof(Email, "@") + 1)
-       | project Name, Email_Domain
+```typescript
+const sql = kqlToDuckDB(`
+  Users 
+  | extend Domain = substring(Email, indexof(Email, "@") + 1)
+  | project Name, Domain
+`);
 ```
 
-### Multi-table Operations
+### Column Operations
 
-```kql
-Orders | join kind=inner Customers on OrderID == ID | top 100 by Amount desc
-```
-
-### Set Operations
-
-```kql
-Current_Data | union kind=outer Archive_Data
+```typescript
+const sql = kqlToDuckDB(`
+  Users 
+  | project-rename DisplayName = Name
+  | project-away Password, SSN
+  | project-reorder Email, DisplayName
+`);
 ```
 
 ## Architecture
 
-Uses CTE-based pipeline generation to translate KQL's sequential operators into SQL. Each operator becomes a `WITH` clause, maintaining proper data flow.
+Uses CTE-based pipeline generation:
+1. Each KQL operator becomes a `WITH` clause (CTE)
+2. Operators reference previous CTEs
+3. Final `SELECT` references last CTE
+
+This maintains KQL's sequential semantics while generating efficient SQL.
+
+### Example Translation
+
+```kql
+Events 
+| where Level == "Error"
+| project Timestamp, Message
+| take 10
+```
+
+Becomes:
+
+```sql
+WITH 
+  cte_0 AS (SELECT * FROM Events WHERE Level = 'Error'),
+  cte_1 AS (SELECT Timestamp, Message FROM cte_0),
+  cte_2 AS (SELECT * FROM cte_1 LIMIT 10)
+SELECT * FROM cte_2
+```
+
+## Development
+
+```bash
+# Build
+bun run build
+
+# Run linter
+bun run lint
+```
+
+## Related Packages
+
+- **@fossiq/kql-lezer** - Parser that generates the AST
+- **@fossiq/kql-ast** - Shared AST type definitions
 
 ## License
 
