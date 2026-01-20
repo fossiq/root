@@ -66,6 +66,25 @@ bun run lint:fix     # Auto-fix lint issues
 bun run changeset    # Create a changeset for versioning
 ```
 
+### Manual Release
+
+When automated CI release fails, use manual release scripts:
+
+```bash
+# Complete release workflow
+export NPM_TOKEN=<your-token>
+export GITHUB_TOKEN=<your-token>
+bun scripts/release-all.ts
+
+# Or run individual steps
+bun scripts/publish-npm.ts        # Publish to npm
+bun scripts/publish-github.ts     # Publish to GitHub registry
+bun scripts/create-release.ts     # Create GitHub release
+bun scripts/deploy-ui.ts          # Deploy UI to fossiq.github.io
+```
+
+See [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md#manual-release-process) for details.
+
 ### Package Development
 
 ```bash

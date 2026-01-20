@@ -24,8 +24,16 @@ cd packages/ui && bun run dev
 # Create changeset
 bun run changeset
 
-# Publish all
+# Version packages
+bun run version
+
+# Publish all (automated CI)
 bun run release
+
+# Manual release (when CI fails)
+export NPM_TOKEN=<token>
+export GITHUB_TOKEN=<token>
+bun scripts/release-all.ts
 ```
 
 ## Development Workflow
@@ -351,6 +359,53 @@ bun run release
 ```
 
 **Fixed mode:** All packages version together (currently all at 1.2.0)
+
+### Manual Release Process
+
+The automated changesets workflow may not always work. Use these manual scripts when needed:
+
+**Prerequisites:**
+```bash
+# Set required tokens
+export NPM_TOKEN=<your-npm-token>
+export GITHUB_TOKEN=<your-github-token>
+
+# Version packages first
+bun run version
+```
+
+**Individual steps:**
+```bash
+# 1. Publish to npm only
+bun scripts/publish-npm.ts
+
+# 2. Publish to GitHub Package Registry only
+bun scripts/publish-github.ts
+
+# 3. Create GitHub release only
+bun scripts/create-release.ts
+
+# 4. Deploy UI only
+bun scripts/deploy-ui.ts
+```
+
+**Complete release (all steps):**
+```bash
+# Runs: build → npm publish → GitHub publish → create release → deploy UI
+bun scripts/release-all.ts
+```
+
+**Scripts location:** `/scripts/`
+- `publish-npm.ts` - Publish all packages to npm
+- `publish-github.ts` - Publish all packages to GitHub registry
+- `create-release.ts` - Create GitHub release from version
+- `deploy-ui.ts` - Deploy UI to fossiq.github.io
+- `release-all.ts` - Run complete release workflow
+
+**Notes:**
+- UI deployment requires either SSH key or GITHUB_TOKEN
+- All packages must be built before publishing
+- Versions should be bumped via changesets before running scripts
 
 ## Code Style
 
