@@ -51,7 +51,7 @@ function translateQueryExpression(expr: Query["expression"]): string {
     return translatePipeline(expr);
   } else if (expr.type === "UnionExpression") {
     // UnionExpression is a query expression type with tables
-    const tables = expr.tables.map(t =>
+    const tables = expr.tables.map((t: TableSource | PipelineExpression) =>
       t.type === "TableReference" ? `SELECT * FROM ${t.name}` : translatePipeline(t as PipelineExpression)
     );
     return tables.join(" UNION ALL ");
@@ -156,7 +156,7 @@ function translateProjectKeep(operator: ProjectKeepOperator, inputRelation: stri
 }
 
 function translateProjectRename(operator: ProjectRenameOperator, inputRelation: string): string {
-  const renames = operator.renames.map(r => `${r.oldName} AS ${r.newName}`).join(", ");
+  const renames = operator.renames.map((r: { newName: string; oldName: string }) => `${r.oldName} AS ${r.newName}`).join(", ");
   return `SELECT * REPLACE (${renames}) FROM ${inputRelation}`;
 }
 
@@ -231,7 +231,7 @@ function translateJoin(operator: JoinOperator, inputRelation: string): string {
 }
 
 function translateUnion(operator: UnionOperator, inputRelation: string): string {
-  const tables = [inputRelation, ...operator.tables.map(t =>
+  const tables = [inputRelation, ...operator.tables.map((t: TableSource | PipelineExpression) =>
     t.type === "TableReference" ? t.name : `(${translatePipeline(t as PipelineExpression)})`
   )];
   return tables.join(" UNION ALL ");

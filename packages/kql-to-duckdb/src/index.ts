@@ -1,5 +1,5 @@
 import { parseKQL } from "@fossiq/kql-lezer";
-import type { Query } from "@fossiq/kql-ast";
+import type { Query, ParseError } from "@fossiq/kql-ast";
 import { translate } from "./translator";
 
 export { translate };
@@ -15,7 +15,7 @@ export function parseKql(query: string): Query {
   }
 
   if (result.errors.length > 0) {
-    const errorMessages = result.errors.map(e => e.message).join(", ");
+    const errorMessages = result.errors.map((e: ParseError) => e.message).join(", ");
     console.warn(`Parse errors: ${errorMessages}`);
   }
 

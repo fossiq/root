@@ -52,6 +52,10 @@
     "packages/kql-to-duckdb": {
       "name": "@fossiq/kql-to-duckdb",
       "version": "1.2.0",
+      "dependencies": {
+        "@fossiq/kql-ast": "workspace:*",
+        "@fossiq/kql-lezer": "workspace:*",
+      },
       "devDependencies": {
         "@types/bun": "catalog:",
         "@types/node": "catalog:",

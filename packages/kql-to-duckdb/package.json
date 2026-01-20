@@ -17,7 +17,10 @@
     "test:coverage": "echo \"No tests specified\"",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@fossiq/kql-ast": "workspace:*",
+    "@fossiq/kql-lezer": "workspace:*"
+  },
   "devDependencies": {
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
