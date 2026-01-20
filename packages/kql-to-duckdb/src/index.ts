@@ -1,5 +1,5 @@
 import { parseKQL } from "@fossiq/kql-lezer";
-import type { SourceFile } from "@fossiq/kql-ast";
+import type { Query } from "@fossiq/kql-ast";
 import { translate } from "./translator";
 
 export { translate };
@@ -7,7 +7,7 @@ export { translate };
 /**
  * Parse KQL query using Lezer parser
  */
-export function parseKql(query: string): SourceFile {
+export function parseKql(query: string): Query {
   const result = parseKQL(query);
 
   if (!result.ast) {

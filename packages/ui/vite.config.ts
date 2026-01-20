@@ -31,14 +31,12 @@ export default defineConfig({
     },
     optimizeDeps: {
         exclude: ["@fossiq/kql-lezer", "@fossiq/kql-to-duckdb"],
-        include: ["web-tree-sitter"],
     },
     build: {
         target: "es2023",
         minify: "terser",
         sourcemap: true,
         rollupOptions: {
-            external: ["tree-sitter", /tree-sitter-.*/],
             output: {
                 manualChunks: {
                     vendor: ["solid-js"],
