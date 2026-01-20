@@ -1,0 +1,42 @@
+name: Publish to npm
+
+on:
+    workflow_call:
+        secrets:
+            npm-token:
+                required: true
+            github-token:
+                required: true
+    workflow_dispatch:
+
+jobs:
+    publish-npm:
+        name: Publish Packages to npm
+        runs-on: ubuntu-latest
+        environment: release
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Download build artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: built-packages
+                  path: packages
+
+            - name: Setup tooling
+              uses: ./.github/actions/setup
+
+            - name: Publish packages via Changesets
+              run: bun run release
+              env:
+                  NPM_TOKEN: ${{ secrets.npm-token }}
+                  GITHUB_TOKEN: ${{ secrets.github-token }}
+
+            - name: Create GitHub Release
+              run: bun ./.github/scripts/create-release.ts
+              env:
+                  GITHUB_TOKEN: ${{ secrets.github-token }}

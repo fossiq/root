@@ -22,7 +22,12 @@
     "lint:fix": "eslint packages --ext .ts,.tsx --fix",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "turbo run ci:publish"
+    "release": "turbo run ci:publish",
+    "release:manual": "bun scripts/release-all.ts",
+    "publish:npm": "bun scripts/publish-npm.ts",
+    "publish:github": "bun scripts/publish-github.ts",
+    "create:release": "bun scripts/create-release.ts",
+    "deploy:ui": "bun scripts/deploy-ui.ts"
   },
   "dependencies": {
     "@changesets/cli": "2.29.8",

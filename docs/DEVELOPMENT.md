@@ -24,8 +24,16 @@ cd packages/ui && bun run dev
 # Create changeset
 bun run changeset
 
-# Publish all
+# Version packages
+bun run version
+
+# Publish all (automated CI)
 bun run release
+
+# Manual release (when CI fails)
+export NPM_TOKEN=<token>
+export GITHUB_TOKEN=<token>
+bun scripts/release-all.ts
 ```
 
 ## Development Workflow
@@ -352,6 +360,53 @@ bun run release
 
 **Fixed mode:** All packages version together (currently all at 1.2.0)
 
+### Manual Release Process
+
+The automated changesets workflow may not always work. Use these manual scripts when needed:
+
+**Prerequisites:**
+```bash
+# Set required tokens
+export NPM_TOKEN=<your-npm-token>
+export GITHUB_TOKEN=<your-github-token>
+
+# Version packages first
+bun run version
+```
+
+**Individual steps:**
+```bash
+# 1. Publish to npm only
+bun scripts/publish-npm.ts
+
+# 2. Publish to GitHub Package Registry only
+bun scripts/publish-github.ts
+
+# 3. Create GitHub release only
+bun scripts/create-release.ts
+
+# 4. Deploy UI only
+bun scripts/deploy-ui.ts
+```
+
+**Complete release (all steps):**
+```bash
+# Runs: build → npm publish → GitHub publish → create release → deploy UI
+bun scripts/release-all.ts
+```
+
+**Scripts location:** `/scripts/`
+- `publish-npm.ts` - Publish all packages to npm
+- `publish-github.ts` - Publish all packages to GitHub registry
+- `create-release.ts` - Create GitHub release from version
+- `deploy-ui.ts` - Deploy UI to fossiq.github.io
+- `release-all.ts` - Run complete release workflow
+
+**Notes:**
+- UI deployment requires either SSH key or GITHUB_TOKEN
+- All packages must be built before publishing
+- Versions should be bumped via changesets before running scripts
+
 ## Code Style
 
 ### TypeScript
@@ -386,19 +441,78 @@ import { helper } from './helpers'
 ### GitHub Actions
 
 **Workflows:**
-- `ci.yml` - Lint, build, test on push/PR
-- `publish.yml` - Publish to npm on changeset merge
+- `ci.yml` - Main workflow that orchestrates all jobs on push/PR
+- `lint.yml` - Code linting
+- `build.yml` - Build all packages
+- `test.yml` - Run tests
+- `publish-npm.yml` - Publish packages to npm (decoupled from UI)
+- `deploy-ui.yml` - Deploy UI to fossiq.github.io (decoupled from npm)
+
+**Workflow Triggers:**
+- `ci.yml` - Runs on push to main and all PRs
+  - Runs lint → build → test
+  - On main branch only: publish-npm + deploy-ui (parallel)
+- `deploy-ui.yml` - Also runs independently on push to main when UI-related files change
+  - Triggers: changes in `packages/ui/`, `packages/kql-lezer/`, `packages/kql-to-duckdb/`, `packages/kql-ast/`
+
+**Secrets Required:**
+- `NPM_TOKEN` - npm authentication for publishing packages
+- `DEPLOY_KEY_GITHUB_IO` - SSH deploy key for fossiq.github.io repository
+- `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 **Debugging CI:**
 1. `gh run view <run-id>` - See job status
 2. `gh run view --log-failed --job=<job-id>` - See failed logs
 3. Check workflow definitions in `.github/workflows/`
-4. Inspect job files in `.github/workflows/jobs/`
+4. Inspect scripts in `.github/scripts/`
 
 **Common CI Failures:**
 - Dependency installation (check lock file)
 - Cache issues (update cache keys)
 - Build order (check turbo.json)
+- Missing secrets (check repository settings → Secrets)
+- Deploy key permissions (check fossiq.github.io deploy keys)
+
+### Decoupled Publishing Architecture
+
+The publishing and deployment workflows are intentionally decoupled:
+
+**Why Decoupled:**
+- npm package releases and UI deployments have different cadences
+- UI can be deployed independently when fixing visual bugs
+- npm packages can be published without re-deploying UI
+- Failures in one pipeline don't block the other
+- Both can run in parallel for faster releases
+
+**Workflow:**
+```
+Push to main
+    ↓
+CI Workflow
+    ├─→ Lint
+    ├─→ Build
+    └─→ Test
+         ├─→ Publish npm (if on main)
+         │   ├─→ Publish packages to npm
+         │   └─→ Create GitHub release
+         │
+         └─→ Deploy UI (if on main)
+             └─→ Deploy to fossiq.github.io
+
+UI changes detected
+    ↓
+Deploy UI Workflow (independent)
+    └─→ Deploy to fossiq.github.io
+```
+
+**Manual Triggers:**
+```bash
+# Trigger npm publish only (via GitHub UI)
+gh workflow run publish-npm.yml
+
+# Trigger UI deploy only (via GitHub UI)
+gh workflow run deploy-ui.yml
+```
 
 ## Performance Tips
 

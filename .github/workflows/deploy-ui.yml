@@ -1,0 +1,57 @@
+name: Deploy UI
+
+on:
+    workflow_call:
+        secrets:
+            deploy-key:
+                required: true
+    workflow_dispatch:
+    push:
+        branches: [main]
+        paths:
+            - 'packages/ui/**'
+            - 'packages/kql-lezer/**'
+            - 'packages/kql-to-duckdb/**'
+            - 'packages/kql-ast/**'
+
+jobs:
+    deploy-ui:
+        name: Deploy UI to GitHub Pages
+        runs-on: ubuntu-latest
+        environment: ui-deployment
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup tooling
+              uses: ./.github/actions/setup
+
+            - name: Try to download build artifacts (if available from CI)
+              id: download-artifacts
+              continue-on-error: true
+              uses: actions/download-artifact@v4
+              with:
+                  name: built-packages
+                  path: packages
+
+            - name: Build all packages (if artifacts not available)
+              if: steps.download-artifacts.outcome == 'failure'
+              run: bun run build
+
+            - name: Build UI (if artifacts not available)
+              if: steps.download-artifacts.outcome == 'failure'
+              run: cd packages/ui && bun run build
+
+            - name: Build UI only (if artifacts available)
+              if: steps.download-artifacts.outcome == 'success'
+              run: cd packages/ui && bun run build
+
+            - name: Deploy to fossiq.github.io
+              run: bun ./.github/scripts/trigger-ui-deploy.ts
+              env:
+                  DEPLOY_KEY_GITHUB_IO: ${{ secrets.deploy-key }}
+                  GITHUB_SHA: ${{ github.sha }}
+                  GITHUB_WORKSPACE: ${{ github.workspace }}

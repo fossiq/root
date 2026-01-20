@@ -28,12 +28,19 @@ jobs:
         needs: build
         uses: ./.github/workflows/test.yml
 
-    publish:
-        name: Publish
-        if: github.event_name != 'pull_request'
+    publish-npm:
+        name: Publish to npm
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         needs: [test, build]
-        uses: ./.github/workflows/publish.yml
+        uses: ./.github/workflows/publish-npm.yml
         secrets:
             npm-token: ${{ secrets.NPM_TOKEN }}
             github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    deploy-ui:
+        name: Deploy UI
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        needs: [test, build]
+        uses: ./.github/workflows/deploy-ui.yml
+        secrets:
             deploy-key: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
