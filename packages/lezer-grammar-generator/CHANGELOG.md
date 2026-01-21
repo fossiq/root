@@ -1,5 +1,17 @@
 # @fossiq/lezer-grammar-generator
 
+## 2.0.1
+
+### Patch Changes
+
+- 973d950: Resolve TypeScript lint warnings
+
+  - Fixed type guards in `type-guards.ts`
+  - Improved type safety in `generator/main.ts`
+
+- Updated dependencies
+  - @fossiq/kql-ast@2.0.1
+
 ## 2.0.0
 
 ### Patch Changes

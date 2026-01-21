@@ -1,5 +1,17 @@
 # @fossiq/kql-lezer
 
+## 2.0.1
+
+### Patch Changes
+
+- 973d950: Fix string operators parsing in logical expressions
+
+  - Fixed CST-to-AST mapping for string comparison operators (`contains`, `startswith`, `endswith`, `has`, etc.)
+  - Improved handling of negated string operators in logical expression trees
+
+- Updated dependencies
+  - @fossiq/kql-ast@2.0.1
+
 ## 2.0.0
 
 ### Major Changes

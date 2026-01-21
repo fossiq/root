@@ -66,24 +66,27 @@ bun run lint:fix     # Auto-fix lint issues
 bun run changeset    # Create a changeset for versioning
 ```
 
-### Manual Release
+### Release Process
 
-When automated CI release fails, use manual release scripts:
+**GitHub Packages & UI:** Automatically published by CI on push to `main`.
+
+**npm Publishing:** Manual only (requires interactive authentication).
 
 ```bash
-# Complete release workflow
-export NPM_TOKEN=<your-token>
+# Run automated release steps
 export GITHUB_TOKEN=<your-token>
-bun scripts/release-all.ts
+bun run release:manual
+
+# Then manually publish to npm when prompted
+export NPM_TOKEN=<your-token>
+bun run publish:npm
 
 # Or run individual steps
-bun scripts/publish-npm.ts        # Publish to npm
-bun scripts/publish-github.ts     # Publish to GitHub registry
-bun scripts/create-release.ts     # Create GitHub release
-bun scripts/deploy-ui.ts          # Deploy UI to fossiq.github.io
+bun run publish:github     # Publish to GitHub Packages
+bun run create:release     # Create GitHub release
 ```
 
-See [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md#manual-release-process) for details.
+See [scripts/README.md](./scripts/README.md) for full details.
 
 ### Package Development
 
@@ -128,6 +131,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
 **Start here:** [AGENTS.md](./AGENTS.md) - Critical instructions and safety rules
 
 **Consolidated Documentation:**
+
 - [docs/PROJECT_OVERVIEW.md](./docs/PROJECT_OVERVIEW.md) - High-level project summary and status
 - [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) - Technical architecture and design decisions
 - [docs/PACKAGES.md](./docs/PACKAGES.md) - Package-specific documentation and APIs

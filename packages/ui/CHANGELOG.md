@@ -1,5 +1,28 @@
 # @fossiq/ui
 
+## 2.0.1
+
+### Minor Changes
+
+- a2e6fdf: Native-like PWA title bar and header actions
+  - Added custom title bar with window controls for PWA standalone mode
+  - Implemented theme toggle, fullscreen, and refresh actions in header
+  - Updated PWA manifest and service worker for standalone display
+  - Enhanced theme CSS for better title bar integration
+  - Added TypeScript declarations for PWA display mode detection
+
+### Patch Changes
+
+- 973d950: UI improvements and code organization
+
+  - Updated favicon and app icon to KQL-style design
+  - Fixed ResultsTable column rendering
+  - Split completion module into `completion-data.ts` and `completion.ts`
+
+- Updated dependencies
+  - @fossiq/kql-lezer@2.0.1
+  - @fossiq/kql-to-duckdb@2.0.1
+
 ## 2.0.0
 
 ### Patch Changes
