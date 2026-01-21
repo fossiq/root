@@ -102,6 +102,7 @@ export function generateGrammar(
     precedenceRules: typeof config.precedence | typeof precedenceRules;
     hasConfigPrecedence?: boolean;
     configPrecedence?: string;
+    groupedPrecedence?: string[];
   } = { precedenceRules: [] };
   if (config.precedence && config.precedence.length > 0) {
     precedenceData = {
