@@ -1,42 +1,30 @@
-name: Publish to npm
+name: Publish to npm (Manual Only)
+
+# This workflow is DISABLED for automatic runs as npm requires interactive authentication.
+# Publishing to npm must be done manually using: bun run release:manual
+# The workflow_dispatch trigger is kept for documentation purposes only.
 
 on:
-    workflow_call:
-        secrets:
-            npm-token:
-                required: true
-            github-token:
-                required: true
-    workflow_dispatch:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'This workflow is disabled. Use "bun run release:manual" locally instead.'
+        required: true
+        default: "disabled"
 
 jobs:
-    publish-npm:
-        name: Publish Packages to npm
-        runs-on: ubuntu-latest
-        environment: release
+  publish-npm:
+    name: Publish Packages to npm
+    runs-on: ubuntu-latest
+    environment: release
 
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
-
-            - name: Download build artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  name: built-packages
-                  path: packages
-
-            - name: Setup tooling
-              uses: ./.github/actions/setup
-
-            - name: Publish packages via Changesets
-              run: bun run release
-              env:
-                  NPM_TOKEN: ${{ secrets.npm-token }}
-                  GITHUB_TOKEN: ${{ secrets.github-token }}
-
-            - name: Create GitHub Release
-              run: bun ./.github/scripts/create-release.ts
-              env:
-                  GITHUB_TOKEN: ${{ secrets.github-token }}
+    steps:
+      - name: Fail with instructions
+        run: |
+          echo "❌ This workflow is disabled as npm requires interactive authentication."
+          echo ""
+          echo "📦 To publish packages to npm, run locally:"
+          echo "   bun run release:manual"
+          echo ""
+          echo "ℹ️  Packages are automatically published to GitHub Packages via CI."
+          exit 1
