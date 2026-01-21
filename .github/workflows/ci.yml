@@ -1,46 +1,67 @@
 name: CI
 
 on:
-    push:
-        branches: [main]
-    pull_request:
-        branches: [main]
-    workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
-    id-token: write
-    contents: read
-    packages: write
-    pull-requests: write
+  id-token: write
+  contents: read
+  packages: write
+  pull-requests: write
 
 jobs:
-    lint:
-        name: Lint
-        uses: ./.github/workflows/lint.yml
+  lint:
+    name: Lint
+    uses: ./.github/workflows/lint.yml
 
-    build:
-        name: Build
-        needs: lint
-        uses: ./.github/workflows/build.yml
+  build:
+    name: Build
+    needs: lint
+    uses: ./.github/workflows/build.yml
 
-    test:
-        name: Test
-        needs: build
-        uses: ./.github/workflows/test.yml
+  test:
+    name: Test
+    needs: build
+    uses: ./.github/workflows/test.yml
 
-    publish-npm:
-        name: Publish to npm
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        needs: [test, build]
-        uses: ./.github/workflows/publish-npm.yml
-        secrets:
-            npm-token: ${{ secrets.NPM_TOKEN }}
-            github-token: ${{ secrets.GITHUB_TOKEN }}
+  publish-github:
+    name: Publish to GitHub Packages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    deploy-ui:
-        name: Deploy UI
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        needs: [test, build]
-        uses: ./.github/workflows/deploy-ui.yml
-        secrets:
-            deploy-key-github-io: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: built-packages
+          path: packages
+
+      - name: Setup tooling
+        uses: ./.github/actions/setup
+
+      - name: Publish packages to GitHub
+        run: bun run publish:github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        run: bun run create:release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-ui:
+    name: Deploy UI
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [test, build]
+    uses: ./.github/workflows/deploy-ui.yml
+    secrets:
+      deploy-key-github-io: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
