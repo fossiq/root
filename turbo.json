@@ -15,7 +15,7 @@
         "packages/kql-lezer/src/parser.terms.ts",
         "!**/node_modules/**"
       ],
-      "inputs": ["src/**", "package.json", "tsconfig.json"]
+      "inputs": ["src/**", "package.json", "tsconfig.json", "turbo.json"]
     },
     "test": {
       "dependsOn": [],
