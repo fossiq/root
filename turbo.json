@@ -10,6 +10,9 @@
         "grammar.js",
         "bindings/**",
         "prebuilds/**",
+        "packages/kql-lezer/src/kql.grammar",
+        "packages/kql-lezer/src/parser.ts",
+        "packages/kql-lezer/src/parser.terms.ts",
         "!**/node_modules/**"
       ],
       "inputs": ["src/**", "package.json", "tsconfig.json"]
