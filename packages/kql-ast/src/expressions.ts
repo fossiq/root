@@ -11,7 +11,8 @@ export type ExpressionType =
   | "Literal"
   | "ParenthesizedExpression"
   | "NumberLiteral"
-  | "StringLiteral";
+  | "StringLiteral"
+  | "ArrayLiteral";
 
 export interface BinaryExpression extends ASTNode {
   type: "BinaryExpression";
@@ -60,6 +61,11 @@ export interface ParenthesizedExpression extends ASTNode {
   expression: Expression;
 }
 
+export interface ArrayLiteral extends ASTNode {
+  type: "ArrayLiteral";
+  elements: Expression[];
+}
+
 export type Expression =
   | BinaryExpression
   | UnaryExpression
@@ -69,4 +75,5 @@ export type Expression =
   | ParenthesizedExpression
   | NumberLiteral
   | StringLiteral
+  | ArrayLiteral
   | ErrorNode;

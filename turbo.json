@@ -10,22 +10,26 @@
         "grammar.js",
         "bindings/**",
         "prebuilds/**",
+        "packages/kql-lezer/src/kql.grammar",
+        "packages/kql-lezer/src/parser.ts",
+        "packages/kql-lezer/src/parser.terms.ts",
         "!**/node_modules/**"
       ],
-      "inputs": ["src/**", "package.json", "tsconfig.json"]
+      "inputs": ["src/**", "package.json", "tsconfig.json", "turbo.json"]
     },
     "test": {
       "dependsOn": [],
       "outputs": [],
-      "inputs": ["src/**", "tests/**"]
+      "inputs": ["src/**", "tests/**", "turbo.json"]
     },
     "test:coverage": {
       "dependsOn": [],
       "outputs": ["coverage/**"],
-      "inputs": ["src/**", "tests/**"]
+      "inputs": ["src/**", "tests/**", "turbo.json"]
     },
     "lint": {
-      "outputs": []
+      "outputs": [],
+      "inputs": ["src/**", "turbo.json"]
     },
     "ci:publish": {
       "outputs": [],

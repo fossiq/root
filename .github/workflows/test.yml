@@ -1,21 +1,21 @@
 name: Test
 
 on:
-    workflow_call:
+  workflow_call:
 
 jobs:
-    test:
-        name: Run Test Suite
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  test:
+    name: Run Test Suite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Setup tooling
-              uses: ./.github/actions/setup
+      - name: Setup tooling
+        uses: ./.github/actions/setup
 
-            - name: Run Turbo build target
-              run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
+      - name: Run Turbo build target
+        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
-            - name: Run Turbo test target
-              run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
+      - name: Run Turbo test target
+        run: bun x turbo run test --cache-dir=node_modules/.cache/turbo

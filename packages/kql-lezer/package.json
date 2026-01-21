@@ -67,8 +67,10 @@
     "typescript": "catalog:"
   },
   "scripts": {
-    "build": "tsc",
-    "build:grammar": "bun x lezer-generator src/kql.grammar -o src/parser.ts",
+    "build": "bun run generate:grammar && bun run build:parser && bun run fix:parser && tsc",
+    "build:parser": "bun x lezer-generator src/kql.grammar -o src/parser.ts",
+    "generate:grammar": "bun scripts/generate-kql-grammar.ts",
+    "fix:parser": "bun scripts/fix-parser-types.ts",
     "test": "bun test tests",
     "test:coverage": "bun test tests --coverage",
     "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"

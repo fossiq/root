@@ -58,9 +58,34 @@ export function mapPrimitive(
         end: node.to,
       };
     }
+    case "ArrayLiteral":
+      return mapArrayLiteral(node, ctx);
     default:
       return createErrorNode(node, `Unknown primitive: ${node.type.name}`);
   }
+}
+
+/**
+ * Map an ArrayLiteral node.
+ */
+export function mapArrayLiteral(
+  node: SyntaxNode,
+  ctx: MapperContext
+): AST.ArrayLiteral | AST.ErrorNode {
+  const { getChildren } = ctx;
+
+  const elements: AST.Expression[] = [];
+  const exprs = getChildren(node, "Expression");
+  for (const expr of exprs) {
+    elements.push(ctx.mapScalarExpression(expr));
+  }
+
+  return {
+    type: "ArrayLiteral",
+    elements,
+    start: node.from,
+    end: node.to,
+  };
 }
 
 /**

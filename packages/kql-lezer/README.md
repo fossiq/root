@@ -7,6 +7,7 @@ Pure JavaScript parser with no WASM dependencies, using the Lezer incremental pa
 ## Features
 
 ### Real-time Syntax Highlighting
+
 - CodeMirror 6 language support
 - Incremental parsing for performance
 - Semantic token types (keywords, operators, literals, comments)
@@ -14,11 +15,13 @@ Pure JavaScript parser with no WASM dependencies, using the Lezer incremental pa
 ### Full KQL Grammar Support
 
 **Query Structure**
+
 - Let statements for variable binding
 - Pipeline expressions with table sources
 - Bracketed identifiers (`['column name']`)
 
 **Operators**
+
 - `where` - filtering with logical/comparison expressions
 - `project` - column selection with aliases and expressions
 - `project-away`, `project-keep`, `project-rename`, `project-reorder`
@@ -35,6 +38,7 @@ Pure JavaScript parser with no WASM dependencies, using the Lezer incremental pa
 - Plus: `parse`, `make-series`, `range`, `as`, `evaluate`, `render`, `partition`, `sample`, `serialize`
 
 **Expressions**
+
 - Logical operators: `and`, `or`, `not`
 - Comparison operators: `==`, `!=`, `>`, `>=`, `<`, `<=`
 - String operators: `contains`, `startswith`, `endswith`, `has`, `matches`, `regex` (with negations and case-sensitive variants)
@@ -44,6 +48,7 @@ Pure JavaScript parser with no WASM dependencies, using the Lezer incremental pa
 - Unary operators: `-`, `not`
 
 **Literals**
+
 - Numbers (integer and decimal)
 - Strings (regular, verbatim `@"..."`, obfuscated `h"..."`)
 - Booleans: `true`, `false`
@@ -53,11 +58,13 @@ Pure JavaScript parser with no WASM dependencies, using the Lezer incremental pa
 - GUID literals: `guid(xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)`
 
 **Comments**
+
 - Line comments (`// comment`)
 
 ### Complete AST Generation
 
 Converts Lezer's CST (Concrete Syntax Tree) to a typed AST compatible with `@fossiq/kql-ast`. Includes:
+
 - Full operator support
 - Expression trees
 - Type preservation
@@ -67,6 +74,7 @@ Converts Lezer's CST (Concrete Syntax Tree) to a typed AST compatible with `@fos
 ### Test Coverage
 
 **110 tests passing** covering:
+
 - All operators and operator combinations
 - Expression parsing
 - Literal types
@@ -88,9 +96,9 @@ import { parseKQL } from "@fossiq/kql-lezer";
 
 const result = parseKQL("Events | where Level == 'Error' | take 10");
 
-console.log(result.ast);      // Typed AST (Query object)
-console.log(result.errors);   // Parse errors (if any)
-console.log(result.tokens);   // Highlight tokens for syntax coloring
+console.log(result.ast); // Typed AST (Query object)
+console.log(result.errors); // Parse errors (if any)
+console.log(result.tokens); // Highlight tokens for syntax coloring
 ```
 
 ### CodeMirror Integration
@@ -126,11 +134,12 @@ const tokens = extractHighlightTokens("Events | where Level == 'Error'");
 ### Commands
 
 ```bash
-# Build parser from grammar
-bun run build:grammar
-
-# Compile TypeScript
+# Full build (generates grammar, parser, and compiles TypeScript)
 bun run build
+
+# Individual steps (usually not needed)
+bun run generate:grammar  # Generate .grammar from TypeScript sources
+bun run build:parser      # Generate parser.ts from .grammar file
 
 # Run tests
 bun test
@@ -141,11 +150,43 @@ bun run test:coverage
 
 ### Grammar Development
 
-The grammar is defined in `src/kql.grammar` using Lezer syntax. After modifying:
+**IMPORTANT**: The grammar is generated from TypeScript sources in `src/grammar/`, NOT edited directly.
 
-1. Run `bun run build:grammar` to generate `src/parser.ts`
-2. Update CST-to-AST mappings in `src/parser/cst-to-ast/` if needed
-3. Run tests to verify: `bun test`
+#### Workflow for Grammar Changes
+
+1. **Edit TypeScript grammar sources** in `src/grammar/`:
+
+   - `tokens.ts` - Token definitions (keywords, operators, literals)
+   - `rules.ts` - Grammar rules and productions
+   - `precedence.ts` - Operator precedence
+   - `plugins/` - Modular grammar components
+
+2. **Build** to regenerate all files:
+
+   ```bash
+   bun run build
+   ```
+
+   This automatically:
+
+   - Generates `src/kql.grammar` from TypeScript sources
+   - Generates `src/parser.ts` from the grammar
+   - Compiles TypeScript to `dist/`
+
+3. **Update CST-to-AST mappings** in `src/parser/cst-to-ast/` if you added new grammar constructs
+
+4. **Run tests** to verify:
+   ```bash
+   bun test
+   ```
+
+#### Generated Files (DO NOT EDIT)
+
+These files are generated during build and ignored by git:
+
+- `src/kql.grammar` - Generated Lezer grammar
+- `src/parser.ts` - Generated parser
+- `src/parser.terms.ts` - Generated term definitions
 
 ### Project Structure
 
@@ -170,6 +211,7 @@ src/
 ### Two-Stage Parsing
 
 1. **Lezer Parser** → CST (Concrete Syntax Tree)
+
    - Incremental parsing
    - Error recovery
    - Position tracking
@@ -191,6 +233,7 @@ src/
 ### Not Supported
 
 Source-modifying commands are out of scope:
+
 - `.create`, `.alter`, `.drop` table/function definitions
 - `.update`, `.rename` operations
 - In-place data modifications
