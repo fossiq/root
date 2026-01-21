@@ -3,6 +3,7 @@
 Instructions for AI agents on the Fossiq codebase, organized by priority.
 
 ## CRITICAL: System & Safety Rules
+
 **Must be followed without exception:**
 
 - Never install global tools (`brew install`, `npm install -g`, etc.) without explicit user approval.
@@ -20,19 +21,23 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - Never suppress, hide, or eliminate issues (e.g., silence warnings/errors, delete logs, modify configs to hide problems). Always ask user instead.
 
 ## HIGH: Communication & Output
+
 - **C4 Rule (Most Important)**: All content creation and thoughts must be Clear, Concise, Correct, Complete, and Confident/Assertive.
 - Keep responses very concise; avoid redundancy.
 - No large summaries or excessive apologies.
 - Use markdown with code blocks, e.g., `path/to/file.ts#L1-10`.
 
 ## HIGH: Code Style & Architecture
+
 ### Runtime & Tools
+
 - Use Bun: `bun x` (not `npx`), `bun run` (not `npm run`).
 - TypeScript ESM; prefer functional programming and pure functions.
 - Use `$` for single-line shell operations in scripts; move conditionals to TypeScript.
 - Never assume library/spec behavior—always search official docs first (via WebSearch or context7 MCP).
 
 ### Code Quality
+
 - Small, single-responsibility functions with descriptive names.
 - Keep files <150 lines; split large ones.
 - Organize related code in subdirectories.
@@ -43,6 +48,7 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - Avoid barrel files (index.ts files that re-export everything); import directly from specific modules.
 
 ### Template Usage (Eta.js)
+
 - **Whitespace Control**: Eta templates preserve all whitespace, including newlines. Use `<%- %>` to trim whitespace before/after tags for precise output control.
 - **Template Loading**: Load and compile templates once at module initialization; cache for performance.
 - **Section-Based Rendering**: For complex outputs, split into separate templates per section and join results in TypeScript to maintain control over separators.
@@ -50,12 +56,15 @@ Instructions for AI agents on the Fossiq codebase, organized by priority.
 - **Separation of Concerns**: Keep logic in TypeScript; use templates only for string formatting and iteration.
 
 ### Architecture
+
 - Monorepo with `packages/` workspaces.
 - Clear package boundaries; separate concerns.
 - Add features only when requested.
 
 ## HIGH: Debugging Context & Efficiency
+
 Provide upfront context to minimize exploration:
+
 - Exact file paths and relationships.
 - Git status/branch/SHAs.
 - Full error messages/stack traces.
@@ -66,6 +75,7 @@ Provide upfront context to minimize exploration:
 **Avoid forcing discovery** of repo structure, branches, tests, dependencies, labels, or build steps.
 
 **Example context:**
+
 ```
 Working on between operator in kql-lezer.
 - Files: packages/kql-lezer/src/kql.grammar (L261-263), packages/kql-to-duckdb/src/translator.ts
@@ -75,7 +85,9 @@ Working on between operator in kql-lezer.
 ```
 
 ## HIGH: Development Workflow
+
 ### GitHub Interactions
+
 - Use `gh` CLI exclusively.
 - **Mandatory disclaimer** on all issues/PRs/comments:
   - Get username: `gh api user -q .login`
@@ -87,23 +99,27 @@ Working on between operator in kql-lezer.
   - Forgetting this is a critical failure.
 
 ### GitHub Actions Debugging
+
 1. `gh run view <run-id>`
 2. `gh run view <run-id> --job=<job-id>`
 3. `gh run view --log-failed --job=<job-id>`
 4. Check workflow YAML and repo files as needed.
 
 ### Before Changes
+
 - Always read files first.
 - Research facts upfront.
 - Limit fix attempts (1-2), then defer to user.
 
 ### Testing
+
 - No testing during development; test only after completion if source changed.
 - Use `bun test`.
 
 ### Documentation (After Any Feature)
+
 - Mark checklists complete.
-Add discovered patterns/gotchas to guides.
+  Add discovered patterns/gotchas to guides.
 
 ## HIGH: MCP Servers
 
@@ -121,38 +137,51 @@ Available MCP (Model Context Protocol) servers for enhanced functionality:
 Always prefer MCP servers over manual searches when available, especially for documentation (context7), linting (ESLint), and task management (taskmanager).
 
 ## MEDIUM: Tool Usage
+
 - Limit file reads; pipe large outputs (`head`, `tail`, `rg`).
 - Never create standalone setup/explanation files or boilerplate unless asked.
 
 ## Package-Specific Guides
+
 ### @fossiq/kql-lezer
+
 - Purpose: Real-time KQL highlighting (no WASM).
-- Key files: `src/kql.grammar`, `src/parser.ts` (generated), `src/index.ts`.
-- Build: `lezer-generator src/kql.grammar -o src/parser.ts`.
-- Status: 77 tests passing.
+- Grammar sources: `src/grammar/` (TypeScript files defining tokens, rules, precedence)
+- Generated files (DO NOT EDIT): `src/kql.grammar`, `src/parser.ts`, `src/parser.terms.ts`
+- Grammar workflow:
+  1. Edit TypeScript sources in `src/grammar/` (tokens, rules, plugins)
+  2. Run `bun run build` - auto-generates grammar → parser → compiles TS
+  3. Update `src/parser/cst-to-ast/` if adding new constructs
+  4. Run `bun test` to verify
+- Generated files are gitignored - always regenerated on build
+- Status: 110 tests passing.
 
 ### @fossiq/kql-ast
+
 - Purpose: Shared AST types.
 - Status: Core complete.
 
 ### @fossiq/ui
+
 - Stack: SolidJS, Vite, PicoCSS, CodeMirror 6, DuckDB WASM, TanStack Table.
 - Gotchas: DuckDB files in `public/`; theme via DOM classes; grid truncation needs `min-width: 0`.
 - Status: Core complete (polishing).
 
 ## Monorepo Management
+
 - Packages: `@fossiq/kebab-case`; internal deps `workspace:*`.
 - Adding packages: Create dir, `package.json`, copy `tsconfig.json`, minimal `src/index.ts`.
 - Versioning: `bun run changeset`, then `version`/`release`.
 - Issues: Add `agent` label; use prefixes (`[ui]`, etc.); include disclaimer.
 
 ## Quick Reference
-| Task              | Command                              |
-|-------------------|--------------------------------------|
-| Install deps      | `bun install`                        |
-| Build all         | `bun run build`                      |
-| Lint              | `bun run lint`                       |
-| Lint fix          | `bun run lint:fix`                   |
-| Test package      | `cd packages/<pkg> && bun test`      |
-| Changeset         | `bun run changeset`                  |
-| UI dev            | `cd packages/ui && bun run dev`      |
+
+| Task         | Command                         |
+| ------------ | ------------------------------- |
+| Install deps | `bun install`                   |
+| Build all    | `bun run build`                 |
+| Lint         | `bun run lint`                  |
+| Lint fix     | `bun run lint:fix`              |
+| Test package | `cd packages/<pkg> && bun test` |
+| Changeset    | `bun run changeset`             |
+| UI dev       | `cd packages/ui && bun run dev` |

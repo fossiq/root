@@ -24,6 +24,11 @@ build/
 *.dylib
 .test-query.kql
 
+# Generated grammar files
+packages/kql-lezer/src/kql.grammar
+packages/kql-lezer/src/parser.ts
+packages/kql-lezer/src/parser.terms.ts
+
 # Turbo
 .turbo
 
