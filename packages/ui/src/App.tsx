@@ -12,8 +12,7 @@ const STORAGE_KEY_RESULTS = "fossiq-results";
 
 const AppContent: Component = () => {
   // Load persisted query and results from localStorage
-  const savedQuery =
-    localStorage.getItem(STORAGE_KEY_QUERY) || "";
+  const savedQuery = localStorage.getItem(STORAGE_KEY_QUERY) || "";
   const savedResults = (() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_RESULTS);
@@ -46,7 +45,6 @@ const AppContent: Component = () => {
       localStorage.setItem(STORAGE_KEY_RESULTS, serializable);
     }
   });
-
 
   const handleRun = async () => {
     const connection = conn();
@@ -116,8 +114,7 @@ const AppContent: Component = () => {
           </button>
         </div>
       }
-    >
-      <div class="panes-container">
+      editorPane={
         <div class="editor-pane">
           <div class="editor-container">
             <Editor
@@ -127,6 +124,8 @@ const AppContent: Component = () => {
             />
           </div>
         </div>
+      }
+      resultsPane={
         <div class="results-pane">
           <div class="pane-header">
             <h2>Results {results().length > 0 && `(${results().length})`}</h2>
@@ -144,8 +143,8 @@ const AppContent: Component = () => {
           </Show>
           <ResultsTable data={results()} />
         </div>
-      </div>
-    </Layout>
+      }
+    />
   );
 };
 

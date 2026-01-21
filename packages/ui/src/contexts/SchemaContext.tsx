@@ -11,6 +11,7 @@ import {
   getStoredFileHandles,
   removeFileHandle,
 } from "../utils/fileHandleStore";
+import { generateEmojiForFile } from "../utils/emojiGenerator";
 
 export interface Column {
   name: string;
@@ -21,6 +22,7 @@ export interface Table {
   name: string;
   columns: Column[];
   rowCount: number;
+  emoji: string;
 }
 
 interface SchemaContextType {
@@ -187,6 +189,7 @@ export function SchemaProvider(props: { children: JSX.Element }) {
       name: tableName,
       columns,
       rowCount,
+      emoji: generateEmojiForFile(tableName),
     };
 
     setTables((prev) => [...prev, newTable]);

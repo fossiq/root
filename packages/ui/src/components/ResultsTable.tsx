@@ -104,7 +104,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   return (
     <div
       ref={parentRef}
-      class="table-container"
+      class="table-container results-table-container"
       style={{
         height: "100%",
         overflow: "auto",
@@ -124,6 +124,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
             top: 0,
             "z-index": 1,
             background: "var(--bg-secondary)",
+            "box-shadow": "0 2px 4px rgba(0, 0, 0, 0.08)",
           }}
         >
           <For each={headerGroups()}>
@@ -140,7 +141,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                         cursor: header.column.getCanSort()
                           ? "pointer"
                           : "default",
-                        "border-bottom": "1px solid var(--border-color)",
+                        "border-bottom": "2px solid var(--border-color)",
                         "min-width": "100px",
                         "max-width": `${MAX_COLUMN_WIDTH}px`,
                         overflow: "hidden",
@@ -165,7 +166,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
         </thead>
         <tbody>
           {/* Spacer row for virtual scroll offset */}
-          {virtualItems().length > 0 && (
+          {virtualItems().length > 0 && (virtualItems()[0]?.start ?? 0) > 0 && (
             <tr>
               <td
                 style={{ height: `${virtualItems()[0]?.start ?? 0}px` }}
