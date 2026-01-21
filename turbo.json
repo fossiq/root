@@ -18,12 +18,12 @@
       "inputs": ["src/**", "package.json", "tsconfig.json", "turbo.json"]
     },
     "test": {
-      "dependsOn": [],
+      "dependsOn": ["build"],
       "outputs": [],
       "inputs": ["src/**", "tests/**", "turbo.json"]
     },
     "test:coverage": {
-      "dependsOn": [],
+      "dependsOn": ["build"],
       "outputs": ["coverage/**"],
       "inputs": ["src/**", "tests/**", "turbo.json"]
     },
