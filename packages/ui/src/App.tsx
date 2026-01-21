@@ -3,6 +3,7 @@ import "./styles/theme.css";
 import Layout from "./components/Layout";
 import Editor from "./components/Editor";
 import ResultsTable from "./components/ResultsTable";
+import Pagination from "./components/Pagination";
 import { SchemaProvider, useSchema } from "./contexts/SchemaContext";
 import { Component, createSignal, createEffect, Show } from "solid-js";
 import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
@@ -172,43 +173,13 @@ const AppContent: Component = () => {
                   "margin-left": "auto",
                 }}
               >
-                <button
-                  class="outline"
-                  onClick={() =>
-                    setPagination((p) => ({
-                      ...p,
-                      pageIndex: Math.max(0, p.pageIndex - 1),
-                    }))
+                <Pagination
+                  currentPage={pagination().pageIndex}
+                  totalPages={totalPages()}
+                  onPageChange={(page) =>
+                    setPagination((prev) => ({ ...prev, pageIndex: page }))
                   }
-                  disabled={pagination().pageIndex === 0}
-                  style={{
-                    padding: "0.25rem 0.5rem",
-                    "font-size": "0.8rem",
-                    height: "auto",
-                  }}
-                >
-                  Prev
-                </button>
-                <span style={{ "font-size": "0.8rem" }}>
-                  Page {pagination().pageIndex + 1} of {totalPages() || 1}
-                </span>
-                <button
-                  class="outline"
-                  onClick={() =>
-                    setPagination((p) => ({
-                      ...p,
-                      pageIndex: Math.min(totalPages() - 1, p.pageIndex + 1),
-                    }))
-                  }
-                  disabled={pagination().pageIndex >= totalPages() - 1}
-                  style={{
-                    padding: "0.25rem 0.5rem",
-                    "font-size": "0.8rem",
-                    height: "auto",
-                  }}
-                >
-                  Next
-                </button>
+                />
               </div>
             </Show>
           </div>
