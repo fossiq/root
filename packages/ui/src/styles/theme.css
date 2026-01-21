@@ -95,7 +95,7 @@ body {
 header.header {
   background: var(--header-bg);
   color: var(--header-text);
-  padding: 0 1.5rem;
+  padding: 0;
   height: 3.5rem;
   display: flex;
   align-items: center;
@@ -103,6 +103,27 @@ header.header {
   border-bottom: 1px solid var(--header-border);
   flex-shrink: 0;
   backdrop-filter: blur(10px);
+  /* Make the header draggable */
+  -webkit-app-region: drag;
+  app-region: drag;
+  position: relative;
+}
+
+.titlebar-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  
+  /* Handle Window Controls Overlay */
+  position: absolute;
+  left: env(titlebar-area-x, 0);
+  top: 0;
+  width: env(titlebar-area-width, 100%);
+  
+  /* Add padding to prevent content from touching the edges of the safe area */
+  padding: 0 1.5rem;
 }
 
 header.header h1 {
@@ -112,7 +133,7 @@ header.header h1 {
   letter-spacing: -0.5px;
 }
 
-header.header button {
+header.header .theme-toggle-btn {
   background: transparent;
   color: var(--header-text);
   border: none;
@@ -123,20 +144,49 @@ header.header button {
   justify-content: center;
   border-radius: 6px;
   transition: all 0.2s ease;
+  /* Make buttons clickable (non-draggable) */
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
-header.header button:hover {
+header.header .theme-toggle-btn:hover {
   background-color: rgba(0, 0, 0, 0.08);
   transform: scale(1.05);
 }
 
-header.header button:active {
+header.header .theme-toggle-btn:active {
   transform: scale(0.98);
 }
 
 @media (prefers-color-scheme: dark) {
-  header.header button:hover {
+  header.header .theme-toggle-btn:hover {
     background-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@media (display-mode: window-controls-overlay) {
+  header.header {
+    /* Use solid background to match the browser's theme-color for the controls area */
+    background: var(--bg-primary);
+    /* Just 1px extra to ensure the border-bottom is visible below the system-reserved area */
+    height: calc(env(titlebar-area-height, 3.5rem) + 1px);
+    min-height: calc(env(titlebar-area-height, 3.5rem) + 1px);
+    border-bottom: 1px solid var(--header-border); 
+  }
+
+  .titlebar-content {
+    /* Vertically center content in the system area */
+    height: env(titlebar-area-height, 100%);
+    display: flex;
+    align-items: center;
+  }
+  
+  header.header h1 {
+    font-size: 0.95rem;
+  }
+  
+  header.header .theme-toggle-btn {
+    padding: 0.25rem;
   }
 }
 

@@ -6,6 +6,8 @@ import { useTheme } from "../hooks/useTheme";
 interface LayoutProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- SolidJS children can be any renderable type
   children?: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  headerContent?: any;
 }
 
 const Layout: Component<LayoutProps> = (props) => {
@@ -18,7 +20,7 @@ const Layout: Component<LayoutProps> = (props) => {
 
   return (
     <div class="container" data-theme={theme()}>
-      <Header onThemeToggle={toggleTheme} />
+      <Header onThemeToggle={toggleTheme}>{props.headerContent}</Header>
       <div class="content">
         {props.children}
         <Sidebar onAddSource={handleAddSource} />

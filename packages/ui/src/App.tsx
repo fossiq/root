@@ -13,7 +13,7 @@ const STORAGE_KEY_RESULTS = "fossiq-results";
 const AppContent: Component = () => {
   // Load persisted query and results from localStorage
   const savedQuery =
-    localStorage.getItem(STORAGE_KEY_QUERY) || "Events | take 10";
+    localStorage.getItem(STORAGE_KEY_QUERY) || "";
   const savedResults = (() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_RESULTS);
@@ -79,32 +79,46 @@ const AppContent: Component = () => {
   };
 
   return (
-    <Layout>
+    <Layout
+      headerContent={
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <button
+            title="Run query (Ctrl+Shift+Enter)"
+            onClick={handleRun}
+            disabled={isRunning() || !conn()}
+            style={{
+              "-webkit-app-region": "no-drag",
+              "app-region": "no-drag",
+              padding: "0.25rem 0.75rem",
+              height: "1.75rem",
+              "font-size": "0.8rem",
+            }}
+          >
+            {isRunning() ? "Running..." : "▶ Run"}
+          </button>
+          <button
+            class="secondary"
+            title="Clear results"
+            onClick={() => {
+              setResults([]);
+              setError(null);
+              localStorage.removeItem(STORAGE_KEY_RESULTS);
+            }}
+            style={{
+              "-webkit-app-region": "no-drag",
+              "app-region": "no-drag",
+              padding: "0.25rem 0.75rem",
+              height: "1.75rem",
+              "font-size": "0.8rem",
+            }}
+          >
+            ✕ Clear
+          </button>
+        </div>
+      }
+    >
       <div class="panes-container">
         <div class="editor-pane">
-          <div class="pane-header">
-            <h2>Query</h2>
-            <div class="pane-actions">
-              <button
-                title="Run query (Ctrl+Shift+Enter)"
-                onClick={handleRun}
-                disabled={isRunning() || !conn()}
-              >
-                {isRunning() ? "Running..." : "▶ Run"}
-              </button>
-              <button
-                class="secondary"
-                title="Clear results"
-                onClick={() => {
-                  setResults([]);
-                  setError(null);
-                  localStorage.removeItem(STORAGE_KEY_RESULTS);
-                }}
-              >
-                ✕ Clear
-              </button>
-            </div>
-          </div>
           <div class="editor-container">
             <Editor
               initialValue={query()}

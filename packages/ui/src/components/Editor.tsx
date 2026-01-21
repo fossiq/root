@@ -1,6 +1,6 @@
 import { Component, onMount, createEffect } from "solid-js";
 import { basicSetup } from "codemirror";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, placeholder } from "@codemirror/view";
 import { Compartment } from "@codemirror/state";
 import { autocompletion } from "@codemirror/autocomplete";
 import { linter } from "@codemirror/lint";
@@ -37,10 +37,11 @@ const Editor: Component<EditorProps> = (props) => {
     };
 
     const view = new EditorView({
-      doc: props.initialValue || "Events | take 10",
+      doc: props.initialValue || "",
       extensions: [
         basicSetup,
         kql(),
+        placeholder("Enter your KQL query here (e.g. MyTable | take 10)"),
         linterCompartment.of(linter(createKqlLinter(tables()))),
         themeCompartment.of(theme() === "dark" ? kqlDarkTheme : kqlLightTheme),
         completionCompartment.of(

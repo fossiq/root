@@ -50,6 +50,15 @@ export function useTheme() {
 
     // Also set data attribute as fallback
     document.documentElement.setAttribute("data-theme", selectedTheme);
+
+    // Update PWA theme color to match header background
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute(
+        "content",
+        selectedTheme === "light" ? "#ffffff" : "#0f172a"
+      );
+    }
   };
 
   return { theme, toggleTheme };
