@@ -1,7 +1,9 @@
-import { Component, createSignal, JSX } from "solid-js";
+import { Component, createSignal, JSX, createEffect } from "solid-js";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { useTheme } from "../hooks/useTheme";
+
+const STORAGE_KEY_SIDEBAR = "fossiq-sidebar-collapsed";
 
 interface LayoutProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,9 +16,19 @@ interface LayoutProps {
 
 const Layout: Component<LayoutProps> = (props) => {
   const { theme, toggleTheme } = useTheme();
-  const [sidebarCollapsed, setSidebarCollapsed] = createSignal(false);
+
+  // Initialize from localStorage
+  const [sidebarCollapsed, setSidebarCollapsed] = createSignal(
+    localStorage.getItem(STORAGE_KEY_SIDEBAR) === "true"
+  );
+
   const [resultsHeight, setResultsHeight] = createSignal(300);
   const [isResizing, setIsResizing] = createSignal(false);
+
+  // Persist sidebar state
+  createEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SIDEBAR, String(sidebarCollapsed()));
+  });
 
   const handleAddSource = () => {
     console.log("Add source clicked");
