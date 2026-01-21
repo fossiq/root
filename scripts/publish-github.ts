@@ -60,18 +60,29 @@ async function publishToGitHub() {
       console.log(`✅ @fossiq/${pkg} published to GitHub successfully`);
     } catch (error) {
       // Check if error is due to version already existing
+      // Bun's ShellError has stderr property that contains npm's error output
       const errorStr = error?.toString() || "";
+      const stderr = (error as any)?.stderr?.toString() || "";
+      const combinedError = errorStr + " " + stderr;
+
       if (
-        errorStr.includes("EPUBLISHCONFLICT") ||
-        errorStr.includes("cannot publish over") ||
-        errorStr.includes("previously published versions")
+        combinedError.includes("EPUBLISHCONFLICT") ||
+        combinedError.includes("cannot publish over") ||
+        combinedError.includes("previously published versions") ||
+        combinedError.includes(
+          "You cannot publish over the previously published versions"
+        )
       ) {
         console.log(
           `⚠️  @fossiq/${pkg} version already exists in registry, skipping`
         );
         continue;
       }
-      console.error(`❌ Failed to publish @fossiq/${pkg} to GitHub:`, error);
+      console.error(`❌ Failed to publish @fossiq/${pkg} to GitHub:`);
+      console.error(`Error: ${errorStr}`);
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+      }
       process.exit(1);
     }
   }
