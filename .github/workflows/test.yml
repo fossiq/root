@@ -15,7 +15,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Run Turbo build target
-        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo --force
+        run: bun x turbo run build --cache-dir=node_modules/.cache/turbo
 
       - name: Run Turbo test target
         run: bun x turbo run test --cache-dir=node_modules/.cache/turbo
