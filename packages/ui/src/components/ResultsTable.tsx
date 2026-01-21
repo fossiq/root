@@ -1,4 +1,11 @@
-import { Component, For, createMemo, createSignal, Show } from "solid-js";
+import {
+  Component,
+  For,
+  createMemo,
+  createSignal,
+  Show,
+  createEffect,
+} from "solid-js";
 import {
   createSolidTable,
   getCoreRowModel,
@@ -6,16 +13,18 @@ import {
   ColumnDef,
   getSortedRowModel,
   SortingState,
-  getPaginationRowModel,
-  PaginationState,
-  OnChangeFn,
 } from "@tanstack/solid-table";
+import { createVirtualizer } from "@tanstack/solid-virtual";
+
+interface VisibleRange {
+  start: number;
+  end: number;
+}
 
 interface ResultsTableProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query results have dynamic schema based on user query
   data: any[];
-  pagination?: PaginationState;
-  onPaginationChange?: OnChangeFn<PaginationState>;
+  onRangeChange?: (range: VisibleRange) => void;
 }
 
 interface TooltipState {
@@ -57,20 +66,45 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
       get sorting() {
         return sorting();
       },
-      get pagination() {
-        return props.pagination;
-      },
     },
     onSortingChange: setSorting,
-    onPaginationChange: props.onPaginationChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   });
 
   // Use createMemo to reactively get rows and headers when data changes
   const rows = createMemo(() => table.getRowModel().rows);
   const headerGroups = createMemo(() => table.getHeaderGroups());
+
+  const rowVirtualizer = createVirtualizer({
+    get count() {
+      return rows().length;
+    },
+    getScrollElement: () => parentRef ?? null,
+    estimateSize: () => 35,
+    overscan: 20,
+  });
+
+  const virtualItems = () => rowVirtualizer.getVirtualItems();
+  const totalSize = () => rowVirtualizer.getTotalSize();
+
+  createEffect(() => {
+    const items = virtualItems();
+    if (props.onRangeChange) {
+      if (items.length > 0) {
+        // index is 0-based, so +1 for display
+        // We take the first and last item in the *rendered* list
+        // Note: virtualItems includes overscan, so this might be slightly wider than viewport
+        // but typically "showing X-Y" refers to what's loaded/rendered in these contexts.
+        // For strict viewport precision, we'd need more complex logic, but this is usually sufficient.
+        const start = items[0].index + 1;
+        const end = items[items.length - 1].index + 1;
+        props.onRangeChange({ start, end });
+      } else {
+        props.onRangeChange({ start: 0, end: 0 });
+      }
+    }
+  });
 
   const handleCellClick = (e: MouseEvent, value: unknown) => {
     const target = e.currentTarget as HTMLElement;
@@ -162,13 +196,23 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
           </For>
         </thead>
         <tbody>
-          <For each={rows()}>
-            {(row, index) => {
-              const isEven = index() % 2 === 0;
+          {/* Spacer row for virtual scroll offset */}
+          {virtualItems().length > 0 && (virtualItems()[0]?.start ?? 0) > 0 && (
+            <tr>
+              <td
+                style={{ height: `${virtualItems()[0]?.start ?? 0}px` }}
+                colspan={headerGroups()[0]?.headers.length || 1}
+              />
+            </tr>
+          )}
+          <For each={virtualItems()}>
+            {(virtualRow) => {
+              const row = rows()[virtualRow.index];
+              const isEven = virtualRow.index % 2 === 0;
               return (
                 <tr
                   style={{
-                    height: "35px",
+                    height: `${virtualRow.size}px`,
                     "background-color": isEven
                       ? "var(--bg-primary)"
                       : "var(--bg-secondary)",
@@ -202,6 +246,20 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
               );
             }}
           </For>
+          {/* Spacer row for remaining virtual scroll space */}
+          {virtualItems().length > 0 && (
+            <tr>
+              <td
+                style={{
+                  height: `${
+                    totalSize() -
+                    (virtualItems()[virtualItems().length - 1]?.end ?? 0)
+                  }px`,
+                }}
+                colspan={headerGroups()[0]?.headers.length || 1}
+              />
+            </tr>
+          )}
         </tbody>
       </table>
 
