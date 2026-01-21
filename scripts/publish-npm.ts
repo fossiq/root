@@ -40,6 +40,18 @@ async function publishToNpm() {
       }
       console.log(`✅ @fossiq/${pkg} published successfully`);
     } catch (error) {
+      // Check if error is due to version already existing
+      const errorStr = error?.toString() || "";
+      if (
+        errorStr.includes("EPUBLISHCONFLICT") ||
+        errorStr.includes("cannot publish over") ||
+        errorStr.includes("previously published versions")
+      ) {
+        console.log(
+          `⚠️  @fossiq/${pkg} version already exists in registry, skipping`
+        );
+        continue;
+      }
       console.error(`❌ Failed to publish @fossiq/${pkg}:`, error);
       process.exit(1);
     }

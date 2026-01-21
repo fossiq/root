@@ -46,6 +46,14 @@ async function createGitHubRelease() {
     releaseNotes = "See individual package CHANGELOGs for details.";
   }
 
+  // Configure git identity for CI environments
+  try {
+    await $`git config user.name "github-actions[bot]"`;
+    await $`git config user.email "github-actions[bot]@users.noreply.github.com"`;
+  } catch (error) {
+    console.warn("⚠️  Could not configure git identity (might already be set)");
+  }
+
   // Create git tag
   console.log("📌 Creating git tag...");
   try {
