@@ -59,18 +59,36 @@ function translateBinaryExpression(expr: BinaryExpression): string {
         ? `'%${(expr.right as StringLiteral).value}%'`
         : `'%' || ${translateExpression(expr.right)} || '%'`;
     return `${left} LIKE ${right}`;
+  } else if (operator === "!contains") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'%${(expr.right as StringLiteral).value}%'`
+        : `'%' || ${translateExpression(expr.right)} || '%'`;
+    return `${left} NOT LIKE ${right}`;
   } else if (operator === "startswith") {
     const right =
       expr.right.type === "StringLiteral"
         ? `'${(expr.right as StringLiteral).value}%'`
         : `${translateExpression(expr.right)} || '%'`;
     return `${left} LIKE ${right}`;
+  } else if (operator === "!startswith") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'${(expr.right as StringLiteral).value}%'`
+        : `${translateExpression(expr.right)} || '%'`;
+    return `${left} NOT LIKE ${right}`;
   } else if (operator === "endswith") {
     const right =
       expr.right.type === "StringLiteral"
         ? `'%${(expr.right as StringLiteral).value}'`
         : `'%' || ${translateExpression(expr.right)}`;
     return `${left} LIKE ${right}`;
+  } else if (operator === "!endswith") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'%${(expr.right as StringLiteral).value}'`
+        : `'%' || ${translateExpression(expr.right)}`;
+    return `${left} NOT LIKE ${right}`;
   } else if (operator === "has") {
     // 'has' in KQL means word boundary match - approximate with REGEXP
     const right =
@@ -78,6 +96,12 @@ function translateBinaryExpression(expr: BinaryExpression): string {
         ? `'\\b${(expr.right as StringLiteral).value}\\b'`
         : translateExpression(expr.right);
     return `${left} REGEXP ${right}`;
+  } else if (operator === "!has") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'\\b${(expr.right as StringLiteral).value}\\b'`
+        : translateExpression(expr.right);
+    return `${left} NOT REGEXP ${right}`;
   }
 
   // Default handling for other operators
