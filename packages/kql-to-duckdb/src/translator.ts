@@ -8,6 +8,9 @@ import type {
   Identifier,
   NumberLiteral,
   StringLiteral,
+  Literal,
+  ParenthesizedExpression,
+  UnaryExpression,
   ProjectOperator,
   ProjectColumn,
   ProjectAwayOperator,
@@ -140,7 +143,11 @@ function translateOperator(
     case "MvExpandOperator":
       return translateMvExpand(operator as MvExpandOperator, inputRelation);
     default:
-      throw new Error(`Unsupported operator: ${(operator as any).type}`);
+      throw new Error(
+        `Unsupported operator: ${
+          (operator as TabularOperator & { type: string }).type
+        }`
+      );
   }
 }
 
@@ -324,19 +331,25 @@ function translateExpression(expr: Expression): string {
     case "StringLiteral":
       return `'${(expr as StringLiteral).value}'`;
     case "Literal":
-      return translateLiteral(expr as any);
+      return translateLiteral(expr as Literal);
     case "ParenthesizedExpression":
-      return `(${translateExpression((expr as any).expression)})`;
-    case "UnaryExpression":
-      return `${(expr as any).operator} ${translateExpression(
-        (expr as any).operand
-      )}`;
+      return `(${translateExpression(
+        (expr as ParenthesizedExpression).expression
+      )})`;
+    case "UnaryExpression": {
+      const unaryExpr = expr as UnaryExpression;
+      return `${unaryExpr.operator} ${translateExpression(unaryExpr.operand)}`;
+    }
     default:
-      throw new Error(`Unsupported expression type: ${(expr as any).type}`);
+      throw new Error(
+        `Unsupported expression type: ${
+          (expr as Expression & { type: string }).type
+        }`
+      );
   }
 }
 
-function translateLiteral(expr: any): string {
+function translateLiteral(expr: Literal): string {
   if (expr.value === null) return "NULL";
   if (typeof expr.value === "boolean") return expr.value ? "TRUE" : "FALSE";
   if (typeof expr.value === "string") return `'${expr.value}'`;
