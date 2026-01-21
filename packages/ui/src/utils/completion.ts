@@ -193,18 +193,32 @@ export function createKqlCompletion(tables: Table[]) {
     const word = context.matchBefore(/\w*/);
     if (!word || (word.from === word.to && !context.explicit)) return null;
 
-    // Check if we are inside a summarize clause
+    // Check if we are inside a summarize clause or after = or (
     const tree = syntaxTree(context.state);
     let node = tree.resolveInner(context.pos, -1);
     let isInsideSummarize = false;
+    let isAfterOperator = false;
 
-    while (node) {
-      if (node.name === "summarizeClause") {
+    // Check for summarize context
+    let checkNode = node;
+    while (checkNode) {
+      if (
+        checkNode.name === "SummarizeClause" ||
+        checkNode.name === "summarizeClause"
+      ) {
         isInsideSummarize = true;
         break;
       }
-      // Access parent via 'parent' property which exists on SyntaxNode (NodeProp wrapper)
-      node = node.parent!;
+      checkNode = checkNode.parent!;
+    }
+
+    // Check if cursor is after = or ( which suggests function context
+    const textBefore = context.state.doc.sliceString(
+      Math.max(0, context.pos - 20),
+      context.pos
+    );
+    if (/[=(]\s*\w*$/.test(textBefore)) {
+      isAfterOperator = true;
     }
 
     const tableOptions = tables.map((t) => ({
@@ -214,8 +228,6 @@ export function createKqlCompletion(tables: Table[]) {
     }));
 
     // Flatten columns from all tables
-    // In a real implementation, we would check the context to see which table is active
-    // But for now, we'll just show all available columns
     const columnOptions = tables.flatMap((t) =>
       t.columns.map((c) => ({
         label: c.name,
@@ -231,7 +243,6 @@ export function createKqlCompletion(tables: Table[]) {
     );
 
     // Scan current document for alias definitions (e.g. alias=expr)
-    // This is a simple heuristic regex scan
     const docText = context.state.doc.toString();
     const aliasRegex = /\b([a-zA-Z0-9_]+)\s*=/g;
     const aliases = [];
@@ -259,7 +270,8 @@ export function createKqlCompletion(tables: Table[]) {
       ...uniqueAliases,
     ];
 
-    if (isInsideSummarize) {
+    // Show aggregation functions in summarize context or after operators
+    if (isInsideSummarize || isAfterOperator) {
       options.push(...aggregationFunctions);
     }
 

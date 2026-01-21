@@ -37,7 +37,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
       header: key,
       cell: (info) => {
         const value = info.getValue();
-        return typeof value === "bigint" ? value.toString() : value;
+        return typeof value === "bigint" ? String(value) : value;
       },
     }));
   });

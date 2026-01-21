@@ -46,15 +46,29 @@ export function mapLogicalOrComparisonExpression(
       };
     }
 
-    if (name === "ComparisonOp" || name === "StringOp") {
+    if (
+      name === "ComparisonOp" ||
+      name === "StringOp" ||
+      name === "GeneralComparisonOp"
+    ) {
       const leftNode = children[i - 1];
       const rightNode = children[i + 1];
       if (!leftNode || !rightNode) continue;
       const left = ctx.mapScalarExpression(leftNode);
       const right = ctx.mapScalarExpression(rightNode);
+
+      // For GeneralComparisonOp, extract the actual operator from the child node
+      let operator = slice(child);
+      if (name === "GeneralComparisonOp") {
+        const opChild = child.firstChild;
+        if (opChild) {
+          operator = slice(opChild);
+        }
+      }
+
       return {
         type: "BinaryExpression",
-        operator: slice(child),
+        operator,
         left,
         right,
         start: node.from,
@@ -83,7 +97,10 @@ export function mapLogicalOrComparisonExpression(
       }
 
       if (rangeParts.length < 2) {
-        return createErrorNode(node, "Between operator requires 2 range values");
+        return createErrorNode(
+          node,
+          "Between operator requires 2 range values"
+        );
       }
 
       return {

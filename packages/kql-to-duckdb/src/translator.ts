@@ -52,7 +52,9 @@ function translateQueryExpression(expr: Query["expression"]): string {
   } else if (expr.type === "UnionExpression") {
     // UnionExpression is a query expression type with tables
     const tables = expr.tables.map((t: TableSource | PipelineExpression) =>
-      t.type === "TableReference" ? `SELECT * FROM ${t.name}` : translatePipeline(t as PipelineExpression)
+      t.type === "TableReference"
+        ? `SELECT * FROM ${t.name}`
+        : translatePipeline(t as PipelineExpression)
     );
     return tables.join(" UNION ALL ");
   }
@@ -88,20 +90,35 @@ function getTableName(source: TableSource | PipelineExpression): string {
   throw new Error(`Unsupported table source: ${source.type}`);
 }
 
-function translateOperator(operator: TabularOperator, inputRelation: string): string {
+function translateOperator(
+  operator: TabularOperator,
+  inputRelation: string
+): string {
   switch (operator.type) {
     case "WhereOperator":
       return translateWhere(operator as WhereOperator, inputRelation);
     case "ProjectOperator":
       return translateProject(operator as ProjectOperator, inputRelation);
     case "ProjectAwayOperator":
-      return translateProjectAway(operator as ProjectAwayOperator, inputRelation);
+      return translateProjectAway(
+        operator as ProjectAwayOperator,
+        inputRelation
+      );
     case "ProjectKeepOperator":
-      return translateProjectKeep(operator as ProjectKeepOperator, inputRelation);
+      return translateProjectKeep(
+        operator as ProjectKeepOperator,
+        inputRelation
+      );
     case "ProjectRenameOperator":
-      return translateProjectRename(operator as ProjectRenameOperator, inputRelation);
+      return translateProjectRename(
+        operator as ProjectRenameOperator,
+        inputRelation
+      );
     case "ProjectReorderOperator":
-      return translateProjectReorder(operator as ProjectReorderOperator, inputRelation);
+      return translateProjectReorder(
+        operator as ProjectReorderOperator,
+        inputRelation
+      );
     case "ExtendOperator":
       return translateExtend(operator as ExtendOperator, inputRelation);
     case "SortOperator":
@@ -127,12 +144,18 @@ function translateOperator(operator: TabularOperator, inputRelation: string): st
   }
 }
 
-function translateWhere(operator: WhereOperator, inputRelation: string): string {
+function translateWhere(
+  operator: WhereOperator,
+  inputRelation: string
+): string {
   const condition = translateExpression(operator.expression);
   return `SELECT * FROM ${inputRelation} WHERE ${condition}`;
 }
 
-function translateProject(operator: ProjectOperator, inputRelation: string): string {
+function translateProject(
+  operator: ProjectOperator,
+  inputRelation: string
+): string {
   const columns = operator.columns.map(translateProjectColumn).join(", ");
   return `SELECT ${columns} FROM ${inputRelation}`;
 }
@@ -145,27 +168,47 @@ function translateProjectColumn(col: ProjectColumn): string {
   return expr;
 }
 
-function translateProjectAway(operator: ProjectAwayOperator, inputRelation: string): string {
+function translateProjectAway(
+  operator: ProjectAwayOperator,
+  inputRelation: string
+): string {
   const columnsToRemove = operator.columns.join(", ");
   return `SELECT * EXCLUDE (${columnsToRemove}) FROM ${inputRelation}`;
 }
 
-function translateProjectKeep(operator: ProjectKeepOperator, inputRelation: string): string {
+function translateProjectKeep(
+  operator: ProjectKeepOperator,
+  inputRelation: string
+): string {
   const columns = operator.columns.join(", ");
   return `SELECT ${columns} FROM ${inputRelation}`;
 }
 
-function translateProjectRename(operator: ProjectRenameOperator, inputRelation: string): string {
-  const renames = operator.renames.map((r: { newName: string; oldName: string }) => `${r.oldName} AS ${r.newName}`).join(", ");
+function translateProjectRename(
+  operator: ProjectRenameOperator,
+  inputRelation: string
+): string {
+  const renames = operator.renames
+    .map(
+      (r: { newName: string; oldName: string }) =>
+        `${r.oldName} AS ${r.newName}`
+    )
+    .join(", ");
   return `SELECT * REPLACE (${renames}) FROM ${inputRelation}`;
 }
 
-function translateProjectReorder(operator: ProjectReorderOperator, inputRelation: string): string {
+function translateProjectReorder(
+  operator: ProjectReorderOperator,
+  inputRelation: string
+): string {
   const columns = operator.columns.join(", ");
   return `SELECT ${columns}, * EXCLUDE (${columns}) FROM ${inputRelation}`;
 }
 
-function translateExtend(operator: ExtendOperator, inputRelation: string): string {
+function translateExtend(
+  operator: ExtendOperator,
+  inputRelation: string
+): string {
   const columns = operator.columns.map(translateProjectColumn).join(", ");
   return `SELECT *, ${columns} FROM ${inputRelation}`;
 }
@@ -182,7 +225,10 @@ function translateSortExpression(expr: SortExpression): string {
   return `${column} ${direction}${nullsClause}`;
 }
 
-function translateLimit(operator: LimitOperator, inputRelation: string): string {
+function translateLimit(
+  operator: LimitOperator,
+  inputRelation: string
+): string {
   const count = translateExpression(operator.count);
   return `SELECT * FROM ${inputRelation} LIMIT ${count}`;
 }
@@ -198,7 +244,10 @@ function translateTop(operator: TopOperator, inputRelation: string): string {
   return `SELECT * FROM ${inputRelation} ORDER BY ${orderBy} LIMIT ${count}`;
 }
 
-function translateDistinct(operator: DistinctOperator, inputRelation: string): string {
+function translateDistinct(
+  operator: DistinctOperator,
+  inputRelation: string
+): string {
   if (operator.columns.length === 0) {
     return `SELECT DISTINCT * FROM ${inputRelation}`;
   }
@@ -206,7 +255,10 @@ function translateDistinct(operator: DistinctOperator, inputRelation: string): s
   return `SELECT DISTINCT ${columns} FROM ${inputRelation}`;
 }
 
-function translateSummarize(operator: SummarizeOperator, inputRelation: string): string {
+function translateSummarize(
+  operator: SummarizeOperator,
+  inputRelation: string
+): string {
   const aggs = operator.aggregations.map(translateAggregation);
   const groups = operator.by.map(translateExpression);
   const selectList = [...groups, ...aggs].join(", ");
@@ -215,7 +267,10 @@ function translateSummarize(operator: SummarizeOperator, inputRelation: string):
 }
 
 function translateAggregation(agg: Aggregation): string {
-  const expr = agg.function.type === "FunctionCall" ? translateFunctionCall(agg.function) : "NULL";
+  const expr =
+    agg.function.type === "FunctionCall"
+      ? translateFunctionCall(agg.function)
+      : "NULL";
   if (agg.alias) {
     return `${expr} AS ${agg.alias}`;
   }
@@ -223,21 +278,35 @@ function translateAggregation(agg: Aggregation): string {
 }
 
 function translateJoin(operator: JoinOperator, inputRelation: string): string {
-  const rightTable = operator.rightTable.type === "TableReference" ? operator.rightTable.name : "(subquery)";
+  const rightTable =
+    operator.rightTable.type === "TableReference"
+      ? operator.rightTable.name
+      : "(subquery)";
   const kind = operator.kind || "inner";
   const joinType = kind.toUpperCase().replace("UNIQUE", " UNIQUE");
   const conditions = operator.on.map(translateExpression).join(" AND ");
   return `SELECT * FROM ${inputRelation} ${joinType} JOIN ${rightTable} ON ${conditions}`;
 }
 
-function translateUnion(operator: UnionOperator, inputRelation: string): string {
-  const tables = [inputRelation, ...operator.tables.map((t: TableSource | PipelineExpression) =>
-    t.type === "TableReference" ? t.name : `(${translatePipeline(t as PipelineExpression)})`
-  )];
+function translateUnion(
+  operator: UnionOperator,
+  inputRelation: string
+): string {
+  const tables = [
+    inputRelation,
+    ...operator.tables.map((t: TableSource | PipelineExpression) =>
+      t.type === "TableReference"
+        ? t.name
+        : `(${translatePipeline(t as PipelineExpression)})`
+    ),
+  ];
   return tables.join(" UNION ALL ");
 }
 
-function translateMvExpand(operator: MvExpandOperator, inputRelation: string): string {
+function translateMvExpand(
+  operator: MvExpandOperator,
+  inputRelation: string
+): string {
   const column = operator.columns[0];
   return `SELECT * REPLACE (UNNEST(${column}) AS ${column}) FROM ${inputRelation}`;
 }
@@ -259,7 +328,9 @@ function translateExpression(expr: Expression): string {
     case "ParenthesizedExpression":
       return `(${translateExpression((expr as any).expression)})`;
     case "UnaryExpression":
-      return `${(expr as any).operator} ${translateExpression((expr as any).operand)}`;
+      return `${(expr as any).operator} ${translateExpression(
+        (expr as any).operand
+      )}`;
     default:
       throw new Error(`Unsupported expression type: ${(expr as any).type}`);
   }
@@ -274,23 +345,50 @@ function translateLiteral(expr: any): string {
 
 function translateBinaryExpression(expr: BinaryExpression): string {
   const left = translateExpression(expr.left);
+  const operator = expr.operator;
+
+  // Handle string operators that need pattern modification
+  if (operator === "contains") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'%${(expr.right as StringLiteral).value}%'`
+        : `'%' || ${translateExpression(expr.right)} || '%'`;
+    return `${left} LIKE ${right}`;
+  } else if (operator === "startswith") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'${(expr.right as StringLiteral).value}%'`
+        : `${translateExpression(expr.right)} || '%'`;
+    return `${left} LIKE ${right}`;
+  } else if (operator === "endswith") {
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'%${(expr.right as StringLiteral).value}'`
+        : `'%' || ${translateExpression(expr.right)}`;
+    return `${left} LIKE ${right}`;
+  } else if (operator === "has") {
+    // 'has' in KQL means word boundary match - approximate with REGEXP
+    const right =
+      expr.right.type === "StringLiteral"
+        ? `'\\b${(expr.right as StringLiteral).value}\\b'`
+        : translateExpression(expr.right);
+    return `${left} REGEXP ${right}`;
+  }
+
+  // Default handling for other operators
   const right = translateExpression(expr.right);
-  const operator = translateOperatorToken(expr.operator);
-  return `${left} ${operator} ${right}`;
+  const sqlOperator = translateOperatorToken(operator);
+  return `${left} ${sqlOperator} ${right}`;
 }
 
 function translateOperatorToken(op: string): string {
   const opMap: Record<string, string> = {
     "==": "=",
-    "and": "AND",
-    "or": "OR",
-    "not": "NOT",
-    "contains": "LIKE",
-    "startswith": "LIKE",
-    "endswith": "LIKE",
-    "has": "LIKE",
-    "in": "IN",
-    "between": "BETWEEN",
+    and: "AND",
+    or: "OR",
+    not: "NOT",
+    in: "IN",
+    between: "BETWEEN",
   };
   return opMap[op] || op;
 }
