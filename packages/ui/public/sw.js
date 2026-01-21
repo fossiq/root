@@ -48,6 +48,11 @@ self.addEventListener("fetch", (event) => {
             return response;
           }
 
+          // Only cache http and https requests
+          if (!event.request.url.startsWith("http")) {
+            return response;
+          }
+
           // Clone the response
           const responseToCache = response.clone();
 

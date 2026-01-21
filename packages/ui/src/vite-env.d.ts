@@ -1,3 +1,5 @@
+import "solid-js";
+
 /// <reference types="vite/client" />
 
 declare module "*?worker" {
@@ -13,15 +15,26 @@ declare module "*?url" {
 }
 
 // File System Access API extensions (not yet in standard TypeScript types)
-interface FileSystemHandlePermissionDescriptor {
-  mode?: "read" | "readwrite";
+declare global {
+  interface FileSystemHandlePermissionDescriptor {
+    mode?: "read" | "readwrite";
+  }
+
+  interface FileSystemFileHandle {
+    queryPermission(
+      descriptor?: FileSystemHandlePermissionDescriptor
+    ): Promise<PermissionState>;
+    requestPermission(
+      descriptor?: FileSystemHandlePermissionDescriptor
+    ): Promise<PermissionState>;
+  }
 }
 
-interface FileSystemFileHandle {
-  queryPermission(
-    descriptor?: FileSystemHandlePermissionDescriptor
-  ): Promise<PermissionState>;
-  requestPermission(
-    descriptor?: FileSystemHandlePermissionDescriptor
-  ): Promise<PermissionState>;
+declare module "solid-js" {
+  namespace JSX {
+    interface CSSProperties {
+      "app-region"?: "drag" | "no-drag";
+      "-webkit-app-region"?: "drag" | "no-drag";
+    }
+  }
 }
