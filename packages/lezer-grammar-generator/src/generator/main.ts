@@ -10,7 +10,7 @@ import { getStartRule, getCommentToken } from "./utils.js";
 import { mergePlugins, orderPlugins, rulesToAstTypes } from "./plugins.js";
 
 export function generateGrammar(
-  config: GrammarGeneratorConfig,
+  config: GrammarGeneratorConfig
 ): GeneratedGrammar {
   const tokens = config.tokens || [];
   const errors = validateConfig(config);
@@ -98,7 +98,12 @@ export function generateGrammar(
     }
   }
 
-  let precedenceData: any = { precedenceRules: [] };
+  let precedenceData: {
+    precedenceRules: typeof config.precedence | typeof precedenceRules;
+    hasConfigPrecedence?: boolean;
+    configPrecedence?: string;
+    groupedPrecedence?: string[];
+  } = { precedenceRules: [] };
   if (config.precedence && config.precedence.length > 0) {
     precedenceData = {
       precedenceRules: config.precedence,
@@ -126,7 +131,7 @@ export function generateGrammar(
 
   const precedenceSection = templateManager.render(
     "precedence-section",
-    precedenceData,
+    precedenceData
   );
 
   // Prepare macros data
@@ -163,7 +168,7 @@ export function generateGrammar(
 }
 
 export function generateGrammarFromPlugins(
-  config: PluginGrammarConfig,
+  config: PluginGrammarConfig
 ): GeneratedGrammar {
   const pluginErrors: ValidationIssue[] = [];
   const orderedPlugins = orderPlugins(config.plugins, pluginErrors);

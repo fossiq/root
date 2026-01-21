@@ -3,32 +3,11 @@ import type {
   PipelineExpression,
   TableSource,
   Expression,
-  BinaryExpression,
-  FunctionCall,
-  Identifier,
-  NumberLiteral,
-  StringLiteral,
-  ProjectOperator,
-  ProjectColumn,
-  ProjectAwayOperator,
-  ProjectKeepOperator,
-  ProjectRenameOperator,
-  ProjectReorderOperator,
-  WhereOperator,
-  ExtendOperator,
-  SortOperator,
-  SortExpression,
-  LimitOperator,
-  TakeOperator,
-  TopOperator,
-  DistinctOperator,
-  SummarizeOperator,
-  Aggregation,
-  JoinOperator,
-  UnionOperator,
-  MvExpandOperator,
-  TabularOperator,
 } from "@fossiq/kql-ast";
+import {
+  translateOperator,
+  setTranslatePipelineRef,
+} from "./translator/operators";
 
 // Store let statement values for variable substitution
 const variableMap = new Map<string, Expression>();
@@ -42,6 +21,9 @@ export function translate(ast: Query): string {
     variableMap.set(letStmt.name, letStmt.value);
   }
 
+  // Set up circular dependency for translatePipeline
+  setTranslatePipelineRef(translatePipeline);
+
   // Translate the query expression
   return translateQueryExpression(ast.expression);
 }
@@ -52,7 +34,9 @@ function translateQueryExpression(expr: Query["expression"]): string {
   } else if (expr.type === "UnionExpression") {
     // UnionExpression is a query expression type with tables
     const tables = expr.tables.map((t: TableSource | PipelineExpression) =>
-      t.type === "TableReference" ? `SELECT * FROM ${t.name}` : translatePipeline(t as PipelineExpression)
+      t.type === "TableReference"
+        ? `SELECT * FROM ${t.name}`
+        : translatePipeline(t as PipelineExpression)
     );
     return tables.join(" UNION ALL ");
   }
@@ -86,227 +70,4 @@ function getTableName(source: TableSource | PipelineExpression): string {
     return `(${translatePipeline(source)})`;
   }
   throw new Error(`Unsupported table source: ${source.type}`);
-}
-
-function translateOperator(operator: TabularOperator, inputRelation: string): string {
-  switch (operator.type) {
-    case "WhereOperator":
-      return translateWhere(operator as WhereOperator, inputRelation);
-    case "ProjectOperator":
-      return translateProject(operator as ProjectOperator, inputRelation);
-    case "ProjectAwayOperator":
-      return translateProjectAway(operator as ProjectAwayOperator, inputRelation);
-    case "ProjectKeepOperator":
-      return translateProjectKeep(operator as ProjectKeepOperator, inputRelation);
-    case "ProjectRenameOperator":
-      return translateProjectRename(operator as ProjectRenameOperator, inputRelation);
-    case "ProjectReorderOperator":
-      return translateProjectReorder(operator as ProjectReorderOperator, inputRelation);
-    case "ExtendOperator":
-      return translateExtend(operator as ExtendOperator, inputRelation);
-    case "SortOperator":
-      return translateSort(operator as SortOperator, inputRelation);
-    case "LimitOperator":
-      return translateLimit(operator as LimitOperator, inputRelation);
-    case "TakeOperator":
-      return translateTake(operator as TakeOperator, inputRelation);
-    case "TopOperator":
-      return translateTop(operator as TopOperator, inputRelation);
-    case "DistinctOperator":
-      return translateDistinct(operator as DistinctOperator, inputRelation);
-    case "SummarizeOperator":
-      return translateSummarize(operator as SummarizeOperator, inputRelation);
-    case "JoinOperator":
-      return translateJoin(operator as JoinOperator, inputRelation);
-    case "UnionOperator":
-      return translateUnion(operator as UnionOperator, inputRelation);
-    case "MvExpandOperator":
-      return translateMvExpand(operator as MvExpandOperator, inputRelation);
-    default:
-      throw new Error(`Unsupported operator: ${(operator as any).type}`);
-  }
-}
-
-function translateWhere(operator: WhereOperator, inputRelation: string): string {
-  const condition = translateExpression(operator.expression);
-  return `SELECT * FROM ${inputRelation} WHERE ${condition}`;
-}
-
-function translateProject(operator: ProjectOperator, inputRelation: string): string {
-  const columns = operator.columns.map(translateProjectColumn).join(", ");
-  return `SELECT ${columns} FROM ${inputRelation}`;
-}
-
-function translateProjectColumn(col: ProjectColumn): string {
-  const expr = translateExpression(col.expression);
-  if (col.alias) {
-    return `${expr} AS ${col.alias}`;
-  }
-  return expr;
-}
-
-function translateProjectAway(operator: ProjectAwayOperator, inputRelation: string): string {
-  const columnsToRemove = operator.columns.join(", ");
-  return `SELECT * EXCLUDE (${columnsToRemove}) FROM ${inputRelation}`;
-}
-
-function translateProjectKeep(operator: ProjectKeepOperator, inputRelation: string): string {
-  const columns = operator.columns.join(", ");
-  return `SELECT ${columns} FROM ${inputRelation}`;
-}
-
-function translateProjectRename(operator: ProjectRenameOperator, inputRelation: string): string {
-  const renames = operator.renames.map((r: { newName: string; oldName: string }) => `${r.oldName} AS ${r.newName}`).join(", ");
-  return `SELECT * REPLACE (${renames}) FROM ${inputRelation}`;
-}
-
-function translateProjectReorder(operator: ProjectReorderOperator, inputRelation: string): string {
-  const columns = operator.columns.join(", ");
-  return `SELECT ${columns}, * EXCLUDE (${columns}) FROM ${inputRelation}`;
-}
-
-function translateExtend(operator: ExtendOperator, inputRelation: string): string {
-  const columns = operator.columns.map(translateProjectColumn).join(", ");
-  return `SELECT *, ${columns} FROM ${inputRelation}`;
-}
-
-function translateSort(operator: SortOperator, inputRelation: string): string {
-  const orderBy = operator.expressions.map(translateSortExpression).join(", ");
-  return `SELECT * FROM ${inputRelation} ORDER BY ${orderBy}`;
-}
-
-function translateSortExpression(expr: SortExpression): string {
-  const column = translateExpression(expr.expression);
-  const direction = expr.direction ? expr.direction.toUpperCase() : "ASC";
-  const nullsClause = expr.nulls ? ` NULLS ${expr.nulls.toUpperCase()}` : "";
-  return `${column} ${direction}${nullsClause}`;
-}
-
-function translateLimit(operator: LimitOperator, inputRelation: string): string {
-  const count = translateExpression(operator.count);
-  return `SELECT * FROM ${inputRelation} LIMIT ${count}`;
-}
-
-function translateTake(operator: TakeOperator, inputRelation: string): string {
-  const count = translateExpression(operator.count);
-  return `SELECT * FROM ${inputRelation} LIMIT ${count}`;
-}
-
-function translateTop(operator: TopOperator, inputRelation: string): string {
-  const count = translateExpression(operator.count);
-  const orderBy = operator.by.map(translateSortExpression).join(", ");
-  return `SELECT * FROM ${inputRelation} ORDER BY ${orderBy} LIMIT ${count}`;
-}
-
-function translateDistinct(operator: DistinctOperator, inputRelation: string): string {
-  if (operator.columns.length === 0) {
-    return `SELECT DISTINCT * FROM ${inputRelation}`;
-  }
-  const columns = operator.columns.join(", ");
-  return `SELECT DISTINCT ${columns} FROM ${inputRelation}`;
-}
-
-function translateSummarize(operator: SummarizeOperator, inputRelation: string): string {
-  const aggs = operator.aggregations.map(translateAggregation);
-  const groups = operator.by.map(translateExpression);
-  const selectList = [...groups, ...aggs].join(", ");
-  const groupBy = groups.length > 0 ? ` GROUP BY ${groups.join(", ")}` : "";
-  return `SELECT ${selectList} FROM ${inputRelation}${groupBy}`;
-}
-
-function translateAggregation(agg: Aggregation): string {
-  const expr = agg.function.type === "FunctionCall" ? translateFunctionCall(agg.function) : "NULL";
-  if (agg.alias) {
-    return `${expr} AS ${agg.alias}`;
-  }
-  return expr;
-}
-
-function translateJoin(operator: JoinOperator, inputRelation: string): string {
-  const rightTable = operator.rightTable.type === "TableReference" ? operator.rightTable.name : "(subquery)";
-  const kind = operator.kind || "inner";
-  const joinType = kind.toUpperCase().replace("UNIQUE", " UNIQUE");
-  const conditions = operator.on.map(translateExpression).join(" AND ");
-  return `SELECT * FROM ${inputRelation} ${joinType} JOIN ${rightTable} ON ${conditions}`;
-}
-
-function translateUnion(operator: UnionOperator, inputRelation: string): string {
-  const tables = [inputRelation, ...operator.tables.map((t: TableSource | PipelineExpression) =>
-    t.type === "TableReference" ? t.name : `(${translatePipeline(t as PipelineExpression)})`
-  )];
-  return tables.join(" UNION ALL ");
-}
-
-function translateMvExpand(operator: MvExpandOperator, inputRelation: string): string {
-  const column = operator.columns[0];
-  return `SELECT * REPLACE (UNNEST(${column}) AS ${column}) FROM ${inputRelation}`;
-}
-
-function translateExpression(expr: Expression): string {
-  switch (expr.type) {
-    case "BinaryExpression":
-      return translateBinaryExpression(expr as BinaryExpression);
-    case "FunctionCall":
-      return translateFunctionCall(expr as FunctionCall);
-    case "Identifier":
-      return (expr as Identifier).name;
-    case "NumberLiteral":
-      return String((expr as NumberLiteral).value);
-    case "StringLiteral":
-      return `'${(expr as StringLiteral).value}'`;
-    case "Literal":
-      return translateLiteral(expr as any);
-    case "ParenthesizedExpression":
-      return `(${translateExpression((expr as any).expression)})`;
-    case "UnaryExpression":
-      return `${(expr as any).operator} ${translateExpression((expr as any).operand)}`;
-    default:
-      throw new Error(`Unsupported expression type: ${(expr as any).type}`);
-  }
-}
-
-function translateLiteral(expr: any): string {
-  if (expr.value === null) return "NULL";
-  if (typeof expr.value === "boolean") return expr.value ? "TRUE" : "FALSE";
-  if (typeof expr.value === "string") return `'${expr.value}'`;
-  return String(expr.value);
-}
-
-function translateBinaryExpression(expr: BinaryExpression): string {
-  const left = translateExpression(expr.left);
-  const right = translateExpression(expr.right);
-  const operator = translateOperatorToken(expr.operator);
-  return `${left} ${operator} ${right}`;
-}
-
-function translateOperatorToken(op: string): string {
-  const opMap: Record<string, string> = {
-    "==": "=",
-    "and": "AND",
-    "or": "OR",
-    "not": "NOT",
-    "contains": "LIKE",
-    "startswith": "LIKE",
-    "endswith": "LIKE",
-    "has": "LIKE",
-    "in": "IN",
-    "between": "BETWEEN",
-  };
-  return opMap[op] || op;
-}
-
-function translateFunctionCall(func: FunctionCall): string {
-  const name = func.name.toUpperCase();
-  const args = func.args.map(translateExpression).join(", ");
-
-  // Handle special functions
-  if (name === "AGO") {
-    return `NOW() - INTERVAL ${args}`;
-  } else if (name === "NOW") {
-    return "NOW()";
-  } else if (name === "COUNT") {
-    return args ? `COUNT(${args})` : "COUNT(*)";
-  }
-
-  return `${name}(${args})`;
 }
