@@ -49,4 +49,28 @@ describe("String operators", () => {
       "name NOT REGEXP '\\bword\\b'"
     );
   });
+
+  test("in", () => {
+    expect(kqlToDuckDB("Users | where age in (18, 21, 25)")).toContain(
+      "age IN (18, 21, 25)"
+    );
+  });
+
+  test("!in", () => {
+    expect(kqlToDuckDB("Users | where age !in (18, 21, 25)")).toContain(
+      "age NOT IN (18, 21, 25)"
+    );
+  });
+
+  test("in with strings", () => {
+    expect(kqlToDuckDB('Users | where name in ("Alice", "Bob")')).toContain(
+      "name IN ('Alice', 'Bob')"
+    );
+  });
+
+  test("!in with strings", () => {
+    expect(kqlToDuckDB('Users | where name !in ("Alice", "Bob")')).toContain(
+      "name NOT IN ('Alice', 'Bob')"
+    );
+  });
 });

@@ -60,6 +60,7 @@ AggregationItem { Identifier Equals FunctionCall | FunctionCall }
 AggregationList { AggregationItem (Comma AggregationItem)* }
 AndExpression { AndExpression @specialize[@name=and]<Identifier, "and"> NotExpression | NotExpression }
 ArgumentList { Expression (Comma Expression)* }
+ArrayLiteral { OpenParen Expression Comma Expression (Comma Expression)* CloseParen | OpenParen Expression Comma CloseParen | OpenParen CloseParen }
 AsClause { @specialize[@name=as]<Identifier, "as"> AsHint? Identifier }
 AsHint { @specialize[@name=hint]<Identifier, "hint"> Dot @specialize[@name=materialized]<Identifier, "materialized"> Equals @specialize[@name=true]<Identifier, "true"> | @specialize[@name=false]<Identifier, "false"> }
 BetweenOp { @specialize[@name=between]<Identifier, "between"> | NotBetween }
@@ -97,7 +98,7 @@ ParseClause { @specialize[@name=parse]<Identifier, "parse"> ParseKind? Expressio
 ParseKind { @specialize[@name=kind]<Identifier, "kind"> Equals @specialize[@name=simple]<Identifier, "simple"> | @specialize[@name=kind]<Identifier, "kind"> Equals @specialize[@name=regex]<Identifier, "regex"> | @specialize[@name=kind]<Identifier, "kind"> Equals @specialize[@name=relaxed]<Identifier, "relaxed"> }
 PartitionClause { @specialize[@name=partition]<Identifier, "partition"> @specialize[@name=by]<Identifier, "by"> Identifier OpenParen PipelineExpression CloseParen }
 PipelineExpression { TableExpression (Pipe TabularOperator)* }
-PrimaryExpression { OpenParen Expression CloseParen | FunctionCall | Identifier | BracketedIdentifier | Number | String | @specialize[@name=true]<Identifier, "true"> | @specialize[@name=false]<Identifier, "false"> | @specialize[@name=null]<Identifier, "null"> }
+PrimaryExpression { ArrayLiteral | OpenParen Expression CloseParen | FunctionCall | Identifier | BracketedIdentifier | Number | String | @specialize[@name=true]<Identifier, "true"> | @specialize[@name=false]<Identifier, "false"> | @specialize[@name=null]<Identifier, "null"> }
 PrintClause { @specialize[@name=print]<Identifier, "print"> ProjectExpressionList }
 ProjectAwayClause { ProjectAway IdentifierList }
 ProjectClause { @specialize[@name=project]<Identifier, "project"> ProjectExpressionList }

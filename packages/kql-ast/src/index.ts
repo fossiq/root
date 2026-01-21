@@ -9,6 +9,7 @@ export type {
   StringLiteral,
   UnaryExpression,
   ParenthesizedExpression,
+  ArrayLiteral,
   Expression,
 } from "./expressions";
 export type {
