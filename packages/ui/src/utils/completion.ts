@@ -195,7 +195,7 @@ export function createKqlCompletion(tables: Table[]) {
 
     // Check if we are inside a summarize clause or after = or (
     const tree = syntaxTree(context.state);
-    let node = tree.resolveInner(context.pos, -1);
+    const node = tree.resolveInner(context.pos, -1);
     let isInsideSummarize = false;
     let isAfterOperator = false;
 
