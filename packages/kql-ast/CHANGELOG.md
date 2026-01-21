@@ -1,5 +1,11 @@
 # @fossiq/kql-ast
 
+## 2.0.1
+
+### Patch Changes
+
+- Version bump for monorepo consistency (no changes to this package)
+
 ## 2.0.0
 
 ### Minor Changes

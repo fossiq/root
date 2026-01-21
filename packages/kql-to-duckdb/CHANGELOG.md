@@ -1,5 +1,20 @@
 # @fossiq/kql-to-duckdb
 
+## 2.0.1
+
+### Patch Changes
+
+- 973d950: Refactor translator into modular structure
+
+  - Split monolithic `translator.ts` into focused modules under `src/translator/`
+  - Separated expression handling (`expressions/index.ts`)
+  - Separated operator modules: `aggregate.ts`, `join-union.ts`, `project.ts`, `sort-limit.ts`, `where.ts`
+  - Improved code maintainability and organization
+
+- Updated dependencies
+  - @fossiq/kql-lezer@2.0.1
+  - @fossiq/kql-ast@2.0.1
+
 ## 2.0.0
 
 ### Major Changes
