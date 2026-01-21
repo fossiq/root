@@ -15,10 +15,12 @@ export function isValidIdentifier(name: string): boolean {
  * Type guard to check if an object is an ASTTypeDefinition
  */
 export function isASTTypeDefinition(obj: unknown): obj is ASTTypeDefinition {
+  if (typeof obj !== "object" || obj === null) {
+    return false;
+  }
+  const record = obj as Record<string, unknown>;
   return (
-    typeof obj === "object" &&
-    obj !== null &&
-    typeof (obj as any).grammarName === "string" &&
-    typeof (obj as any).grammarFields === "string"
+    typeof record.grammarName === "string" &&
+    typeof record.grammarFields === "string"
   );
 }
