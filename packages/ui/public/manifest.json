@@ -12,13 +12,13 @@
   "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230c3b66' width='192' height='192'/><text x='96' y='120' font-size='80' font-weight='bold' text-anchor='middle' fill='white' font-family='system-ui'>F</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192' fill='none' stroke-linecap='round' stroke-linejoin='round'><path d='M64 64L32 96l32 32M128 64l32 32-32 32M96 48v96' stroke='white' stroke-width='24' /><path d='M64 64L32 96l32 32M128 64l32 32-32 32M96 48v96' stroke='%230c3b66' stroke-width='12' /></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%230c3b66' width='512' height='512'/><text x='256' y='380' font-size='300' font-weight='bold' text-anchor='middle' fill='white' font-family='system-ui'>F</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='none' stroke-linecap='round' stroke-linejoin='round'><path d='M170 170L85 256l85 86M342 170l85 86-85 86M256 128v256' stroke='white' stroke-width='64' /><path d='M170 170L85 256l85 86M342 170l85 86-85 86M256 128v256' stroke='%230c3b66' stroke-width='32' /></svg>",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"

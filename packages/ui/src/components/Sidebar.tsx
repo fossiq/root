@@ -4,9 +4,11 @@ import { useSchema } from "../contexts/SchemaContext";
 
 interface SidebarProps {
   onAddSource?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-const Sidebar: Component<SidebarProps> = (_props) => {
+const Sidebar: Component<SidebarProps> = (props) => {
   const {
     tables,
     addTable,
@@ -54,77 +56,111 @@ const Sidebar: Component<SidebarProps> = (_props) => {
   };
 
   return (
-    <aside class="sidebar" role="navigation" aria-label="Sources panel">
-      <button
-        onClick={handleFileSelect}
-        title="Add data source"
-        aria-label="Add data source"
-        class="add-source-btn"
-        disabled={loading()}
-      >
-        <Show when={!loading()} fallback={<span>Loading...</span>}>
-          <Icon name="plus-circle" size={20} />
-          <span>Add Data</span>
-        </Show>
-      </button>
-
-      <Show when={pendingRestoreCount() > 0}>
-        <button
-          onClick={restorePendingFiles}
-          class="restore-btn"
-          disabled={loading()}
-        >
-          Restore {pendingRestoreCount()} file
-          {pendingRestoreCount() > 1 ? "s" : ""}
-        </button>
-      </Show>
-
-      <div class="tables-list">
-        <Show when={tables().length === 0}>
-          <div class="empty-state">
-            <p>No data loaded</p>
-            <small>Click "Add Data" to load a CSV file</small>
+    <aside
+      class="sidebar"
+      classList={{ collapsed: props.collapsed }}
+      role="navigation"
+      aria-label="Sources panel"
+    >
+      <div class="sidebar-inner">
+        <div class="sidebar-header">
+          <div class="sidebar-header-col-1">
+            <button
+              onClick={props.onToggleCollapse}
+              title={props.collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              aria-label={
+                props.collapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+              class="collapse-toggle-btn"
+            >
+              <Icon
+                name={
+                  props.collapsed ? "sidebar-collapsed" : "sidebar-expanded"
+                }
+                size={20}
+              />
+            </button>
           </div>
+          <div class="sidebar-header-col-2">
+            <button
+              onClick={handleFileSelect}
+              title="Add data source"
+              aria-label="Add data source"
+              class="add-source-btn"
+              disabled={loading()}
+            >
+              <Show when={!loading()} fallback={<span>Loading...</span>}>
+                <Icon name="plus-circle" size={20} />
+                <span>Add Data</span>
+              </Show>
+            </button>
+          </div>
+        </div>
+
+        <Show when={pendingRestoreCount() > 0}>
+          <button
+            onClick={restorePendingFiles}
+            class="restore-btn"
+            disabled={loading()}
+          >
+            Restore {pendingRestoreCount()} file
+            {pendingRestoreCount() > 1 ? "s" : ""}
+          </button>
         </Show>
-        <For each={tables()}>
-          {(table) => (
-            <div class="table-item">
-              <div class="table-header">
-                <Icon name="table" size={16} class="type-icon" />
-                <span class="table-name" title={table.name}>
-                  {table.name}
-                </span>
-                <span class="row-count">({table.rowCount})</span>
-                <button
-                  class="remove-table-btn"
-                  onClick={() => removeTable(table.name)}
-                  title={`Remove ${table.name}`}
-                  disabled={loading()}
-                >
-                  <Icon name="x-circle" size={16} />
-                </button>
-              </div>
-              <div class="columns-list">
-                <For each={table.columns}>
-                  {(column, index) => {
-                    const isLast = index() === table.columns.length - 1;
-                    return (
-                      <div
-                        class="column-item"
-                        title={`${column.name} (${column.type})`}
-                      >
-                        <span class="tree-glyph">{isLast ? "└─" : "├─"}</span>
-                        <Icon name="column" size={12} class="column-icon" />
-                        <span class="column-name">{column.name}</span>
-                        <span class="column-type">{column.type}</span>
-                      </div>
-                    );
-                  }}
-                </For>
-              </div>
+
+        <div class="tables-list">
+          <Show when={tables().length === 0}>
+            <div class="empty-state">
+              <p>No data loaded</p>
+              <small>Click "Add Data" to load a CSV file</small>
             </div>
-          )}
-        </For>
+          </Show>
+          <For each={tables()}>
+            {(table) => (
+              <div class="table-item">
+                <div class="table-header">
+                  <div class="table-header-col-1">
+                    <span class="table-emoji" title={table.name}>
+                      {table.emoji}
+                    </span>
+                  </div>
+                  <div class="table-header-col-2">
+                    <span class="table-name" title={table.name}>
+                      {table.name}
+                    </span>
+                    <span class="row-count">({table.rowCount})</span>
+                    <button
+                      class="remove-table-btn"
+                      onClick={() => removeTable(table.name)}
+                      title={`Remove ${table.name}`}
+                      disabled={loading()}
+                    >
+                      <Icon name="x-circle" size={16} />
+                    </button>
+                  </div>
+                </div>
+                <div class="columns-list">
+                  <For each={table.columns}>
+                    {(column, index) => {
+                      const isLast = index() === table.columns.length - 1;
+                      return (
+                        <div
+                          class="column-item"
+                          title={`${column.name} (${column.type})`}
+                        >
+                          <span class="tree-glyph">{isLast ? "└─" : "├─"}</span>
+                          <Icon name="column" size={12} class="column-icon" />
+                          <span class="column-name">{column.name}</span>
+                          <span class="column-type">{column.type}</span>
+                        </div>
+                      );
+                    }}
+                  </For>
+                </div>
+              </div>
+            )}
+          </For>
+        </div>
       </div>
     </aside>
   );

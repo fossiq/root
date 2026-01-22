@@ -25,21 +25,45 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   const [tooltip, setTooltip] = createSignal<TooltipState | null>(null);
   let parentRef: HTMLDivElement | undefined;
 
-  const MAX_COLUMN_WIDTH = 250;
-
   // Dynamically generate columns based on the first item in data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Column definitions are generic for dynamic query results
-  const columns = createMemo<ColumnDef<any>[]>(() => {
+  const columns = createMemo<ColumnDef<unknown>[]>(() => {
     if (!props.data || props.data.length === 0) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rowNumberColumn: ColumnDef<unknown> = {
+      id: "rowNumber",
+      header: "#",
+      cell: (info) => info.row.index + 1,
+      enableSorting: false,
+      size: 50,
+    };
+
     const firstItem = props.data[0];
-    return Object.keys(firstItem).map((key) => ({
-      accessorKey: key,
-      header: key,
-      cell: (info) => {
-        const value = info.getValue();
-        return typeof value === "bigint" ? String(value) : value;
-      },
-    }));
+    const dataColumns = Object.keys(firstItem).map((key) => {
+      // Simple heuristic for column width stability
+      const headerWidth = key.length * 10 + 20; // 10px per char + padding
+      const value = firstItem[key];
+      const valueString =
+        value === null || value === undefined ? "" : String(value);
+      const valueWidth = valueString.length * 8 + 20; // Slightly narrower char width assumption for values
+
+      const estimatedWidth = Math.min(
+        Math.max(headerWidth, valueWidth, 100),
+        300
+      );
+
+      return {
+        accessorKey: key,
+        header: key,
+        cell: (info) => {
+          const val = info.getValue();
+          return typeof val === "bigint" ? String(val) : val;
+        },
+        size: estimatedWidth,
+      } as ColumnDef<unknown>;
+    });
+
+    return [rowNumberColumn, ...dataColumns];
   });
 
   const table = createSolidTable({
@@ -69,7 +93,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
     },
     getScrollElement: () => parentRef ?? null,
     estimateSize: () => 35,
-    overscan: 10,
+    overscan: 20,
   });
 
   const virtualItems = () => rowVirtualizer.getVirtualItems();
@@ -104,7 +128,7 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   return (
     <div
       ref={parentRef}
-      class="table-container"
+      class="table-container results-table-container"
       style={{
         height: "100%",
         overflow: "auto",
@@ -117,13 +141,20 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
         }
       }}
     >
-      <table style={{ width: "100%", "border-collapse": "collapse" }}>
+      <table
+        style={{
+          width: "100%",
+          "border-collapse": "collapse",
+          "table-layout": "fixed",
+        }}
+      >
         <thead
           style={{
             position: "sticky",
             top: 0,
             "z-index": 1,
             background: "var(--bg-secondary)",
+            "box-shadow": "0 2px 4px rgba(0, 0, 0, 0.08)",
           }}
         >
           <For each={headerGroups()}>
@@ -132,20 +163,34 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                 <For each={headerGroup.headers}>
                   {(header) => (
                     <th
-                      style={{
-                        padding: "0.5rem 1rem",
-                        "font-weight": "bold",
-                        "white-space": "nowrap",
-                        "text-align": "left",
-                        cursor: header.column.getCanSort()
-                          ? "pointer"
-                          : "default",
-                        "border-bottom": "1px solid var(--border-color)",
-                        "min-width": "100px",
-                        "max-width": `${MAX_COLUMN_WIDTH}px`,
-                        overflow: "hidden",
-                        "text-overflow": "ellipsis",
-                      }}
+                      style={
+                        header.id === "rowNumber"
+                          ? {
+                              padding: "0.5rem 0.5rem 0.5rem 1rem",
+                              "font-weight": "bold",
+                              "white-space": "nowrap",
+                              "text-align": "right",
+                              "border-bottom": "2px solid var(--border-color)",
+                              width: `${header.column.getSize()}px`,
+                              "min-width": `${header.column.getSize()}px`,
+                              "background-color": "var(--bg-secondary)",
+                              color: "var(--text-secondary)",
+                            }
+                          : {
+                              padding: "0.5rem 1rem",
+                              "font-weight": "bold",
+                              "white-space": "nowrap",
+                              "text-align": "left",
+                              cursor: header.column.getCanSort()
+                                ? "pointer"
+                                : "default",
+                              "border-bottom": "2px solid var(--border-color)",
+                              width: `${header.column.getSize()}px`,
+                              "min-width": `${header.column.getSize()}px`,
+                              overflow: "hidden",
+                              "text-overflow": "ellipsis",
+                            }
+                      }
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {flexRender(
@@ -165,10 +210,14 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
         </thead>
         <tbody>
           {/* Spacer row for virtual scroll offset */}
-          {virtualItems().length > 0 && (
+          {virtualItems().length > 0 && (virtualItems()[0]?.start ?? 0) > 0 && (
             <tr>
               <td
-                style={{ height: `${virtualItems()[0]?.start ?? 0}px` }}
+                style={{
+                  height: `${virtualItems()[0]?.start ?? 0}px`,
+                  padding: 0,
+                  border: "none",
+                }}
                 colspan={headerGroups()[0]?.headers.length || 1}
               />
             </tr>
@@ -189,17 +238,35 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                   <For each={row.getVisibleCells()}>
                     {(cell) => {
                       const value = cell.getValue();
+                      const isRowNumber = cell.column.id === "rowNumber";
                       return (
                         <td
-                          style={{
-                            padding: "0.5rem 1rem",
-                            "white-space": "nowrap",
-                            overflow: "hidden",
-                            "text-overflow": "ellipsis",
-                            "max-width": `${MAX_COLUMN_WIDTH}px`,
-                            cursor: "pointer",
-                          }}
-                          onClick={(e) => handleCellClick(e, value)}
+                          style={
+                            isRowNumber
+                              ? {
+                                  padding: "0.5rem 0.5rem 0.5rem 1rem",
+                                  "white-space": "nowrap",
+                                  "text-align": "right",
+                                  color: "var(--text-secondary)",
+                                  "font-variant-numeric": "tabular-nums",
+                                  width: `${cell.column.getSize()}px`,
+                                  "min-width": `${cell.column.getSize()}px`,
+                                  "background-color": "var(--bg-secondary)",
+                                  "font-weight": "500",
+                                }
+                              : {
+                                  padding: "0.5rem 1rem",
+                                  "white-space": "nowrap",
+                                  overflow: "hidden",
+                                  "text-overflow": "ellipsis",
+                                  width: `${cell.column.getSize()}px`,
+                                  "min-width": `${cell.column.getSize()}px`,
+                                  cursor: "pointer",
+                                }
+                          }
+                          onClick={(e) =>
+                            !isRowNumber && handleCellClick(e, value)
+                          }
                           title=""
                         >
                           {flexRender(
@@ -223,6 +290,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                     totalSize() -
                     (virtualItems()[virtualItems().length - 1]?.end ?? 0)
                   }px`,
+                  padding: 0,
+                  border: "none",
                 }}
                 colspan={headerGroups()[0]?.headers.length || 1}
               />
