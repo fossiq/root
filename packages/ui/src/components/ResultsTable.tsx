@@ -25,11 +25,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   const [tooltip, setTooltip] = createSignal<TooltipState | null>(null);
   let parentRef: HTMLDivElement | undefined;
 
-  const MAX_COLUMN_WIDTH = 250;
-
   // Dynamically generate columns based on the first item in data
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Column definitions are generic for dynamic query results
-  const columns = createMemo<ColumnDef<any>[]>(() => {
+  const columns = createMemo<ColumnDef<unknown>[]>(() => {
     if (!props.data || props.data.length === 0) return [];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
