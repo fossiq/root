@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  changesets:
+    name: Handle Changesets
+    runs-on: ubuntu-latest
+    # Only run if CI succeeded and this was a push (not a PR)
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
+      hasChangesets: ${{ steps.changesets.outputs.hasChangesets }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup tooling
+        uses: ./.github/actions/setup
+
+      - name: Create Release PR or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: bun run version
+          publish: bun run release:ci
+          title: "chore: release packages"
+          commit: "chore: release packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-ui:
+    name: Deploy UI
+    needs: changesets
+    if: needs.changesets.outputs.published == 'true'
+    uses: ./.github/workflows/deploy-ui.yml
+    secrets:
+      deploy-key-github-io: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}

@@ -30,10 +30,6 @@
     "lint": {
       "outputs": [],
       "inputs": ["src/**", "turbo.json"]
-    },
-    "ci:publish": {
-      "outputs": [],
-      "cache": false
     }
   }
 }

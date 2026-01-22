@@ -14,8 +14,7 @@
   "scripts": {
     "build": "tsc",
     "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "@fossiq/kql-ast": "workspace:*",

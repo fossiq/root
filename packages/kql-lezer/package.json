@@ -72,7 +72,6 @@
     "generate:grammar": "bun scripts/generate-kql-grammar.ts",
     "fix:parser": "bun scripts/fix-parser-types.ts",
     "test": "bun test tests",
-    "test:coverage": "bun test tests --coverage",
-    "ci:publish": "bun x npm@latest publish --ignore-scripts --provenance"
+    "test:coverage": "bun test tests --coverage"
   }
 }
