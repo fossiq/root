@@ -38,17 +38,33 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
       header: "#",
       cell: (info) => info.row.index + 1,
       enableSorting: false,
+      size: 50,
     };
 
     const firstItem = props.data[0];
-    const dataColumns = Object.keys(firstItem).map((key) => ({
-      accessorKey: key,
-      header: key,
-      cell: (info) => {
-        const value = info.getValue();
-        return typeof value === "bigint" ? String(value) : value;
-      },
-    }));
+    const dataColumns = Object.keys(firstItem).map((key) => {
+      // Simple heuristic for column width stability
+      const headerWidth = key.length * 10 + 20; // 10px per char + padding
+      const value = firstItem[key];
+      const valueString =
+        value === null || value === undefined ? "" : String(value);
+      const valueWidth = valueString.length * 8 + 20; // Slightly narrower char width assumption for values
+
+      const estimatedWidth = Math.min(
+        Math.max(headerWidth, valueWidth, 100),
+        300
+      );
+
+      return {
+        accessorKey: key,
+        header: key,
+        cell: (info) => {
+          const val = info.getValue();
+          return typeof val === "bigint" ? String(val) : val;
+        },
+        size: estimatedWidth,
+      } as ColumnDef<unknown>;
+    });
 
     return [rowNumberColumn, ...dataColumns];
   });
@@ -128,7 +144,13 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
         }
       }}
     >
-      <table style={{ width: "100%", "border-collapse": "collapse" }}>
+      <table
+        style={{
+          width: "100%",
+          "border-collapse": "collapse",
+          "table-layout": "fixed",
+        }}
+      >
         <thead
           style={{
             position: "sticky",
@@ -152,9 +174,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                               "white-space": "nowrap",
                               "text-align": "right",
                               "border-bottom": "2px solid var(--border-color)",
-                              width: "50px",
-                              "min-width": "50px",
-                              "max-width": "50px",
+                              width: `${header.column.getSize()}px`,
+                              "min-width": `${header.column.getSize()}px`,
                               "background-color": "var(--bg-secondary)",
                               color: "var(--text-secondary)",
                             }
@@ -167,8 +188,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                                 ? "pointer"
                                 : "default",
                               "border-bottom": "2px solid var(--border-color)",
-                              "min-width": "100px",
-                              "max-width": `${MAX_COLUMN_WIDTH}px`,
+                              width: `${header.column.getSize()}px`,
+                              "min-width": `${header.column.getSize()}px`,
                               overflow: "hidden",
                               "text-overflow": "ellipsis",
                             }
@@ -195,7 +216,11 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
           {virtualItems().length > 0 && (virtualItems()[0]?.start ?? 0) > 0 && (
             <tr>
               <td
-                style={{ height: `${virtualItems()[0]?.start ?? 0}px` }}
+                style={{
+                  height: `${virtualItems()[0]?.start ?? 0}px`,
+                  padding: 0,
+                  border: "none",
+                }}
                 colspan={headerGroups()[0]?.headers.length || 1}
               />
             </tr>
@@ -227,8 +252,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                                   "text-align": "right",
                                   color: "var(--text-secondary)",
                                   "font-variant-numeric": "tabular-nums",
-                                  width: "50px",
-                                  "max-width": "50px",
+                                  width: `${cell.column.getSize()}px`,
+                                  "min-width": `${cell.column.getSize()}px`,
                                   "background-color": "var(--bg-secondary)",
                                   "font-weight": "500",
                                 }
@@ -237,7 +262,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                                   "white-space": "nowrap",
                                   overflow: "hidden",
                                   "text-overflow": "ellipsis",
-                                  "max-width": `${MAX_COLUMN_WIDTH}px`,
+                                  width: `${cell.column.getSize()}px`,
+                                  "min-width": `${cell.column.getSize()}px`,
                                   cursor: "pointer",
                                 }
                           }
@@ -267,6 +293,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                     totalSize() -
                     (virtualItems()[virtualItems().length - 1]?.end ?? 0)
                   }px`,
+                  padding: 0,
+                  border: "none",
                 }}
                 colspan={headerGroups()[0]?.headers.length || 1}
               />
