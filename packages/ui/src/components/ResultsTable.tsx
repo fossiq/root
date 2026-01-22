@@ -44,8 +44,17 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Column definitions are generic for dynamic query results
   const columns = createMemo<ColumnDef<any>[]>(() => {
     if (!props.data || props.data.length === 0) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rowNumberColumn: ColumnDef<unknown> = {
+      id: "rowNumber",
+      header: "#",
+      cell: (info) => info.row.index + 1,
+      enableSorting: false,
+    };
+
     const firstItem = props.data[0];
-    return Object.keys(firstItem).map((key) => ({
+    const dataColumns = Object.keys(firstItem).map((key) => ({
       accessorKey: key,
       header: key,
       cell: (info) => {
@@ -53,6 +62,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
         return typeof value === "bigint" ? String(value) : value;
       },
     }));
+
+    return [rowNumberColumn, ...dataColumns];
   });
 
   const table = createSolidTable({
@@ -164,20 +175,33 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                 <For each={headerGroup.headers}>
                   {(header) => (
                     <th
-                      style={{
-                        padding: "0.5rem 1rem",
-                        "font-weight": "bold",
-                        "white-space": "nowrap",
-                        "text-align": "left",
-                        cursor: header.column.getCanSort()
-                          ? "pointer"
-                          : "default",
-                        "border-bottom": "2px solid var(--border-color)",
-                        "min-width": "100px",
-                        "max-width": `${MAX_COLUMN_WIDTH}px`,
-                        overflow: "hidden",
-                        "text-overflow": "ellipsis",
-                      }}
+                      style={
+                        header.id === "rowNumber"
+                          ? {
+                              padding: "0.5rem 0.5rem 0.5rem 1rem",
+                              "font-weight": "bold",
+                              "white-space": "nowrap",
+                              "text-align": "right",
+                              "border-bottom": "2px solid var(--border-color)",
+                              width: "50px",
+                              "min-width": "50px",
+                              "max-width": "50px",
+                            }
+                          : {
+                              padding: "0.5rem 1rem",
+                              "font-weight": "bold",
+                              "white-space": "nowrap",
+                              "text-align": "left",
+                              cursor: header.column.getCanSort()
+                                ? "pointer"
+                                : "default",
+                              "border-bottom": "2px solid var(--border-color)",
+                              "min-width": "100px",
+                              "max-width": `${MAX_COLUMN_WIDTH}px`,
+                              overflow: "hidden",
+                              "text-overflow": "ellipsis",
+                            }
+                      }
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       {flexRender(
@@ -221,17 +245,32 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                   <For each={row.getVisibleCells()}>
                     {(cell) => {
                       const value = cell.getValue();
+                      const isRowNumber = cell.column.id === "rowNumber";
                       return (
                         <td
-                          style={{
-                            padding: "0.5rem 1rem",
-                            "white-space": "nowrap",
-                            overflow: "hidden",
-                            "text-overflow": "ellipsis",
-                            "max-width": `${MAX_COLUMN_WIDTH}px`,
-                            cursor: "pointer",
-                          }}
-                          onClick={(e) => handleCellClick(e, value)}
+                          style={
+                            isRowNumber
+                              ? {
+                                  padding: "0.5rem 0.5rem 0.5rem 1rem",
+                                  "white-space": "nowrap",
+                                  "text-align": "right",
+                                  color: "var(--text-secondary)",
+                                  "font-variant-numeric": "tabular-nums",
+                                  width: "50px",
+                                  "max-width": "50px",
+                                }
+                              : {
+                                  padding: "0.5rem 1rem",
+                                  "white-space": "nowrap",
+                                  overflow: "hidden",
+                                  "text-overflow": "ellipsis",
+                                  "max-width": `${MAX_COLUMN_WIDTH}px`,
+                                  cursor: "pointer",
+                                }
+                          }
+                          onClick={(e) =>
+                            !isRowNumber && handleCellClick(e, value)
+                          }
                           title=""
                         >
                           {flexRender(
