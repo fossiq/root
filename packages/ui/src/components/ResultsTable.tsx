@@ -1,11 +1,4 @@
-import {
-  Component,
-  For,
-  createMemo,
-  createSignal,
-  Show,
-  createEffect,
-} from "solid-js";
+import { Component, For, createMemo, createSignal, Show } from "solid-js";
 import {
   createSolidTable,
   getCoreRowModel,
@@ -16,15 +9,9 @@ import {
 } from "@tanstack/solid-table";
 import { createVirtualizer } from "@tanstack/solid-virtual";
 
-interface VisibleRange {
-  start: number;
-  end: number;
-}
-
 interface ResultsTableProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query results have dynamic schema based on user query
   data: any[];
-  onRangeChange?: (range: VisibleRange) => void;
 }
 
 interface TooltipState {
@@ -99,24 +86,6 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   const virtualItems = () => rowVirtualizer.getVirtualItems();
   const totalSize = () => rowVirtualizer.getTotalSize();
 
-  createEffect(() => {
-    const items = virtualItems();
-    if (props.onRangeChange) {
-      if (items.length > 0) {
-        // index is 0-based, so +1 for display
-        // We take the first and last item in the *rendered* list
-        // Note: virtualItems includes overscan, so this might be slightly wider than viewport
-        // but typically "showing X-Y" refers to what's loaded/rendered in these contexts.
-        // For strict viewport precision, we'd need more complex logic, but this is usually sufficient.
-        const start = items[0].index + 1;
-        const end = items[items.length - 1].index + 1;
-        props.onRangeChange({ start, end });
-      } else {
-        props.onRangeChange({ start: 0, end: 0 });
-      }
-    }
-  });
-
   const handleCellClick = (e: MouseEvent, value: unknown) => {
     const target = e.currentTarget as HTMLElement;
     const stringValue = String(value ?? "");
@@ -186,6 +155,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                               width: "50px",
                               "min-width": "50px",
                               "max-width": "50px",
+                              "background-color": "var(--bg-secondary)",
+                              color: "var(--text-secondary)",
                             }
                           : {
                               padding: "0.5rem 1rem",
@@ -258,6 +229,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                                   "font-variant-numeric": "tabular-nums",
                                   width: "50px",
                                   "max-width": "50px",
+                                  "background-color": "var(--bg-secondary)",
+                                  "font-weight": "500",
                                 }
                               : {
                                   padding: "0.5rem 1rem",

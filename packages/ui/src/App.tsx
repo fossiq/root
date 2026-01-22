@@ -27,7 +27,6 @@ const AppContent: Component = () => {
   const [results, setResults] = createSignal<any[]>(savedResults);
   const [error, setError] = createSignal<string | null>(null);
   const [isRunning, setIsRunning] = createSignal(false);
-  const [visibleRange, setVisibleRange] = createSignal({ start: 0, end: 0 });
   const { conn } = useSchema();
 
   // Persist query to localStorage when it changes
@@ -137,17 +136,6 @@ const AppContent: Component = () => {
               }}
             >
               <h2>Results {results().length > 0 && `(${results().length})`}</h2>
-              <Show when={results().length > 0}>
-                <span
-                  style={{
-                    color: "var(--text-secondary)",
-                    "font-size": "0.85rem",
-                  }}
-                >
-                  Showing {visibleRange().start} to {visibleRange().end} of{" "}
-                  {results().length}
-                </span>
-              </Show>
             </div>
           </div>
           <Show when={error()}>
@@ -161,7 +149,7 @@ const AppContent: Component = () => {
               <strong>Error:</strong> {error()}
             </div>
           </Show>
-          <ResultsTable data={results()} onRangeChange={setVisibleRange} />
+          <ResultsTable data={results()} />
         </div>
       }
     />
