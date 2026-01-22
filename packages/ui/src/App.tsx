@@ -144,7 +144,8 @@ const AppContent: Component = () => {
                     "font-size": "0.85rem",
                   }}
                 >
-                  Showing {visibleRange().start} - {visibleRange().end}
+                  Showing {visibleRange().start} to {visibleRange().end} of{" "}
+                  {results().length}
                 </span>
               </Show>
             </div>
