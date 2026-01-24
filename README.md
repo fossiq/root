@@ -145,7 +145,7 @@ These docs are verified against actual code and optimized for AI agent consumpti
 - **Runtime**: Bun
 - **Language**: TypeScript (ESM)
 - **Parsers**: Lezer
-- **Frontend**: SolidJS, Vite, Tailwind CSS, CodeMirror 6
+- **Frontend**: SolidJS, Vite, PicoCSS, CodeMirror 6
 - **Database**: DuckDB WASM
 - **CI/CD**: GitHub Actions
 - **Versioning**: Changesets
