@@ -11,16 +11,17 @@ Hey there! This is a monorepo with KQL (Kusto Query Language) tools and apps. Qu
 | [@fossiq/kql-to-duckdb](./packages/kql-to-duckdb) | KQL to DuckDB SQL translator                          | [![npm](https://img.shields.io/npm/v/@fossiq/kql-to-duckdb.svg)](https://www.npmjs.com/package/@fossiq/kql-to-duckdb) |
 | [@fossiq/kql-ast](./packages/kql-ast)             | Shared AST type definitions                           | [![npm](https://img.shields.io/npm/v/@fossiq/kql-ast.svg)](https://www.npmjs.com/package/@fossiq/kql-ast)             |
 | [@fossiq/kql-lezer](./packages/kql-lezer)         | Lezer-based parser for CodeMirror syntax highlighting | [![npm](https://img.shields.io/npm/v/@fossiq/kql-lezer.svg)](https://www.npmjs.com/package/@fossiq/kql-lezer)         |
+| [@fossiq/lezer-grammar-generator](./packages/lezer-grammar-generator) | Tooling for generating Lezer grammars | - |
 | [@fossiq/ui](./packages/ui)                       | Web application (private)                             | -                                                                                                                     |
 
 ### @fossiq/kql-to-duckdb
 
 Translates KQL queries to DuckDB SQL:
 
-- 11 core operators (where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search)
+- 15+ core operators (including where, project, extend, summarize, sort, distinct, take/limit, top, union, mv-expand, search, parse, serialize, as, datatable, and getschema)
 - All 8 KQL join types
-- 35+ functions (string, math, datetime, type conversion)
-- 113 integration tests
+- 50+ functions (string, math, datetime, type conversion, and aggregation)
+- 120+ integration tests
 
 ### @fossiq/kql-lezer
 
@@ -106,15 +107,15 @@ cd packages/kql-lezer && bun run test:watch
 ```
 .
 ├── packages/
-│   ├── kql-to-duckdb/   # KQL to SQL translator
-│   ├── kql-ast/         # Shared AST types
-│   ├── kql-lezer/       # Lezer parser for editors
-│   └── ui/              # Web application
+│   ├── kql-to-duckdb/           # KQL to SQL translator
+│   ├── kql-ast/                 # Shared AST types
+│   ├── kql-lezer/               # Lezer parser for editors
+│   ├── lezer-grammar-generator/ # Tooling for generating Lezer grammars
+│   └── ui/                      # Web application
 ├── .github/
-│   ├── workflows/       # CI/CD workflows
-│   ├── scripts/         # Build scripts
-│   └── instructions/    # Development guides
-└── .changeset/          # Version management
+│   ├── workflows/               # CI/CD workflows
+│   └── instructions/            # Development guides
+└── .changeset/                  # Version management
 ```
 
 ## Contributing
@@ -144,7 +145,7 @@ These docs are verified against actual code and optimized for AI agent consumpti
 - **Runtime**: Bun
 - **Language**: TypeScript (ESM)
 - **Parsers**: Lezer
-- **Frontend**: SolidJS, Vite, PicoCSS, CodeMirror 6
+- **Frontend**: SolidJS, Vite, Tailwind CSS, CodeMirror 6
 - **Database**: DuckDB WASM
 - **CI/CD**: GitHub Actions
 - **Versioning**: Changesets
