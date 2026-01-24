@@ -31,6 +31,6 @@ jobs:
       - name: Deploy to fossiq.github.io
         run: bun ./.github/scripts/trigger-ui-deploy.ts
         env:
-          DEPLOY_KEY_GITHUB_IO: ${{ secrets.deploy-key-github-io }}
+          DEPLOY_KEY_GITHUB_IO: ${{ secrets.DEPLOY_KEY_GITHUB_IO }}
           GITHUB_SHA: ${{ github.sha }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
