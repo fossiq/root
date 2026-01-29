@@ -1,5 +1,20 @@
 # @fossiq/ui
 
+## 2.0.2
+
+### Patch Changes
+
+- 973d950: Fix string operators parsing and UI improvements
+
+  - Fixed kql-lezer to correctly parse string operators (contains, startswith, endswith, has) by handling GeneralComparisonOp wrapper nodes
+  - Fixed kql-to-duckdb translator to generate correct SQL LIKE patterns with wildcards for string operators
+  - Fixed ResultsTable to properly display bigint values as regular numbers
+  - Improved CodeMirror autocomplete to show aggregation functions in more contexts (after = and ( operators)
+
+- Updated dependencies [973d950]
+  - @fossiq/kql-lezer@2.0.2
+  - @fossiq/kql-to-duckdb@2.0.2
+
 ## 2.0.1
 
 ### Minor Changes
