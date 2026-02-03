@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/ui",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "private": true,
   "description": "Modern UI framework for Fossiq, mimicking Azure Data Explorer with SolidJS",
   "type": "module",

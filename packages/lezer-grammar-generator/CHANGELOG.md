@@ -1,5 +1,11 @@
 # @fossiq/lezer-grammar-generator
 
+## 2.0.2
+
+### Patch Changes
+
+- @fossiq/kql-ast@2.0.2
+
 ## 2.0.1
 
 ### Patch Changes
