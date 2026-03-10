@@ -72,9 +72,9 @@ export function convertRegexToLezer(pattern: string): string {
   result = result.replace(/\(\?:/g, "(");
 
   // Step 3: Convert common character classes to Lezer $[...] syntax
-  // Must do \d before [0-9] to avoid double conversion
-  result = result.replace(/\\d/g, "$[0-9]");
+  // Must do [0-9] before \d to avoid double-converting \d→$[0-9]→$$[0-9]
   result = result.replace(/\[0-9\]/g, "$[0-9]");
+  result = result.replace(/\\d/g, "$[0-9]");
   result = result.replace(/\[a-zA-Z\]/g, "$[a-zA-Z]");
 
   // Step 4: Handle negated character classes

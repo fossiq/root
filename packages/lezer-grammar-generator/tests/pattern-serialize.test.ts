@@ -29,13 +29,13 @@ describe("serializePattern with multiple regex patterns", () => {
   test("serializes mixed string and RegExp patterns", () => {
     const patterns = regex(["[0-9]+", /[a-z]+/, "[A-Z]+"]);
     expect(serializePattern(patterns)).toBe(
-      "@digit+ | $[a-z]+ | $[A-Z]+",
+      "$[0-9]+ | $[a-z]+ | $[A-Z]+",
     );
   });
 
   test("serializes multiple patterns with digit conversions", () => {
     const patterns = regex(["\\d+", "[A-Za-z]+"]);
-    expect(serializePattern(patterns)).toBe("@digit+ | $[A-Za-z]+");
+    expect(serializePattern(patterns)).toBe("$[0-9]+ | $[A-Za-z]+");
   });
 
    test.skip("serializes complex patterns with multiple alternatives", () => {
@@ -77,15 +77,15 @@ describe("serializePattern with multiple regex patterns", () => {
     );
     const result = serializePattern(expr);
     // Multiple regex patterns already use |, so they flatten in choice
-    expect(result).toBe("$[a-z]+ | $[A-Z]+ | @digit+");
+    expect(result).toBe("$[a-z]+ | $[A-Z]+ | $[0-9]+");
   });
 });
 
 describe("convertRegexToLezer with multiple patterns", () => {
   test("converts common character classes", () => {
     expect(convertRegexToLezer("[a-z]+")).toBe("$[a-z]+");
-    expect(convertRegexToLezer("[0-9]+")).toBe("@digit+");
-    expect(convertRegexToLezer("\\d+")).toBe("@digit+");
+    expect(convertRegexToLezer("[0-9]+")).toBe("$[0-9]+");
+    expect(convertRegexToLezer("\\d+")).toBe("$[0-9]+");
   });
 
   test("handles negated character classes", () => {
@@ -93,7 +93,7 @@ describe("convertRegexToLezer with multiple patterns", () => {
   });
 
   test("converts ASCII letter patterns", () => {
-    expect(convertRegexToLezer("[a-zA-Z]")).toBe("@asciiLetter");
+    expect(convertRegexToLezer("[a-zA-Z]")).toBe("$[a-zA-Z]");
   });
 
   test.skip("handles backslash escaping", () => {
