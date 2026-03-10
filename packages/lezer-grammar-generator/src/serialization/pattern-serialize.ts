@@ -71,19 +71,19 @@ export function convertRegexToLezer(pattern: string): string {
   // Remove non-capturing groups: (?:...) -> (...)
   result = result.replace(/\(\?:/g, "(");
 
-  // Step 3: Convert common character classes to Lezer builtins
+  // Step 3: Convert common character classes to Lezer $[...] syntax
   // Must do \d before [0-9] to avoid double conversion
-  result = result.replace(/\\d/g, "@digit");
-  result = result.replace(/\[0-9\]/g, "@digit");
-  result = result.replace(/\[a-zA-Z\]/g, "@asciiLetter");
+  result = result.replace(/\\d/g, "$[0-9]");
+  result = result.replace(/\[0-9\]/g, "$[0-9]");
+  result = result.replace(/\[a-zA-Z\]/g, "$[a-zA-Z]");
 
   // Step 4: Handle negated character classes
   // [^...] -> ![...]
   result = result.replace(/\[\^([^\]]+)\]/g, "![$1]");
 
   // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
-  // Skip already negated ones (lookbehind for !)
-  result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
+  // Skip already negated ones (lookbehind for !) and already-converted ones (lookbehind for $)
+  result = result.replace(/(?<![$!])\[([^\]]+)\]/g, "$[$1]");
 
   return result;
 }

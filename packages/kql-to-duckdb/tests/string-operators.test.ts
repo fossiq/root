@@ -73,4 +73,10 @@ describe("String operators", () => {
       "name NOT IN ('Alice', 'Bob')"
     );
   });
+
+  test("matches regex", () => {
+    expect(kqlToDuckDB('Users | where name matches regex "^Alice"')).toContain(
+      "regexp_matches(name, '^Alice')"
+    );
+  });
 });

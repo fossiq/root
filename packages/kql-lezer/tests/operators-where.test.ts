@@ -38,6 +38,7 @@ describe("Where operator", () => {
     expect(isValid('Users | where name startswith "j"')).toBe(true);
     expect(isValid('Users | where name endswith "n"')).toBe(true);
     expect(isValid('Users | where name has "test"')).toBe(true);
+    expect(isValid('Users | where name matches regex "^john"')).toBe(true);
   });
 
   test("chained where clauses", () => {
