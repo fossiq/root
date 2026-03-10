@@ -82,8 +82,8 @@ function drawStrokedLine(
   const len = Math.sqrt(dx * dx + dy * dy);
   if (len === 0) return;
 
-  const nx = -dy / len;
-  const ny = dx / len;
+  const _nx = -dy / len;
+  const _ny = dx / len;
   const half = strokeWidth / 2;
 
   const minX = Math.max(0, Math.floor(Math.min(x0, x1) - half));
