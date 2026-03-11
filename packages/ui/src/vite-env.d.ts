@@ -1,6 +1,6 @@
-import "solid-js";
-
 /// <reference types="vite/client" />
+
+import "solid-js";
 
 declare module "*?worker" {
   const workerConstructor: {
