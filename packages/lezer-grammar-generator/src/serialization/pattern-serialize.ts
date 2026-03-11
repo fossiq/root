@@ -139,9 +139,10 @@ function serializeExpr(
       return result;
     }
     case "seq": {
-      const parts = expr.elements.map((e) =>
-        serializeExpr(e, depth + 1, limit)
-      );
+      const parts = expr.elements.map((e) => {
+        const s = serializeExpr(e, depth + 1, limit);
+        return e.type === "choice" ? "(" + s + ")" : s;
+      });
       return parts.join(" ");
     }
     case "choice": {
