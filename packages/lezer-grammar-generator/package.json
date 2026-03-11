@@ -1,6 +1,6 @@
 {
   "name": "@fossiq/lezer-grammar-generator",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "TypeScript library for generating Lezer grammars from AST type definitions",
   "type": "module",
   "main": "dist/index.js",

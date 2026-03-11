@@ -1,5 +1,16 @@
 # @fossiq/kql-lezer
 
+## 2.1.0
+
+### Minor Changes
+
+- d981aeb: feat: updated lezer grammar, parser and website styles
+
+### Patch Changes
+
+- Updated dependencies [d981aeb]
+  - @fossiq/kql-ast@2.1.0
+
 ## 2.0.2
 
 ### Patch Changes
