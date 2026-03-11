@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Logo from icons/index.ts scaled to 1024x1024 -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M342 342L170 512l342 170M682 342l170 170-170 170M512 256v512" stroke="#0c3b66" stroke-width="120"/>
+    <path d="M342 342L170 512l342 170M682 342l170 170-170 170M512 256v512" stroke="#ffffff" stroke-width="84"/>
+  </g>
+</svg>

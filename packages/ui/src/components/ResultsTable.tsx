@@ -8,6 +8,7 @@ import {
   SortingState,
 } from "@tanstack/solid-table";
 import { createVirtualizer } from "@tanstack/solid-virtual";
+import styles from "./ResultsTable.module.css";
 
 interface ResultsTableProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query results have dynamic schema based on user query
@@ -25,7 +26,6 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   const [tooltip, setTooltip] = createSignal<TooltipState | null>(null);
   let parentRef: HTMLDivElement | undefined;
 
-  // Dynamically generate columns based on the first item in data
   const columns = createMemo<ColumnDef<unknown>[]>(() => {
     if (!props.data || props.data.length === 0) return [];
 
@@ -40,12 +40,11 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
 
     const firstItem = props.data[0];
     const dataColumns = Object.keys(firstItem).map((key) => {
-      // Simple heuristic for column width stability
-      const headerWidth = key.length * 10 + 20; // 10px per char + padding
+      const headerWidth = key.length * 10 + 20;
       const value = firstItem[key];
       const valueString =
         value === null || value === undefined ? "" : String(value);
-      const valueWidth = valueString.length * 8 + 20; // Slightly narrower char width assumption for values
+      const valueWidth = valueString.length * 8 + 20;
 
       const estimatedWidth = Math.min(
         Math.max(headerWidth, valueWidth, 100),
@@ -83,7 +82,6 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Use createMemo to reactively get rows and headers when data changes
   const rows = createMemo(() => table.getRowModel().rows);
   const headerGroups = createMemo(() => table.getHeaderGroups());
 
@@ -103,13 +101,11 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
     const target = e.currentTarget as HTMLElement;
     const stringValue = String(value ?? "");
 
-    // Check if text is actually overflowing
     if (target.scrollWidth <= target.clientWidth) {
       return;
     }
 
     const currentTooltip = tooltip();
-    // Toggle off if clicking the same cell
     if (currentTooltip && currentTooltip.content === stringValue) {
       setTooltip(null);
       return;
@@ -128,95 +124,57 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
   return (
     <div
       ref={parentRef}
-      class="table-container results-table-container"
-      style={{
-        height: "100%",
-        overflow: "auto",
-        position: "relative",
-      }}
+      class={styles.container}
       onClick={(e) => {
-        // Close tooltip when clicking outside cells
         if (!(e.target as HTMLElement).closest("td")) {
           closeTooltip();
         }
       }}
     >
-      <table
-        style={{
-          width: "100%",
-          "border-collapse": "collapse",
-          "table-layout": "fixed",
-        }}
-      >
-        <thead
-          style={{
-            position: "sticky",
-            top: 0,
-            "z-index": 1,
-            background: "var(--bg-secondary)",
-            "box-shadow": "0 2px 4px rgba(0, 0, 0, 0.08)",
-          }}
-        >
+      <table class={styles.table}>
+        <thead class={styles.thead}>
           <For each={headerGroups()}>
             {(headerGroup) => (
               <tr>
                 <For each={headerGroup.headers}>
-                  {(header) => (
-                    <th
-                      style={
-                        header.id === "rowNumber"
-                          ? {
-                              padding: "0.5rem 0.5rem 0.5rem 1rem",
-                              "font-weight": "bold",
-                              "white-space": "nowrap",
-                              "text-align": "right",
-                              "border-bottom": "2px solid var(--border-color)",
-                              width: `${header.column.getSize()}px`,
-                              "min-width": `${header.column.getSize()}px`,
-                              "background-color": "var(--bg-secondary)",
-                              color: "var(--text-secondary)",
-                            }
-                          : {
-                              padding: "0.5rem 1rem",
-                              "font-weight": "bold",
-                              "white-space": "nowrap",
-                              "text-align": "left",
-                              cursor: header.column.getCanSort()
-                                ? "pointer"
-                                : "default",
-                              "border-bottom": "2px solid var(--border-color)",
-                              width: `${header.column.getSize()}px`,
-                              "min-width": `${header.column.getSize()}px`,
-                              overflow: "hidden",
-                              "text-overflow": "ellipsis",
-                            }
-                      }
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: " 🔼",
-                        desc: " 🔽",
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </th>
-                  )}
+                  {(header) => {
+                    const isRowNumber = header.id === "rowNumber";
+                    const canSort = header.column.getCanSort();
+                    return (
+                      <th
+                        class={`${styles.th} ${
+                          isRowNumber ? styles.thRowNumber : ""
+                        } ${canSort ? styles.thSortable : ""}`}
+                        style={{
+                          width: `${header.column.getSize()}px`,
+                          "min-width": `${header.column.getSize()}px`,
+                          "text-align": isRowNumber ? "right" : "left",
+                        }}
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                        {{
+                          asc: " 🔼",
+                          desc: " 🔽",
+                        }[header.column.getIsSorted() as string] ?? null}
+                      </th>
+                    );
+                  }}
                 </For>
               </tr>
             )}
           </For>
         </thead>
         <tbody>
-          {/* Spacer row for virtual scroll offset */}
           {virtualItems().length > 0 && (virtualItems()[0]?.start ?? 0) > 0 && (
             <tr>
               <td
+                class={styles.spacerCell}
                 style={{
                   height: `${virtualItems()[0]?.start ?? 0}px`,
-                  padding: 0,
-                  border: "none",
                 }}
                 colspan={headerGroups()[0]?.headers.length || 1}
               />
@@ -228,12 +186,8 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
               const isEven = virtualRow.index % 2 === 0;
               return (
                 <tr
-                  style={{
-                    height: `${virtualRow.size}px`,
-                    "background-color": isEven
-                      ? "var(--bg-primary)"
-                      : "var(--bg-secondary)",
-                  }}
+                  class={isEven ? styles.rowEven : styles.rowOdd}
+                  style={{ height: `${virtualRow.size}px` }}
                 >
                   <For each={row.getVisibleCells()}>
                     {(cell) => {
@@ -241,29 +195,13 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
                       const isRowNumber = cell.column.id === "rowNumber";
                       return (
                         <td
-                          style={
-                            isRowNumber
-                              ? {
-                                  padding: "0.5rem 0.5rem 0.5rem 1rem",
-                                  "white-space": "nowrap",
-                                  "text-align": "right",
-                                  color: "var(--text-secondary)",
-                                  "font-variant-numeric": "tabular-nums",
-                                  width: `${cell.column.getSize()}px`,
-                                  "min-width": `${cell.column.getSize()}px`,
-                                  "background-color": "var(--bg-secondary)",
-                                  "font-weight": "500",
-                                }
-                              : {
-                                  padding: "0.5rem 1rem",
-                                  "white-space": "nowrap",
-                                  overflow: "hidden",
-                                  "text-overflow": "ellipsis",
-                                  width: `${cell.column.getSize()}px`,
-                                  "min-width": `${cell.column.getSize()}px`,
-                                  cursor: "pointer",
-                                }
+                          class={
+                            isRowNumber ? styles.cellRowNumber : styles.cell
                           }
+                          style={{
+                            width: `${cell.column.getSize()}px`,
+                            "min-width": `${cell.column.getSize()}px`,
+                          }}
                           onClick={(e) =>
                             !isRowNumber && handleCellClick(e, value)
                           }
@@ -281,17 +219,15 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
               );
             }}
           </For>
-          {/* Spacer row for remaining virtual scroll space */}
           {virtualItems().length > 0 && (
             <tr>
               <td
+                class={styles.spacerCell}
                 style={{
                   height: `${
                     totalSize() -
                     (virtualItems()[virtualItems().length - 1]?.end ?? 0)
                   }px`,
-                  padding: 0,
-                  border: "none",
                 }}
                 colspan={headerGroups()[0]?.headers.length || 1}
               />
@@ -300,46 +236,19 @@ const ResultsTable: Component<ResultsTableProps> = (props) => {
         </tbody>
       </table>
 
-      {/* Persistent tooltip */}
       <Show when={tooltip()}>
         {(t) => (
           <div
+            class={styles.tooltip}
             style={{
-              position: "fixed",
               left: `${t().x}px`,
               top: `${t().y}px`,
-              "max-width": "400px",
-              "max-height": "200px",
-              overflow: "auto",
-              padding: "0.75rem",
-              background: "var(--bg-primary)",
-              border: "1px solid var(--border-color)",
-              "border-radius": "4px",
-              "box-shadow": "0 4px 12px rgba(0,0,0,0.15)",
-              "z-index": 1000,
-              "white-space": "pre-wrap",
-              "word-break": "break-all",
-              "font-family": "monospace",
-              "font-size": "0.875rem",
             }}
           >
-            <button
-              style={{
-                position: "absolute",
-                top: "4px",
-                right: "4px",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "2px 6px",
-                "font-size": "0.75rem",
-                color: "var(--text-secondary)",
-              }}
-              onClick={closeTooltip}
-            >
+            <button class={styles.tooltipClose} onClick={closeTooltip}>
               ✕
             </button>
-            <div style={{ "margin-top": "0.5rem" }}>{t().content}</div>
+            <div class={styles.tooltipContent}>{t().content}</div>
           </div>
         )}
       </Show>

@@ -1,5 +1,6 @@
 import { Component, Show } from "solid-js";
 import { icons } from "../icons";
+import styles from "./Icon.module.css";
 
 interface IconProps {
   name: string;
@@ -34,7 +35,7 @@ const Icon: Component<IconProps> = (props) => {
     >
       {(icon) => (
         <svg
-          class={`icon icon-${props.name} ${props.class || ""}`}
+          class={`${styles.icon} icon icon-${props.name} ${props.class || ""}`}
           style={{
             width: size(),
             height: size(),

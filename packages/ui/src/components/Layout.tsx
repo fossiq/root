@@ -2,6 +2,7 @@ import { Component, createSignal, JSX, createEffect } from "solid-js";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import { useTheme } from "../hooks/useTheme";
+import styles from "./Layout.module.css";
 
 const STORAGE_KEY_SIDEBAR = "fossiq-sidebar-collapsed";
 
@@ -17,7 +18,6 @@ interface LayoutProps {
 const Layout: Component<LayoutProps> = (props) => {
   const { theme, toggleTheme } = useTheme();
 
-  // Initialize from localStorage
   const [sidebarCollapsed, setSidebarCollapsed] = createSignal(
     localStorage.getItem(STORAGE_KEY_SIDEBAR) === "true"
   );
@@ -25,14 +25,12 @@ const Layout: Component<LayoutProps> = (props) => {
   const [resultsHeight, setResultsHeight] = createSignal(300);
   const [isResizing, setIsResizing] = createSignal(false);
 
-  // Persist sidebar state
   createEffect(() => {
     localStorage.setItem(STORAGE_KEY_SIDEBAR, String(sidebarCollapsed()));
   });
 
   const handleAddSource = () => {
     console.log("Add source clicked");
-    // TODO: Implement add source dialog
   };
 
   const handleMouseDown: JSX.EventHandler<HTMLDivElement, MouseEvent> = (e) => {
@@ -59,11 +57,11 @@ const Layout: Component<LayoutProps> = (props) => {
   };
 
   return (
-    <div class="container" data-theme={theme()}>
+    <div class={styles.container} data-theme={theme()}>
       <Header onThemeToggle={toggleTheme}>{props.headerContent}</Header>
-      <div class="content">
-        <div class="main-area">
-          <div class="top-section">
+      <div class={styles.content}>
+        <div class={styles.mainArea}>
+          <div class={styles.topSection}>
             <Sidebar
               onAddSource={handleAddSource}
               collapsed={sidebarCollapsed()}
@@ -73,11 +71,14 @@ const Layout: Component<LayoutProps> = (props) => {
           </div>
         </div>
         <div
-          class="resize-handle"
+          class={styles.resizeHandle}
           onMouseDown={handleMouseDown}
-          classList={{ resizing: isResizing() }}
+          classList={{ [styles.resizing]: isResizing() }}
         />
-        <div class="results-area" style={{ height: `${resultsHeight()}px` }}>
+        <div
+          class={styles.resultsArea}
+          style={{ height: `${resultsHeight()}px` }}
+        >
           {props.resultsPane}
         </div>
       </div>

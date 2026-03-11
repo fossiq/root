@@ -14,6 +14,11 @@ declare module "*?url" {
   export default content;
 }
 
+declare module "*.module.css" {
+  const classes: Record<string, string>;
+  export default classes;
+}
+
 // File System Access API extensions (not yet in standard TypeScript types)
 declare global {
   interface FileSystemHandlePermissionDescriptor {
