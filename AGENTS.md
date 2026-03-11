@@ -61,7 +61,9 @@ Prefer MCP over manual searches when available.
 - Generates Lezer `.grammar` files from TypeScript DSL
 - dist/index.js = compiled; src/ = sources. dist is what bun uses (resolves via package.json "main")
 - **BUG FIXED**: `convertRegexToLezer` step5 `(?<!!)\[` must be `(?<![$!])\[` to prevent double-processing `$[0-9]`
-- `$[0-9]` = lezer char class syntax; `@digit` = INVALID in lezer-generator CLI (do NOT use)
+- **BUG FIXED**: `convertRegexToLezer` step3 must replace `[0-9]` BEFORE `\d`; doing `\d→$[0-9]` first then `[0-9]→$[0-9]` double-converts to `$$[0-9]`
+- **BUG FIXED**: `serializeExpr` seq case must parenthesize `choice` children: `seq(choice(A,B), C)` → `(A | B) C` not `A | B C`
+- `$[0-9]` = lezer char class syntax; `@digit`/`@asciiLetter` = INVALID in lezer-generator CLI (do NOT use)
 - `kw("term")` → raw `kw<"term">` → expands via macro to `@specialize[@name=term]<Identifier, "term">`
 - `seq(kw("a"), kw("b"))` in a rule = two-token compound operator; `slice(node)` returns `"a b"` (with whitespace from source)
 
@@ -76,7 +78,8 @@ Prefer MCP over manual searches when available.
 - Build: `bun run build` → generate:grammar → build:parser → fix:parser → tsc
 - CST→AST: `src/parser/cst-to-ast/`; `slice(node)` extracts raw source text for operator name
 - `StringOp` grammar rule: operators are rule alternatives; compound `matches regex` = `seq(kw("matches"), kw("regex"))`
-- Status: 110 tests passing (after fixes: 154 expects)
+- **BUG FIXED**: `sort by col desc` — grammar was `sort | order by? list` (wrong); now `(sort|order) by? list`; also CST-to-AST looked for non-existent `SortDirection`/`NullsPosition` nodes; now uses `asc`/`desc`/`first`/`last` token names directly
+- Status: 110 tests passing (154 expects)
 
 ### @fossiq/kql-to-duckdb
 - Translates KQL AST → DuckDB SQL
@@ -85,7 +88,8 @@ Prefer MCP over manual searches when available.
 - `matches regex` → `regexp_matches(col, pattern)` [FIXED]
 - `contains` → `LIKE '%val%'`, `startswith` → `LIKE 'val%'`, `endswith` → `LIKE '%val'`
 - `has` → `REGEXP '\bval\b'`, `in` → `IN (...)`, `between` → `BETWEEN x AND y`
-- Status: 13 tests passing
+- `sort`/`order by col desc` → `ORDER BY col DESC` [FIXED]
+- Status: 21 tests passing
 
 ### @fossiq/ui
 - SolidJS + Vite + PicoCSS + CodeMirror6 + DuckDB WASM + TanStack Table
