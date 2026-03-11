@@ -52,11 +52,11 @@ function replaceLiteralDotsOutsideCharClasses(pattern: string): string {
  * Convert a regex pattern to Lezer's native token syntax.
  *
  * Lezer uses:
- * - $[...] for character classes
- * - @digit for [0-9]
- * - @asciiLetter for [a-zA-Z]
+ * - $[...] for character classes (e.g. $[0-9], $[a-zA-Z])
  * - ![] for negated character classes
  * - + * ? for repetition
+ *
+ * Note: @digit and @asciiLetter are NOT valid in lezer-generator CLI; use $[0-9] and $[a-zA-Z].
  *
  * This is a best-effort conversion for common patterns.
  */
@@ -71,19 +71,19 @@ export function convertRegexToLezer(pattern: string): string {
   // Remove non-capturing groups: (?:...) -> (...)
   result = result.replace(/\(\?:/g, "(");
 
-  // Step 3: Convert common character classes to Lezer builtins
-  // Must do \d before [0-9] to avoid double conversion
-  result = result.replace(/\\d/g, "@digit");
-  result = result.replace(/\[0-9\]/g, "@digit");
-  result = result.replace(/\[a-zA-Z\]/g, "@asciiLetter");
+  // Step 3: Convert common character classes to Lezer $[...] syntax
+  // Must do [0-9] before \d to avoid double-converting \d→$[0-9]→$$[0-9]
+  result = result.replace(/\[0-9\]/g, "$[0-9]");
+  result = result.replace(/\\d/g, "$[0-9]");
+  result = result.replace(/\[a-zA-Z\]/g, "$[a-zA-Z]");
 
   // Step 4: Handle negated character classes
   // [^...] -> ![...]
   result = result.replace(/\[\^([^\]]+)\]/g, "![$1]");
 
   // Step 5: Wrap remaining character classes in Lezer's $[...] syntax
-  // Skip already negated ones (lookbehind for !)
-  result = result.replace(/(?<!!)\[([^\]]+)\]/g, "$[$1]");
+  // Skip already negated ones (lookbehind for !) and already-converted ones (lookbehind for $)
+  result = result.replace(/(?<![$!])\[([^\]]+)\]/g, "$[$1]");
 
   return result;
 }
@@ -139,9 +139,10 @@ function serializeExpr(
       return result;
     }
     case "seq": {
-      const parts = expr.elements.map((e) =>
-        serializeExpr(e, depth + 1, limit)
-      );
+      const parts = expr.elements.map((e) => {
+        const s = serializeExpr(e, depth + 1, limit);
+        return e.type === "choice" ? "(" + s + ")" : s;
+      });
       return parts.join(" ");
     }
     case "choice": {

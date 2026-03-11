@@ -89,8 +89,7 @@ export const expressionRules: Record<string, RuleDef> = {
       ref("NotIn"),
       ref("InCs"),
       ref("NotInCs"),
-      kw("matches"),
-      kw("regex")
+      seq(kw("matches"), kw("regex"))
     ),
   },
 

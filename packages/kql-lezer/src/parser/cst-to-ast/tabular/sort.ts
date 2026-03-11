@@ -12,8 +12,9 @@ export function mapSortClause(
     const items = ctx.getChildren(listNode, "SortExpressionItem");
     for (const item of items) {
       const exprNode = ctx.getChild(item, "Expression");
-      const dirNode = ctx.getChild(item, "SortDirection");
-      const nullsNode = ctx.getChild(item, "NullsPosition");
+      const dirNode = ctx.getChild(item, "asc") ?? ctx.getChild(item, "desc");
+      const nullsFirst = ctx.getChild(item, "first");
+      const nullsLast = ctx.getChild(item, "last");
 
       expressions.push({
         type: "SortExpression",
@@ -21,7 +22,7 @@ export function mapSortClause(
           ? ctx.mapScalarExpression(exprNode)
           : ctx.errorNode(item, "Missing sort expression"),
         direction: dirNode ? ctx.slice(dirNode) : undefined,
-        nulls: nullsNode ? ctx.slice(nullsNode) : undefined,
+        nulls: nullsFirst ? "first" : nullsLast ? "last" : undefined,
         start: item.from,
         end: item.to,
       });
@@ -63,8 +64,9 @@ export function mapTopClause(
     const items = ctx.getChildren(sortList, "SortExpressionItem");
     for (const item of items) {
       const itemExpr = ctx.getChild(item, "Expression");
-      const dirNode = ctx.getChild(item, "SortDirection");
-      const nullsNode = ctx.getChild(item, "NullsPosition");
+      const dirNode = ctx.getChild(item, "asc") ?? ctx.getChild(item, "desc");
+      const nullsFirst = ctx.getChild(item, "first");
+      const nullsLast = ctx.getChild(item, "last");
 
       byExpressions.push({
         type: "SortExpression",
@@ -72,7 +74,7 @@ export function mapTopClause(
           ? ctx.mapScalarExpression(itemExpr)
           : ctx.errorNode(item, "Missing sort expression"),
         direction: dirNode ? ctx.slice(dirNode) : undefined,
-        nulls: nullsNode ? ctx.slice(nullsNode) : undefined,
+        nulls: nullsFirst ? "first" : nullsLast ? "last" : undefined,
         start: item.from,
         end: item.to,
       });

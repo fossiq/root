@@ -1,176 +1,123 @@
-# AI Agent Instructions for Fossiq
+# Fossiq Agent Instructions
 
-Instructions for AI agents on the Fossiq codebase, organized by priority.
+## CRITICAL RULES (violations = failure)
+- NO auto-commit; ask "Commit with: [msg]?" before every `git commit`; wait explicit yes
+- ALWAYS `git fetch origin && git pull origin main` before new branches
+- NO global tool installs (`brew`, `npm install -g`) without explicit approval
+- NO Docker container starts without approval
+- NO issue/PR/comment without disclaimer: `---\n_This {issue|PR|comment} was created by an AI agent on behalf of @<username>._` (get username: `gh api user -q .login`)
+- NO suppressing warnings/errors/logs — always ask user
 
-## CRITICAL: System & Safety Rules
+## COMMUNICATION
+- C4: Clear Concise Correct Complete. No summaries/apologies. Markdown+code blocks. `path/file.ts#L1-10` refs.
 
-**Must be followed without exception:**
+## RUNTIME
+- Bun only: `bun x` not npx, `bun run` not npm run, `bun test` not jest/vitest
+- TypeScript ESM, functional/pure preferred
+- Search docs before assuming library behavior (WebSearch or context7 MCP)
 
-- Never install global tools (`brew install`, `npm install -g`, etc.) without explicit user approval.
-- Never start Docker containers without explicit user approval.
-- Never modify system configuration outside the project directory.
-- **Never auto-commit without explicit user approval**:
-  - Before every `git commit`, ask: "Should I commit these changes with message: [message]?"
-  - Wait for explicit approval.
-  - Only exception: User states at session start "you can auto-commit from now on".
-  - Skipping this is a critical failure.
-- Do not patch issues; always ask for approval first.
-- **Always fetch and pull main before new branches**:
-  - Run `git fetch origin && git pull origin main` first.
-  - Skipping this is a critical failure.
-- Never suppress, hide, or eliminate issues (e.g., silence warnings/errors, delete logs, modify configs to hide problems). Always ask user instead.
+## CODE QUALITY
+- Files <150 lines; small single-responsibility functions
+- No `any` without `@typescript-eslint/no-explicit-any` + comment
+- No barrel files (index.ts re-exports); import directly
+- No planning terms ("phase1") in names/comments
+- `bun run lint` to check; `bun run lint:fix` to fix
+- Error handling: descriptive messages
 
-## HIGH: Communication & Output
+## DEBUGGING CONTEXT TO PROVIDE UPFRONT
+- Exact file paths+line ranges, git branch/SHA, full error/stack, test counts, build artifact status
+- Never make user discover repo structure, branches, tests, deps, labels
 
-- **C4 Rule (Most Important)**: All content creation and thoughts must be Clear, Concise, Correct, Complete, and Confident/Assertive.
-- Keep responses very concise; avoid redundancy.
-- No large summaries or excessive apologies.
-- Use markdown with code blocks, e.g., `path/to/file.ts#L1-10`.
-
-## HIGH: Code Style & Architecture
-
-### Runtime & Tools
-
-- Use Bun: `bun x` (not `npx`), `bun run` (not `npm run`).
-- TypeScript ESM; prefer functional programming and pure functions.
-- Use `$` for single-line shell operations in scripts; move conditionals to TypeScript.
-- Never assume library/spec behavior—always search official docs first (via WebSearch or context7 MCP).
-
-### Code Quality
-
-- Small, single-responsibility functions with descriptive names.
-- Keep files <150 lines; split large ones.
-- Organize related code in subdirectories.
-- Handle errors descriptively.
-- Run `bun run lint` to check.
-- Avoid 'any' types; use ESLint ignores (@typescript-eslint/no-explicit-any) only when stronger typing is impossible, with explanatory comments.
-- No planning terms (e.g., "phase1") in names/comments—use descriptive/feature names.
-- Avoid barrel files (index.ts files that re-export everything); import directly from specific modules.
-
-### Template Usage (Eta.js)
-
-- **Whitespace Control**: Eta templates preserve all whitespace, including newlines. Use `<%- %>` to trim whitespace before/after tags for precise output control.
-- **Template Loading**: Load and compile templates once at module initialization; cache for performance.
-- **Section-Based Rendering**: For complex outputs, split into separate templates per section and join results in TypeScript to maintain control over separators.
-- **Error Handling**: Template compilation/rendering errors should be caught and reported descriptively.
-- **Separation of Concerns**: Keep logic in TypeScript; use templates only for string formatting and iteration.
-
-### Architecture
-
-- Monorepo with `packages/` workspaces.
-- Clear package boundaries; separate concerns.
-- Add features only when requested.
-
-## HIGH: Debugging Context & Efficiency
-
-Provide upfront context to minimize exploration:
-
-- Exact file paths and relationships.
-- Git status/branch/SHAs.
-- Full error messages/stack traces.
-- Test results/counts/locations.
-- Dependencies between changes.
-- Build artifact status.
-
-**Avoid forcing discovery** of repo structure, branches, tests, dependencies, labels, or build steps.
-
-**Example context:**
-
+## BUILD SYSTEM
 ```
-Working on between operator in kql-lezer.
-- Files: packages/kql-lezer/src/kql.grammar (L261-263), packages/kql-to-duckdb/src/translator.ts
-- Tests: packages/kql-lezer/tests/index.test.ts (88 passing), packages/kql-to-duckdb/tests/index.test.ts (114 passing)
-- Branch: main, clean
-- Labels: enhancement, agent, ui
+bun install          # REQUIRED after clone; sets up workspace symlinks
+bun run build        # all packages via turbo
+cd packages/X && bun run build   # single package
+bun test             # tests
+bun run lint / lint:fix
 ```
 
-## HIGH: Development Workflow
+## MONOREPO STRUCTURE
+- `packages/` workspaces, `@fossiq/kebab-case` naming, internal deps `workspace:*`
+- Build order deps: `kql-ast` → `kql-lezer` → `kql-to-duckdb` → `ui`
+- After adding package: dir + package.json + copy tsconfig.json + minimal src/index.ts
 
-### GitHub Interactions
+## GITHUB
+- `gh` CLI only
+- Actions debug: `gh run view <id>` → `gh run view <id> --job=<jid>` → `gh run view --log-failed --job=<jid>`
 
-- Use `gh` CLI exclusively.
-- **Mandatory disclaimer** on all issues/PRs/comments:
-  - Get username: `gh api user -q .login`
-  - Append exactly:
-    ```
-    ---
-    _This {issue|PR|comment} was created by an AI agent on behalf of @<username>._
-    ```
-  - Forgetting this is a critical failure.
+## TESTING
+- No testing during dev; test after source changes with `bun test`
+- `cd packages/<pkg> && bun test`
 
-### GitHub Actions Debugging
+## MCP SERVERS
+Prefer MCP over manual searches when available.
 
-1. `gh run view <run-id>`
-2. `gh run view <run-id> --job=<job-id>`
-3. `gh run view --log-failed --job=<job-id>`
-4. Check workflow YAML and repo files as needed.
+---
 
-### Before Changes
+## PACKAGE GUIDES
 
-- Always read files first.
-- Research facts upfront.
-- Limit fix attempts (1-2), then defer to user.
-
-### Testing
-
-- No testing during development; test only after completion if source changed.
-- Use `bun test`.
-
-### Documentation (After Any Feature)
-
-- Mark checklists complete.
-  Add discovered patterns/gotchas to guides.
-
-## HIGH: MCP Servers
-
-Always prefer MCP servers over manual searches when available.
-
-## MEDIUM: Tool Usage
-
-- Limit file reads; pipe large outputs (`head`, `tail`, `rg`).
-- Never create standalone setup/explanation files or boilerplate unless asked.
-
-## Package-Specific Guides
-
-### @fossiq/kql-lezer
-
-- Purpose: Real-time KQL highlighting (no WASM).
-- Grammar sources: `src/grammar/` (TypeScript files defining tokens, rules, precedence)
-- Generated files (DO NOT EDIT): `src/kql.grammar`, `src/parser.ts`, `src/parser.terms.ts`
-- Grammar workflow:
-  1. Edit TypeScript sources in `src/grammar/` (tokens, rules, plugins)
-  2. Run `bun run build` - auto-generates grammar → parser → compiles TS
-  3. Update `src/parser/cst-to-ast/` if adding new constructs
-  4. Run `bun test` to verify
-- Generated files are gitignored - always regenerated on build
-- Status: 110 tests passing.
+### @fossiq/lezer-grammar-generator
+- Generates Lezer `.grammar` files from TypeScript DSL
+- dist/index.js = compiled; src/ = sources. dist is what bun uses (resolves via package.json "main")
+- **BUG FIXED**: `convertRegexToLezer` step5 `(?<!!)\[` must be `(?<![$!])\[` to prevent double-processing `$[0-9]`
+- **BUG FIXED**: `convertRegexToLezer` step3 must replace `[0-9]` BEFORE `\d`; doing `\d→$[0-9]` first then `[0-9]→$[0-9]` double-converts to `$$[0-9]`
+- **BUG FIXED**: `serializeExpr` seq case must parenthesize `choice` children: `seq(choice(A,B), C)` → `(A | B) C` not `A | B C`
+- `$[0-9]` = lezer char class syntax; `@digit`/`@asciiLetter` = INVALID in lezer-generator CLI (do NOT use)
+- `kw("term")` → raw `kw<"term">` → expands via macro to `@specialize[@name=term]<Identifier, "term">`
+- `seq(kw("a"), kw("b"))` in a rule = two-token compound operator; `slice(node)` returns `"a b"` (with whitespace from source)
 
 ### @fossiq/kql-ast
+- Shared AST types only; build with `tsc`
+- Must build BEFORE kql-lezer (kql-lezer imports types)
 
-- Purpose: Shared AST types.
-- Status: Core complete.
+### @fossiq/kql-lezer
+- KQL parser, no WASM
+- Grammar sources (EDIT THESE): `src/grammar/` (TypeScript DSL)
+- Generated (DO NOT EDIT, gitignored): `src/kql.grammar`, `src/parser.ts`, `src/parser.terms.ts`
+- Build: `bun run build` → generate:grammar → build:parser → fix:parser → tsc
+- CST→AST: `src/parser/cst-to-ast/`; `slice(node)` extracts raw source text for operator name
+- `StringOp` grammar rule: operators are rule alternatives; compound `matches regex` = `seq(kw("matches"), kw("regex"))`
+- **BUG FIXED**: `sort by col desc` — grammar was `sort | order by? list` (wrong); now `(sort|order) by? list`; also CST-to-AST looked for non-existent `SortDirection`/`NullsPosition` nodes; now uses `asc`/`desc`/`first`/`last` token names directly
+- Status: 110 tests passing (154 expects)
+
+### @fossiq/kql-to-duckdb
+- Translates KQL AST → DuckDB SQL
+- Translator: `src/translator/expressions/index.ts`
+- Operator string from CST is raw source text (e.g. `"matches regex"` with space)
+- `matches regex` → `regexp_matches(col, pattern)` [FIXED]
+- `contains` → `LIKE '%val%'`, `startswith` → `LIKE 'val%'`, `endswith` → `LIKE '%val'`
+- `has` → `REGEXP '\bval\b'`, `in` → `IN (...)`, `between` → `BETWEEN x AND y`
+- `sort`/`order by col desc` → `ORDER BY col DESC` [FIXED]
+- Status: 21 tests passing
 
 ### @fossiq/ui
+- SolidJS + Vite + PicoCSS + CodeMirror6 + DuckDB WASM + TanStack Table
+- DuckDB files in `public/`; theme via DOM classes; grid truncation needs `min-width: 0`
+- PWA: `public/manifest.json` + `public/sw.js` + `index.html`
+- **Chrome app icon**: Chrome ignores `data:` URI icons in manifest. Must be actual file paths (PNG preferred). Use `bun run generate-icons` to regenerate `public/icon-192.png`, `public/icon-512.png`; `public/icon.svg` for browser favicon
+- Icon generation: `packages/ui/scripts/generate-icons.ts` (pure TS, no native deps, uses `Bun.deflateSync` for PNG encoding)
+- Status: Core complete (polishing)
 
-- Stack: SolidJS, Vite, PicoCSS, CodeMirror 6, DuckDB WASM, TanStack Table.
-- Gotchas: DuckDB files in `public/`; theme via DOM classes; grid truncation needs `min-width: 0`.
-- Status: Core complete (polishing).
+---
 
-## Monorepo Management
+## QUICK REF
+| Task | Command |
+|------|---------|
+| Install/link workspace | `bun install` |
+| Build all | `bun run build` |
+| Build pkg | `cd packages/<pkg> && bun run build` |
+| Lint | `bun run lint` |
+| Lint fix | `bun run lint:fix` |
+| Test pkg | `cd packages/<pkg> && bun test` |
+| Changeset | `bun run changeset` |
+| UI dev | `cd packages/ui && bun run dev` |
+| Regen UI icons | `cd packages/ui && bun run generate-icons` |
 
-- Packages: `@fossiq/kebab-case`; internal deps `workspace:*`.
-- Adding packages: Create dir, `package.json`, copy `tsconfig.json`, minimal `src/index.ts`.
-- Versioning: `bun run changeset`, then `version`/`release`.
-- Issues: Add `agent` label; use prefixes (`[ui]`, etc.); include disclaimer.
-
-## Quick Reference
-
-| Task         | Command                         |
-| ------------ | ------------------------------- |
-| Install deps | `bun install`                   |
-| Build all    | `bun run build`                 |
-| Lint         | `bun run lint`                  |
-| Lint fix     | `bun run lint:fix`              |
-| Test package | `cd packages/<pkg> && bun test` |
-| Changeset    | `bun run changeset`             |
-| UI dev       | `cd packages/ui && bun run dev` |
+## KNOWN GOTCHAS
+1. `bun install` REQUIRED on fresh clone; without it `@fossiq/*` workspace packages resolve to stale npm cache versions instead of local src
+2. `lezer-grammar-generator/dist/index.js` is what bun actually runs (not src/); if src changes don't take effect, check if dist needs rebuild or edit dist directly
+3. lezer-generator CLI errors on `@digit` — use `$[0-9]` in grammar tokens
+4. `seq(kw("a"), kw("b"))` in StringOp rule → operator string includes whitespace between words; use `.replace(/\s+/g, " ").trim()` for comparison
+5. DuckDB WASM files (`duckdb-eh.wasm`, `duckdb-browser-eh.worker.js`) must stay in `packages/ui/public/`; large files, don't accidentally delete
+6. Template (Eta.js): whitespace-significant; use `<%- %>` trim tags; cache compiled templates at module init

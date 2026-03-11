@@ -110,6 +110,9 @@ function translateBinaryExpression(expr: BinaryExpression): string {
         ? `'\\b${(expr.right as StringLiteral).value}\\b'`
         : translateExpression(expr.right);
     return `${left} NOT REGEXP ${right}`;
+  } else if (operator.replace(/\s+/g, " ").trim() === "matches regex") {
+    const right = translateExpression(expr.right);
+    return `regexp_matches(${left}, ${right})`;
   } else if (operator === "in") {
     const right = translateExpression(expr.right);
     return `${left} IN ${right}`;
