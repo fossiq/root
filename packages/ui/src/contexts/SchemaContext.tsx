@@ -30,6 +30,8 @@ interface SchemaContextType {
   addTable: (file: File, fileHandle?: FileSystemFileHandle) => Promise<void>;
   removeTable: (tableName: string) => Promise<void>;
   loading: () => boolean;
+  loadProgress: () => number;
+  loadStatus: () => string;
   db: () => duckdb.AsyncDuckDB | null;
   conn: () => duckdb.AsyncDuckDBConnection | null;
   pendingRestoreCount: () => number;
@@ -46,6 +48,8 @@ interface PendingFile {
 export function SchemaProvider(props: { children: JSX.Element }) {
   const [tables, setTables] = createSignal<Table[]>([]);
   const [loading, setLoading] = createSignal(true);
+  const [loadProgress, setLoadProgress] = createSignal(0);
+  const [loadStatus, setLoadStatus] = createSignal("Starting…");
   const [db, setDb] = createSignal<duckdb.AsyncDuckDB | null>(null);
   const [conn, setConn] = createSignal<duckdb.AsyncDuckDBConnection | null>(
     null
@@ -124,24 +128,54 @@ export function SchemaProvider(props: { children: JSX.Element }) {
   onMount(async () => {
     try {
       const logger = new duckdb.ConsoleLogger();
-      // Use static path for worker, assumes it's served from public root
       const worker = new Worker("/duckdb-browser-eh.worker.js");
-
       const newDb = new duckdb.AsyncDuckDB(logger, worker);
-      // Use static path for WASM
+
+      // Pre-fetch WASM with progress tracking. The service worker caches it,
+      // so duckdb's subsequent fetch hits the SW cache instantly.
+      setLoadStatus("Downloading DuckDB…");
+      setLoadProgress(5);
+      try {
+        const resp = await fetch("/duckdb-eh.wasm");
+        const total = parseInt(resp.headers.get("Content-Length") ?? "0", 10);
+        if (total > 0 && resp.body) {
+          const reader = resp.body.getReader();
+          let received = 0;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            if (value) {
+              received += value.length;
+              setLoadProgress(Math.round(5 + (received / total) * 70));
+            }
+          }
+        }
+      } catch {
+        // Non-fatal: duckdb will still fetch it directly
+      }
+
+      setLoadProgress(80);
+      setLoadStatus("Initializing database…");
       await newDb.instantiate("/duckdb-eh.wasm");
+
+      setLoadProgress(92);
+      setLoadStatus("Connecting…");
       const newConn = await newDb.connect();
 
       setDb(newDb);
       setConn(newConn);
 
-      // Restore previously loaded files
+      setLoadProgress(97);
+      setLoadStatus("Restoring files…");
       await restoreStoredFiles(newDb, newConn);
 
+      setLoadProgress(100);
+      setLoadStatus("Ready");
       setLoading(false);
       console.log("DuckDB initialized");
     } catch (e) {
       console.error("Failed to initialize DuckDB", e);
+      setLoadStatus("Failed to initialize");
       setLoading(false);
     }
   });
@@ -241,6 +275,8 @@ export function SchemaProvider(props: { children: JSX.Element }) {
         addTable,
         removeTable,
         loading,
+        loadProgress,
+        loadStatus,
         db,
         conn,
         pendingRestoreCount,

@@ -10,6 +10,7 @@ import ResultsTable from "./components/ResultsTable";
 import { SchemaProvider, useSchema } from "./contexts/SchemaContext";
 import { Component, createSignal, createEffect, Show } from "solid-js";
 import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
+import SplashScreen from "./components/SplashScreen";
 
 const STORAGE_KEY_QUERY = "fossiq-query";
 const STORAGE_KEY_RESULTS = "fossiq-results";
@@ -160,6 +161,7 @@ const AppContent: Component = () => {
 export default function App() {
   return (
     <SchemaProvider>
+      <SplashScreen />
       <AppContent />
     </SchemaProvider>
   );

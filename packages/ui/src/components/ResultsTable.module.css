@@ -1,0 +1,106 @@
+.container {
+  height: 100%;
+  overflow: auto;
+  position: relative;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-secondary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.th {
+  padding: 0.5rem 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: left;
+  border-bottom: 2px solid var(--border-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thSortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.thRowNumber {
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  text-align: right;
+  color: var(--text-secondary);
+  background-color: var(--bg-secondary);
+}
+
+.rowEven {
+  background-color: var(--bg-primary);
+}
+
+.rowOdd {
+  background-color: var(--bg-secondary);
+}
+
+.cell {
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.cellRowNumber {
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  background-color: var(--bg-secondary);
+  font-weight: 500;
+  cursor: default;
+}
+
+.spacerCell {
+  padding: 0;
+  border: none;
+}
+
+.tooltip {
+  position: fixed;
+  max-width: 400px;
+  max-height: 200px;
+  overflow: auto;
+  padding: 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.tooltipClose {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.tooltipContent {
+  margin-top: 0.5rem;
+}

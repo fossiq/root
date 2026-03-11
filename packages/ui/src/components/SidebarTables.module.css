@@ -1,0 +1,162 @@
+.tablesList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 1rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.tableItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  align-items: center;
+  gap: 0;
+  padding: 0.5rem 0;
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.tableHeader:hover .removeTableBtn {
+  opacity: 0.6;
+}
+
+.tableHeaderCol1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tableHeaderCol2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsed .tableHeaderCol2 {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.tableEmoji {
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.tableName {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.rowCount {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.removeTableBtn {
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  height: auto;
+  margin-left: 0.25rem;
+}
+
+.removeTableBtn:hover {
+  opacity: 1 !important;
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.columnsList {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.5rem;
+  margin-top: 0;
+  line-height: 1;
+  font-family: var(--code-font);
+  font-size: var(--code-font-size);
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapsed .columnsList {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.columnItem {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.columnItem:hover {
+  color: var(--text-primary);
+  background-color: var(--sidebar-hover);
+  border-radius: 4px;
+}
+
+.treeGlyph {
+  font-family: monospace;
+  color: var(--text-secondary);
+  opacity: 0.4;
+  margin-right: 0.5rem;
+  font-size: 1.1em;
+  line-height: 1;
+}
+
+.columnName {
+  flex: 1;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  padding-inline-start: 0.5rem;
+}
+
+.columnType {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  font-family: monospace;
+}
+
+.columnIcon {
+  opacity: 0.5;
+}
