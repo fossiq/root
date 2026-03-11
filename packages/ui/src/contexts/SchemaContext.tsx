@@ -141,11 +141,12 @@ export function SchemaProvider(props: { children: JSX.Element }) {
         if (total > 0 && resp.body) {
           const reader = resp.body.getReader();
           let received = 0;
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            if (value) {
-              received += value.length;
+          let done = false;
+          while (!done) {
+            const chunk = await reader.read();
+            done = chunk.done;
+            if (chunk.value) {
+              received += chunk.value.length;
               setLoadProgress(Math.round(5 + (received / total) * 70));
             }
           }
