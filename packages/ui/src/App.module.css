@@ -1,0 +1,49 @@
+.editorPane,
+.resultsPane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.editorPane {
+  border-right: 1px solid var(--border-color);
+}
+
+.paneHeader {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+  background-color: var(--bg-secondary);
+}
+
+.paneHeaderTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-primary);
+  opacity: 0.7;
+  flex: 1;
+}
+
+.paneActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.editorContainer {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--bg-primary);
+  border: none;
+  padding: 0;
+}

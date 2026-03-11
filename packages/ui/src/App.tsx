@@ -1,17 +1,21 @@
 import "@picocss/pico";
 import "./styles/theme.css";
+import "./styles/base.css";
+import "./styles/codemirror.css";
+import "./styles/utilities.css";
+import styles from "./App.module.css";
 import Layout from "./components/Layout";
 import Editor from "./components/Editor";
 import ResultsTable from "./components/ResultsTable";
 import { SchemaProvider, useSchema } from "./contexts/SchemaContext";
 import { Component, createSignal, createEffect, Show } from "solid-js";
 import { kqlToDuckDB } from "@fossiq/kql-to-duckdb";
+import SplashScreen from "./components/SplashScreen";
 
 const STORAGE_KEY_QUERY = "fossiq-query";
 const STORAGE_KEY_RESULTS = "fossiq-results";
 
 const AppContent: Component = () => {
-  // Load persisted query and results from localStorage
   const savedQuery = localStorage.getItem(STORAGE_KEY_QUERY) || "";
   const savedResults = (() => {
     try {
@@ -29,16 +33,13 @@ const AppContent: Component = () => {
   const [isRunning, setIsRunning] = createSignal(false);
   const { conn } = useSchema();
 
-  // Persist query to localStorage when it changes
   createEffect(() => {
     localStorage.setItem(STORAGE_KEY_QUERY, query());
   });
 
-  // Persist results to localStorage when they change
   createEffect(() => {
     const currentResults = results();
     if (currentResults.length > 0) {
-      // Convert BigInt to Number for JSON serialization
       const serializable = JSON.stringify(currentResults, (_, value) =>
         typeof value === "bigint" ? Number(value) : value
       );
@@ -63,7 +64,6 @@ const AppContent: Component = () => {
       console.log("Executing SQL:", sql);
 
       const result = await connection.query(sql);
-      // result.toArray() returns Arrow Rows. toJSON() converts to plain object.
       const rows = result.toArray().map((row) => row.toJSON());
       console.log("Query Results:", rows);
       setResults(rows);
@@ -115,8 +115,8 @@ const AppContent: Component = () => {
         </div>
       }
       editorPane={
-        <div class="editor-pane">
-          <div class="editor-container">
+        <div class={styles.editorPane}>
+          <div class={styles.editorContainer}>
             <Editor
               initialValue={query()}
               onChange={setQuery}
@@ -126,8 +126,8 @@ const AppContent: Component = () => {
         </div>
       }
       resultsPane={
-        <div class="results-pane">
-          <div class="pane-header">
+        <div class={styles.resultsPane}>
+          <div class={styles.paneHeader}>
             <div
               style={{
                 display: "flex",
@@ -135,7 +135,9 @@ const AppContent: Component = () => {
                 gap: "1rem",
               }}
             >
-              <h2>Results {results().length > 0 && `(${results().length})`}</h2>
+              <h2 class={styles.paneHeaderTitle}>
+                Results {results().length > 0 && `(${results().length})`}
+              </h2>
             </div>
           </div>
           <Show when={error()}>
@@ -159,6 +161,7 @@ const AppContent: Component = () => {
 export default function App() {
   return (
     <SchemaProvider>
+      <SplashScreen />
       <AppContent />
     </SchemaProvider>
   );

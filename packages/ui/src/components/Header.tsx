@@ -1,5 +1,6 @@
 import { Component } from "solid-js";
 import Icon from "./Icon";
+import styles from "./Header.module.css";
 
 interface HeaderProps {
   onThemeToggle: () => void;
@@ -9,13 +10,13 @@ interface HeaderProps {
 
 const Header: Component<HeaderProps> = (props) => {
   return (
-    <header class="header" role="banner">
-      <div class="titlebar-content">
+    <header class={styles.header} role="banner">
+      <div class={styles.titlebarContent}>
         <div
           style={{ display: "flex", "align-items": "center", gap: "0.75rem" }}
         >
           <Icon name="logo" size={24} />
-          <h1>Fossiq</h1>
+          <h1 class={styles.title}>Fossiq</h1>
         </div>
         <div
           style={{ display: "flex", "align-items": "center", gap: "0.5rem" }}
@@ -32,7 +33,7 @@ const Header: Component<HeaderProps> = (props) => {
           <button
             onClick={props.onThemeToggle}
             title="Toggle theme"
-            class="secondary theme-toggle-btn"
+            class={`secondary ${styles.themeToggleBtn}`}
             style={{ padding: "0.5rem" }}
           >
             <Icon name="theme" size={20} />

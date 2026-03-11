@@ -1,0 +1,6 @@
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  color: inherit;
+  flex-shrink: 0;
+}

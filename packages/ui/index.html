@@ -10,7 +10,7 @@
       name="description"
       content="Fossiq - A modern UI for KQL query analysis built with SolidJS"
     />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#0c3b66" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta
       name="apple-mobile-web-app-status-bar-style"
@@ -50,14 +50,42 @@
       // Register service worker for offline support
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
+          let shouldReloadOnUpdate = false;
+
           navigator.serviceWorker
             .register("/sw.js")
             .then((registration) => {
               console.log("Service Worker registered:", registration);
+
+              registration.addEventListener("updatefound", () => {
+                const newWorker = registration.installing;
+                if (!newWorker) {
+                  return;
+                }
+
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    shouldReloadOnUpdate = true;
+                    newWorker.postMessage({ type: "SKIP_WAITING" });
+                  }
+                });
+              });
             })
             .catch((error) => {
               console.log("Service Worker registration failed:", error);
             });
+
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (!shouldReloadOnUpdate) {
+              return;
+            }
+
+            shouldReloadOnUpdate = false;
+            window.location.reload();
+          });
         });
       }
     </script>

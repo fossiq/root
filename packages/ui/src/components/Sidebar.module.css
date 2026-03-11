@@ -1,0 +1,215 @@
+.sidebar {
+  width: 280px;
+  min-width: 280px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  overflow-x: hidden;
+  overflow-y: auto;
+  flex-shrink: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    min-width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+.sidebarInner {
+  width: 280px;
+  min-width: 280px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.sidebarHeader {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 0.5rem;
+  padding: 0;
+}
+
+.sidebarHeaderCol1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebarHeaderCol2 {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed .sidebarHeaderCol2 {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.collapseToggleBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0;
+  transition: color 0.4s ease, opacity 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  opacity: 0.7;
+  height: auto;
+  flex-shrink: 0;
+  width: 2.5rem;
+  transform: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.collapseToggleBtn:hover {
+  color: var(--text-primary);
+  opacity: 1;
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.collapseToggleBtn:active {
+  background: transparent;
+  transform: none;
+}
+
+.collapseToggleBtn:focus {
+  outline: none;
+}
+
+.collapseToggleBtn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+.addSourceBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  transition: color 0.4s ease, opacity 0.4s ease, filter 0.4s ease,
+    transform 0.4s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 700;
+  opacity: 0.8;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  transform: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sidebar.collapsed .addSourceBtn {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.addSourceBtn:hover {
+  color: var(--text-primary);
+  opacity: 1;
+  background: transparent;
+  transform: none;
+  box-shadow: none;
+}
+
+.addSourceBtn:active {
+  background: transparent;
+  transform: none;
+}
+
+.addSourceBtn:focus {
+  outline: none;
+}
+
+.addSourceBtn:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .addSourceBtn:hover {
+    opacity: 1;
+  }
+}
+
+.restoreBtn {
+  width: calc(100% + 2rem);
+  margin: 0 -1rem;
+  padding: 0.75rem 1rem;
+  background-color: #dbeafe;
+  border: none;
+  border-radius: 0;
+  color: #1e40af;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: auto;
+  transition: background-color 0.2s ease,
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    filter 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .restoreBtn {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translateX(-20px);
+  pointer-events: none;
+}
+
+.restoreBtn:hover {
+  background-color: #bfdbfe;
+  transform: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .restoreBtn {
+    background-color: #1e3a5f;
+    color: #93c5fd;
+  }
+
+  .restoreBtn:hover {
+    background-color: #1e4976;
+  }
+}

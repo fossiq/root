@@ -1,0 +1,109 @@
+/* CodeMirror editor base styles */
+.cm-editor {
+  height: 100% !important;
+  font-family: var(--code-font);
+  font-size: var(--code-font-size);
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.cm-gutters {
+  background-color: var(--bg-secondary) !important;
+  border-right: 1px solid var(--border-color) !important;
+}
+
+.cm-activeLineGutter {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+.cm-activeLine {
+  background-color: rgba(59, 130, 246, 0.05) !important;
+}
+
+.cm-cursor {
+  border-left-color: var(--text-primary) !important;
+}
+
+/* CodeMirror syntax highlighting */
+.cm-keyword {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.cm-operatorKeyword {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.cm-punctuation {
+  color: var(--text-secondary);
+}
+
+.cm-operator {
+  color: var(--accent-blue);
+}
+
+.cm-number {
+  color: #a04000; /* Dark orange for light theme */
+}
+
+:root.theme-dark .cm-number {
+  color: #ffd7a0; /* Light orange for dark theme */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not(.theme-dark) .cm-number {
+    color: #ffd7a0; /* Light orange for dark theme */
+  }
+}
+
+.cm-string {
+  color: #1a1aab; /* Dark blue for light theme */
+}
+
+:root.theme-dark .cm-string {
+  color: #add8e6; /* Light blue for dark theme */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not(.theme-dark) .cm-string {
+    color: #add8e6; /* Light blue for dark theme */
+  }
+}
+
+.cm-comment {
+  color: #888;
+  font-style: italic;
+}
+
+.cm-variableName {
+  color: var(--text-primary);
+}
+
+.cm-function {
+  color: #7c3aed; /* Violet for light theme */
+}
+
+:root.theme-dark .cm-function {
+  color: #c4b5fd; /* Light violet for dark theme */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not(.theme-dark) .cm-function {
+    color: #c4b5fd; /* Light violet for dark theme */
+  }
+}
+
+.cm-typeName {
+  color: #d97706; /* Amber for light theme */
+}
+
+:root.theme-dark .cm-typeName {
+  color: #fbbf24; /* Yellow-amber for dark theme */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.theme-light):not(.theme-dark) .cm-typeName {
+    color: #fbbf24; /* Yellow-amber for dark theme */
+  }
+}
