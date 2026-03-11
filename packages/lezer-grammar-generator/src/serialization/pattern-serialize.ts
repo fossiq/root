@@ -52,11 +52,11 @@ function replaceLiteralDotsOutsideCharClasses(pattern: string): string {
  * Convert a regex pattern to Lezer's native token syntax.
  *
  * Lezer uses:
- * - $[...] for character classes
- * - @digit for [0-9]
- * - @asciiLetter for [a-zA-Z]
+ * - $[...] for character classes (e.g. $[0-9], $[a-zA-Z])
  * - ![] for negated character classes
  * - + * ? for repetition
+ *
+ * Note: @digit and @asciiLetter are NOT valid in lezer-generator CLI; use $[0-9] and $[a-zA-Z].
  *
  * This is a best-effort conversion for common patterns.
  */
